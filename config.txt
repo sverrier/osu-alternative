@@ -1,5 +1,5 @@
-[KEY]=
-[DELAY]=
-[DBNAME]=
-[USERNAME]=
-[PASSWORD]=
+[KEY]=vv5RulzDxXSuIuqQq19jSDFvUYXOJYVfqhHPXETD
+[DELAY]=1000
+[DBNAME]=osu
+[USERNAME]=postgres
+[PASSWORD]=postgres
