@@ -4,10 +4,14 @@ import json
 import user
 
 class util_api:
-    def __init__(self, client, key, delay):
-        self.client = client
-        self.key = key 
-        self.delay = delay
+    def __init__(self, config):
+        self.client = config["CLIENT"]
+        self.key = config["KEY"]
+        self.delay = config["DELAY"]
+        self.dbname = config["DBNAME"]
+        self.username = config["USERNAME"]
+        self.password = config["PASSWORD"]
+
     
     def refresh_token(self):
         try:
