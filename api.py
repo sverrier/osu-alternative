@@ -11,6 +11,7 @@ class util_api:
         self.dbname = config["DBNAME"]
         self.username = config["USERNAME"]
         self.password = config["PASSWORD"]
+        self.token = ""
 
     
     def refresh_token(self):
@@ -18,8 +19,8 @@ class util_api:
             url = "https://osu.ppy.sh/oauth/token"
             json_input_string = {
                 "grant_type": "client_credentials",
-                "client_id": "10010",
-                "client_secret": "vv5RulzDxXSuIuqQq19jSDFvUYXOJYVfqhHPXETD",
+                "client_id": self.client,
+                "client_secret": self.key,
                 "scope": "public"
             }
 

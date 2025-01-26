@@ -48,7 +48,9 @@ print("\nConfiguration values:")
 for key, value in config_values.items():
     print(f"{key} = {value}")
 
-#apiv2 = api.util_api("10010", "vv5RulzDxXSuIuqQq19jSDFvUYXOJYVfqhHPXETD", 1)
-#apiv2.refresh_token()
-#u = apiv2.get_user(6245906)
-#print(u)
+apiv2 = api.util_api(config_values)
+apiv2.refresh_token()
+u = apiv2.get_user(6245906)
+
+with open('out.txt', 'w') as f:
+    print(u, file=f)
