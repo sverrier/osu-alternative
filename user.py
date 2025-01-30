@@ -1,41 +1,46 @@
 import json
 
 class User:
+    TABLE_NAME = "user_profiles"  # Hardcoded table name
+
+    JSONB_COLUMNS = {"badges", "monthly_playcounts", "replays_watched_counts", "user_achievements"}
+
     def __init__(self, user):
         self.user = user
 
     def __str__(self):
         return json.dumps(self.user, indent=4)
 
-    def generate_hybrid_insert_query(table_name, json_object, jsonb_columns):
+    def escape_sql_string(self, value):
         """
-        Generate an INSERT query for a PostgreSQL table with JSONB and relational columns.
+        Escape single quotes in SQL strings by replacing ' with ''.
+        Also wraps the value in single quotes.
         """
-        # Separate JSONB columns and standard columns
-        standard_columns = {key: value for key, value in json_object.items() if key not in jsonb_columns}
-        jsonb_data = {key: json_object[key] for key in jsonb_columns if key in json_object}
+        if value is None:
+            return "NULL"  # Handle NULL values properly
+        return "'" + value.replace("'", "''") + "'"  # Correctly escape single quotes
 
-        # Prepare columns and values for the query
-        standard_columns_part = ', '.join(f'"{key}"' for key in standard_columns.keys())
-        jsonb_columns_part = ', '.join(f'"{key}"' for key in jsonb_data.keys())
+    def generate_insert_query(self):
+        """
+        Generate an INSERT SQL query for the PostgreSQL 'user_profiles' table.
+        Properly escapes strings and stores specific fields as JSONB.
+        """
 
-        standard_values_part = ', '.join(
-            f"'{value}'" if isinstance(value, str) else
+        # Extract JSONB fields
+        jsonb_data = {key: self.user.pop(key, {}) for key in self.JSONB_COLUMNS}
+
+        # Merge all data together
+        final_data = {**self.user, **jsonb_data}
+
+        # Prepare column names and values
+        columns = ', '.join(f'"{col}"' for col in final_data.keys())
+        values = ', '.join(
+            f"'{json.dumps(value)}'::jsonb" if col in self.JSONB_COLUMNS else
+            self.escape_sql_string(value) if isinstance(value, str) else
             ('TRUE' if value is True else 'FALSE' if value is False else 'NULL' if value is None else str(value))
-            for value in standard_columns.values()
+            for col, value in final_data.items()
         )
-        jsonb_values_part = ', '.join(f"'{json.dumps(value)}'" for value in jsonb_data.values())
 
-        # Combine into one query
-        all_columns = f"{standard_columns_part}, {jsonb_columns_part}" if jsonb_columns_part else standard_columns_part
-        all_values = f"{standard_values_part}, {jsonb_values_part}" if jsonb_values_part else standard_values_part
-
-        query = f"INSERT INTO {table_name} ({all_columns}) VALUES ({all_values});"
+        # Generate SQL query
+        query = f"INSERT INTO {self.TABLE_NAME} ({columns}) VALUES ({values});"
         return query
-
-    def generateInsert(self):
-        table_name = "user_profiles"
-        jsonb_columns = ["badges", "monthly_playcounts", "replays_watched_counts", "user_achievements"]
-
-        # Generate the query
-        query = self.generate_hybrid_insert_query(table_name, self.user, jsonb_columns)

@@ -52,5 +52,8 @@ apiv2 = api.util_api(config_values)
 apiv2.refresh_token()
 u = apiv2.get_user(6245906)
 
-with open('out.txt', 'w') as f:
-    print(u, file=f)
+b = apiv2.get_beatmap(714001)
+
+print(u.generate_insert_query())
+
+print(b.generate_insert_query())
