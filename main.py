@@ -50,10 +50,29 @@ for key, value in config_values.items():
 
 apiv2 = api.util_api(config_values)
 apiv2.refresh_token()
+
+print("Go")
+
 u = apiv2.get_user(6245906)
+
+with open('user.txt', 'w') as f:
+    print(u, file=f)
+
+s = apiv2.get_beatmap_scores(714001)
+
+with open('beatmap_scores.txt', 'w') as f:
+    print(s, file=f)
 
 b = apiv2.get_beatmap(714001)
 
-print(u.generate_insert_query())
+with open('beatmap.txt', 'w') as f:
+    print(b, file=f)
 
-print(b.generate_insert_query())
+with open('score_sql.txt', 'w') as f:
+    print(s.generate_insert_query(), file=f)
+
+with open('user_sql.txt', 'w') as f:
+    print(u.generate_insert_query(), file=f)
+
+with open('beatmap_sql.txt', 'w') as f:
+    print(b.generate_insert_query(), file=f)

@@ -3,6 +3,7 @@ import time
 import json
 import user
 import beatmap
+import score
 
 class util_api:
     def __init__(self, config):
@@ -118,3 +119,46 @@ class util_api:
                 self.refresh_token()
         
         return b
+
+    def get_beatmap_scores(self, beatmap_id):
+        complete = False
+        b = None
+        magnitude = 1
+        backoff = 2  # Assuming a backoff value, adjust as necessary
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/solo-scores"
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                    list = json_response.get("scores", [])
+                    for l in list:
+                        b = score.Score(l)
+                        print(l)
+                        print(b)
+                        break
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                self.delay = backoff * magnitude
+                time.sleep(self.delay)
+                magnitude += 1
+                self.refresh_token()
+        
+        return b
+
