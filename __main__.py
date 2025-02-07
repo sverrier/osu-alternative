@@ -1,7 +1,8 @@
-from .user import User
-from .beatmap import Beatmap
-from .score import Score
-from .api import util_api
+from osualt.user import User
+from osualt.beatmap import Beatmap
+from osualt.score import Score
+from osualt.api import util_api
+from osualt.db import db
 
 import os
 
@@ -18,6 +19,8 @@ def create_config_file(file_name):
     config["DBNAME"] = input("Enter the DBNAME value (Postgres DB name): ").strip()
     config["USERNAME"] = input("Enter the USERNAME value (Postgres username): ").strip()
     config["PASSWORD"] = input("Enter the PASSWORD value (Postgres password): ").strip()
+    config["PORT"] = input("Enter the PORT value: ").strip()
+
     
     # Write to file
     with open(file_name, "w") as file:
@@ -49,6 +52,10 @@ else:
 print("\nConfiguration values:")
 for key, value in config_values.items():
     print(f"{key} = {value}")
+
+db = db(config_values)
+
+db.createBeatmapTable()
 
 apiv2 = util_api(config_values)
 apiv2.refresh_token()
