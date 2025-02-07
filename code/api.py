@@ -1,9 +1,9 @@
 import requests
 import time
 import json
-import user
-import beatmap
-import score
+from .user import User
+from .beatmap import Beatmap
+from .score import Score
 
 class util_api:
     def __init__(self, config):
@@ -67,7 +67,7 @@ class util_api:
                     json_response = response.json()
                     if not json_response:
                         return None
-                    u = user.User(json_response)
+                    u = User(json_response)
                 else:
                     raise Exception(f"Unexpected response code: {status}")
                 
@@ -104,7 +104,7 @@ class util_api:
                     json_response = response.json()
                     if not json_response:
                         return None
-                    b = beatmap.Beatmap(json_response)
+                    b = Beatmap(json_response)
                 else:
                     raise Exception(f"Unexpected response code: {status}")
                 
@@ -143,7 +143,7 @@ class util_api:
                         return None
                     list = json_response.get("scores", [])
                     for l in list:
-                        b = score.Score(l)
+                        b = Score(l)
                         print(l)
                         print(b)
                         break

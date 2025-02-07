@@ -1,5 +1,7 @@
-import user
-import api
+from .user import User
+from .beatmap import Beatmap
+from .score import Score
+from .api import util_api
 
 import os
 
@@ -48,7 +50,7 @@ print("\nConfiguration values:")
 for key, value in config_values.items():
     print(f"{key} = {value}")
 
-apiv2 = api.util_api(config_values)
+apiv2 = util_api(config_values)
 apiv2.refresh_token()
 
 print("Go")
