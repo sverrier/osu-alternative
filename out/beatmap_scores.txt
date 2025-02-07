@@ -55,7 +55,7 @@
         "is_deleted": false,
         "is_online": false,
         "is_supporter": false,
-        "last_visit": "2025-01-31T17:35:52+00:00",
+        "last_visit": "2025-02-07T16:26:15+00:00",
         "pm_friends_only": false,
         "profile_colour": null,
         "username": "wuhua",

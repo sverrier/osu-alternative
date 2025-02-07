@@ -4,6 +4,7 @@ import json
 from .user import User
 from .beatmap import Beatmap
 from .score import Score
+from .jsonDataObject import jsonDataObject
 
 class util_api:
     def __init__(self, config):

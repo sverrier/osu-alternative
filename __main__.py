@@ -55,33 +55,31 @@ for key, value in config_values.items():
 
 db = db(config_values)
 
-db.createBeatmapTable()
-
 apiv2 = util_api(config_values)
 apiv2.refresh_token()
 
 print("Go")
 
+b = apiv2.get_beatmap(714001)
+
+with open(r'out\beatmap.txt', 'w') as f:
+    print(b, file=f)
+
+with open(r'out\beatmap_sql.txt', 'w') as f:
+    print(b.generate_insert_query(), file=f)
+
 u = apiv2.get_user(6245906)
 
-with open('user.txt', 'w') as f:
+with open(r'out\user.txt', 'w') as f:
     print(u, file=f)
 
 s = apiv2.get_beatmap_scores(714001)
 
-with open('beatmap_scores.txt', 'w') as f:
+with open(r'out\beatmap_scores.txt', 'w') as f:
     print(s, file=f)
 
-b = apiv2.get_beatmap(714001)
-
-with open('beatmap.txt', 'w') as f:
-    print(b, file=f)
-
-with open('score_sql.txt', 'w') as f:
+with open(r'out\score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-with open('user_sql.txt', 'w') as f:
+with open(r'out\user_sql.txt', 'w') as f:
     print(u.generate_insert_query(), file=f)
-
-with open('beatmap_sql.txt', 'w') as f:
-    print(b.generate_insert_query(), file=f)
