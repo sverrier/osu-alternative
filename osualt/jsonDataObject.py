@@ -27,6 +27,7 @@ class jsonDataObject:
         # Flatten fields specified in FLATTEN_COLUMNS
         flattened_data = {}
         for field in self.flatten_columns:
+            print(field)
             field_data = self.json.pop(field, {})
             for key, value in field_data.items():
                 flattened_data[f"{field}_{key}"] = value

@@ -1,5 +1,5 @@
 import json
-from .jsonDataObject import jsonDataObject
+from osualt.jsonDataObject import jsonDataObject
 
 class Beatmap(jsonDataObject):
     table = "beatmaps"  # Hardcoded table name

@@ -1,4 +1,5 @@
 import psycopg
+import os
 
 class db:
     def __init__(self, config):
@@ -7,190 +8,22 @@ class db:
         self.password = config["PASSWORD"]
         self.port = config["PORT"]
 
-    def createBeatmapTable(self):
-        with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password) as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                CREATE TABLE beatmaps (
-                    beatmapset_id INTEGER,
-                    difficulty_rating NUMERIC,
-                    id INTEGER PRIMARY KEY,
-                    mode TEXT,
-                    status TEXT,
-                    total_length INTEGER,
-                    user_id INTEGER,
-                    version TEXT,
-                    accuracy INTEGER,
-                    ar NUMERIC,
-                    bpm NUMERIC,
-                    convert BOOLEAN,
-                    count_circles INTEGER,
-                    count_sliders INTEGER,
-                    count_spinners INTEGER,
-                    cs NUMERIC,
-                    deleted_at TIMESTAMP WITH TIME ZONE,
-                    drain NUMERIC,
-                    hit_length INTEGER,
-                    is_scoreable BOOLEAN,
-                    last_updated TIMESTAMP WITH TIME ZONE,
-                    mode_int INTEGER,
-                    passcount INTEGER,
-                    playcount INTEGER,
-                    ranked INTEGER,
-                    url TEXT,
-                    checksum TEXT,
-                    max_combo INTEGER,
-                    beatmapset_artist TEXT,
-                    beatmapset_artist_unicode TEXT,
-                    beatmapset_creator TEXT,
-                    beatmapset_favourite_count INTEGER,
-                    beatmapset_nsfw BOOLEAN,
-                    beatmapset_offset INTEGER,
-                    beatmapset_play_count INTEGER,
-                    beatmapset_preview_url TEXT,
-                    beatmapset_source TEXT,
-                    beatmapset_spotlight BOOLEAN,
-                    beatmapset_status TEXT,
-                    beatmapset_title TEXT,
-                    beatmapset_title_unicode TEXT,
-                    beatmapset_user_id INTEGER,
-                    beatmapset_video BOOLEAN,
-                    beatmapset_bpm NUMERIC,
-                    beatmapset_can_be_hyped BOOLEAN,
-                    beatmapset_deleted_at TIMESTAMP WITH TIME ZONE,
-                    beatmapset_discussion_enabled BOOLEAN,
-                    beatmapset_discussion_locked BOOLEAN,
-                    beatmapset_is_scoreable BOOLEAN,
-                    beatmapset_last_updated TIMESTAMP WITH TIME ZONE,
-                    beatmapset_legacy_thread_url TEXT,
-                    beatmapset_ranked INTEGER,
-                    beatmapset_ranked_date TIMESTAMP WITH TIME ZONE,
-                    beatmapset_storyboard BOOLEAN,
-                    beatmapset_submitted_date TIMESTAMP WITH TIME ZONE,
-                    beatmapset_tags TEXT,
-                    nominations_summary JSONB,
-                    failtimes JSONB,
-                    owners JSONB,
-                    covers JSONB,
-                    availability JSONB
-                    );
-                """)
-            conn.commit()
-    def createUserTable(self):
-        with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password) as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    CREATE TABLE user_profiles (
-                    avatar_url TEXT,
-                    country_code TEXT,
-                    default_group TEXT,
-                    id INTEGER PRIMARY KEY,
-                    is_active BOOLEAN,
-                    is_bot BOOLEAN,
-                    is_deleted BOOLEAN,
-                    is_online BOOLEAN,
-                    is_supporter BOOLEAN,
-                    last_visit TIMESTAMP WITH TIME ZONE,
-                    pm_friends_only BOOLEAN,
-                    profile_colour TEXT,
-                    username TEXT,
-                    cover_url TEXT,
-                    discord TEXT,
-                    has_supported BOOLEAN,
-                    interests TEXT,
-                    join_date TIMESTAMP WITH TIME ZONE,
-                    location TEXT,
-                    max_blocks INTEGER,
-                    max_friends INTEGER,
-                    occupation TEXT,
-                    playmode TEXT,
-                    playstyle TEXT[],
-                    post_count INTEGER,
-                    profile_hue TEXT,
-                    profile_order TEXT[],
-                    title TEXT,
-                    title_url TEXT,
-                    twitter TEXT,
-                    website TEXT,
-                    country JSONB,
-                    cover JSONB,
-                    kudosu JSONB,
-                    account_history JSONB,
-                    active_tournament_banner JSONB,
-                    active_tournament_banners JSONB,
-                    beatmap_playcounts_count INTEGER,
-                    comments_count INTEGER,
-                    daily_challenge_user_stats JSONB,
-                    favourite_beatmapset_count INTEGER,
-                    follower_count INTEGER,
-                    graveyard_beatmapset_count INTEGER,
-                    groups JSONB,
-                    guest_beatmapset_count INTEGER,
-                    loved_beatmapset_count INTEGER,
-                    mapping_follower_count INTEGER,
-                    nominated_beatmapset_count INTEGER,
-                    page JSONB,
-                    pending_beatmapset_count INTEGER,
-                    previous_usernames TEXT[],
-                    rank_highest JSONB,
-                    ranked_beatmapset_count INTEGER,
-                    scores_best_count INTEGER,
-                    scores_first_count INTEGER,
-                    scores_pinned_count INTEGER,
-                    scores_recent_count INTEGER,
-                    statistics JSONB,
-                    support_level INTEGER,
-                    team JSONB,
-                    rank_history JSONB,
-                    rankHistory JSONB,
-                    ranked_and_approved_beatmapset_count INTEGER,
-                    unranked_beatmapset_count INTEGER,
-                    badges JSONB,
-                    user_achievements JSONB,
-                    monthly_playcounts JSONB,
-                    replays_watched_counts JSONB
-                );
-                """)
-            conn.commit()
+    def execSetupFiles(self):
+         for filename in sorted(os.listdir("sql")):
+            if filename.endswith(".sql"):
+                file_path = os.path.join("sql", filename)
+                print(f"Executing {file_path}...")
+                
+                with open(file_path, 'r', encoding='utf-8') as sql_file:
+                    sql_script = sql_file.read()
+                    try:
+                        self.executeSQL(sql_script)
+                        print(f"Successfully executed {filename}")
+                    except Exception as e:
+                        print(f"Error executing {filename}: {e}")
 
-    def createScoreTable(self):
+    def executeSQL(self, query):
         with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                CREATE TABLE scores (
-                    classic_total_score BIGINT,
-                    preserve BOOLEAN,
-                    processed BOOLEAN,
-                    ranked BOOLEAN,
-                    beatmap_id INTEGER,
-                    best_id BIGINT,
-                    id BIGINT PRIMARY KEY,
-                    rank TEXT,
-                    type TEXT,
-                    user_id INTEGER,
-                    accuracy NUMERIC,
-                    build_id INTEGER,
-                    ended_at TIMESTAMP WITH TIME ZONE,
-                    has_replay BOOLEAN,
-                    is_perfect_combo BOOLEAN,
-                    legacy_perfect BOOLEAN,
-                    legacy_score_id BIGINT,
-                    legacy_total_score BIGINT,
-                    max_combo INTEGER,
-                    passed BOOLEAN,
-                    pp NUMERIC,
-                    ruleset_id INTEGER,
-                    started_at TIMESTAMP WITH TIME ZONE,
-                    total_score BIGINT,
-                    replay BOOLEAN,
-                    statistics_great INTEGER,
-                    statistics_ignore_hit INTEGER,
-                    statistics_slider_tail_hit INTEGER,
-                    maximum_statistics_great INTEGER,
-                    maximum_statistics_ignore_hit INTEGER,
-                    maximum_statistics_slider_tail_hit INTEGER,
-                    mods JSONB,
-                    current_user_attributes JSONB
-                );
-                """)
-            conn.commit()
+                cur.execute(query)
+                conn.commit()

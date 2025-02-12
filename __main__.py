@@ -55,6 +55,8 @@ for key, value in config_values.items():
 
 db = db(config_values)
 
+db.execSetupFiles()
+
 apiv2 = util_api(config_values)
 apiv2.refresh_token()
 
@@ -83,3 +85,5 @@ with open(r'out\score_sql.txt', 'w') as f:
 
 with open(r'out\user_sql.txt', 'w') as f:
     print(u.generate_insert_query(), file=f)
+
+db.executeSQL(b.generate_insert_query())

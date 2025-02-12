@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS beatmaps;
+
 CREATE TABLE beatmaps (
     beatmapset_id INTEGER,
     difficulty_rating NUMERIC,
@@ -31,6 +33,7 @@ CREATE TABLE beatmaps (
     beatmapset_artist_unicode TEXT,
     beatmapset_creator TEXT,
     beatmapset_favourite_count INTEGER,
+    beatmapset_hype JSONB,
     beatmapset_nsfw BOOLEAN,
     beatmapset_offset INTEGER,
     beatmapset_play_count INTEGER,
@@ -40,6 +43,7 @@ CREATE TABLE beatmaps (
     beatmapset_status TEXT,
     beatmapset_title TEXT,
     beatmapset_title_unicode TEXT,
+    beatmapset_track_id INTEGER,
     beatmapset_user_id INTEGER,
     beatmapset_video BOOLEAN,
     beatmapset_bpm NUMERIC,
@@ -55,9 +59,10 @@ CREATE TABLE beatmaps (
     beatmapset_storyboard BOOLEAN,
     beatmapset_submitted_date TIMESTAMP WITH TIME ZONE,
     beatmapset_tags TEXT,
-    nominations_summary JSONB,
     failtimes JSONB,
+    beatmapset_availability JSONB,
     owners JSONB,
-    covers JSONB,
-    availability JSONB
+    beatmapset_nominations_summary JSONB,
+    beatmapset_covers JSONB,
+    beatmapset_ratings JSONB
 );
