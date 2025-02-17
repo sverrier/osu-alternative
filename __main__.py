@@ -87,3 +87,5 @@ with open(r'out\user_sql.txt', 'w') as f:
     print(u.generate_insert_query(), file=f)
 
 db.executeSQL(b.generate_insert_query())
+db.executeSQL(u.generate_insert_query())
+db.executeSQL(s.generate_insert_query())

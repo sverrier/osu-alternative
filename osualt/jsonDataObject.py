@@ -1,11 +1,12 @@
 import json
 
 class jsonDataObject:
-    def __init__(self, json, table, flatten_columns, json_columns):
+    def __init__(self, json, table, flatten_columns, json_columns, ignore_columns):
         self.json = json
         self.table = table 
         self.flatten_columns = flatten_columns
         self.json_columns = json_columns
+        self.ignore_columns = ignore_columns
     def __str__(self):
         return json.dumps(self.json, indent=4)
 
@@ -24,10 +25,13 @@ class jsonDataObject:
         Properly escapes strings and stores specific fields as JSONB.
         """
 
+        # Ignore fields in IGNORE_COLUMNS
+        for field in self.ignore_columns:
+            self.json.pop(field, {})
+
         # Flatten fields specified in FLATTEN_COLUMNS
         flattened_data = {}
         for field in self.flatten_columns:
-            print(field)
             field_data = self.json.pop(field, {})
             for key, value in field_data.items():
                 flattened_data[f"{field}_{key}"] = value

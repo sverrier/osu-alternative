@@ -5,6 +5,7 @@ class Beatmap(jsonDataObject):
     table = "beatmaps"  # Hardcoded table name
     flatten_columns = {"beatmapset"}
     json_columns = {"beatmapset_covers", "beatmapset_nominations_summary", "beatmapset_availability", "beatmapset_ratings", "failtimes", "owners"}
+    ignore_columns = {}
 
     def __init__(self, beatmap):
-        super().__init__(beatmap, self.table, self.flatten_columns, self.json_columns)
+        super().__init__(beatmap, self.table, self.flatten_columns, self.json_columns, self.ignore_columns)
