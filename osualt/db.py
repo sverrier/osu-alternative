@@ -23,7 +23,9 @@ class db:
                         print(f"Error executing {filename}: {e}")
 
     def executeSQL(self, query):
-        with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password) as conn:
+        with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password, client_encoding="UTF8") as conn:
             with conn.cursor() as cur:
+                with open(r'out\debug.txt', 'w') as f:
+                    print(query, file=f)
                 cur.execute(query)
                 conn.commit()
