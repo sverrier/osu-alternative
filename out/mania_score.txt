@@ -1,0 +1,36 @@
+{
+    "classic_total_score": 958381,
+    "preserve": true,
+    "processed": true,
+    "ranked": true,
+    "mods": [
+        {
+            "acronym": "CL"
+        }
+    ],
+    "total_score_without_mods": 998314,
+    "beatmap_id": 4652885,
+    "best_id": null,
+    "id": 4389809915,
+    "rank": "X",
+    "type": "solo_score",
+    "user_id": 11585213,
+    "accuracy": 0.999241,
+    "build_id": null,
+    "ended_at": "2025-02-20T19:01:55Z",
+    "has_replay": true,
+    "is_perfect_combo": false,
+    "legacy_perfect": true,
+    "legacy_score_id": 607915526,
+    "legacy_total_score": 998552,
+    "max_combo": 2810,
+    "passed": true,
+    "pp": 373.507,
+    "ruleset_id": 3,
+    "started_at": null,
+    "total_score": 958381,
+    "replay": true,
+    "current_user_attributes": {
+        "pin": null
+    }
+}

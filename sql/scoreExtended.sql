@@ -5,6 +5,7 @@ CREATE TABLE scores (
     preserve BOOLEAN,
     processed BOOLEAN,
     ranked BOOLEAN,
+    total_score_without_mods INTEGER,
     beatmap_id BIGINT,
     best_id BIGINT,
     id BIGINT PRIMARY KEY,

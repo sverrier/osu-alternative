@@ -1,0 +1,73 @@
+{
+    "classic_total_score": 3362200,
+    "preserve": true,
+    "processed": true,
+    "ranked": true,
+    "maximum_statistics": {
+        "great": 298,
+        "ignore_hit": 73,
+        "slider_tail_hit": 73
+    },
+    "mods": [
+        {
+            "acronym": "HR"
+        },
+        {
+            "acronym": "HD"
+        }
+    ],
+    "statistics": {
+        "great": 298,
+        "ignore_hit": 73,
+        "slider_tail_hit": 73
+    },
+    "beatmap_id": 714001,
+    "best_id": null,
+    "id": 2470079770,
+    "rank": "XH",
+    "type": "solo_score",
+    "user_id": 2932510,
+    "accuracy": 1,
+    "build_id": 7462,
+    "ended_at": "2024-03-08T11:12:57Z",
+    "has_replay": true,
+    "is_perfect_combo": true,
+    "legacy_perfect": true,
+    "legacy_score_id": null,
+    "legacy_total_score": 0,
+    "max_combo": 371,
+    "passed": true,
+    "pp": 510.518,
+    "ruleset_id": 0,
+    "started_at": "2024-03-08T11:11:52Z",
+    "total_score": 1123600,
+    "replay": true,
+    "current_user_attributes": {
+        "pin": null
+    },
+    "user": {
+        "avatar_url": "https://a.ppy.sh/2932510?1736592996.jpeg",
+        "country_code": "MY",
+        "default_group": "default",
+        "id": 2932510,
+        "is_active": true,
+        "is_bot": false,
+        "is_deleted": false,
+        "is_online": false,
+        "is_supporter": false,
+        "last_visit": "2025-02-20T16:56:26+00:00",
+        "pm_friends_only": false,
+        "profile_colour": null,
+        "username": "wuhua",
+        "country": {
+            "code": "MY",
+            "name": "Malaysia"
+        },
+        "cover": {
+            "custom_url": "https://assets.ppy.sh/user-profile-covers/2932510/5412a88a324488866384f13e6637708b3cd8d21c1d8d3126164ca962dd4ee11b.jpeg",
+            "url": "https://assets.ppy.sh/user-cover-presets/24/5a5264eff92d34688b237087c355ca0e57dab4e6f66305660cca1a0c4f2405c9.jpeg",
+            "id": "24"
+        },
+        "team": null
+    }
+}

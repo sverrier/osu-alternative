@@ -12,19 +12,40 @@ class jsonDataObject:
         self.json_columns = json_columns
         self.ignore_columns = ignore_columns
 
+        
+    def __str__(self):
+        return json.dumps(self.jsonObject, indent=4)
+
+    def escape_sql_string(self, value):
+        """
+        Escape single quotes in SQL strings by replacing ' with ''.
+        Also wraps the value in single quotes.
+        """
+        if value is None:
+            return "NULL"  # Handle NULL values properly
+        return "'" + value.replace("'", "''") + "'"  # Correctly escape single quotes
+
+    def generate_insert_query(self):
+        """
+        Generate an INSERT SQL query for the PostgreSQL 'user_profiles' table.
+        Properly escapes strings and stores specific fields as JSONB.
+        """
+
+        tempJsonObject = self.jsonObject.copy()
+
         # Ignore fields in IGNORE_COLUMNS
         for field in self.ignore_columns:
-            self.jsonObject.pop(field, {})
+            tempJsonObject.pop(field, {})
 
         # Flatten fields specified in FLATTEN_COLUMNS
         flattened_data = {}
         for field in self.flatten_columns:
-            field_data = self.jsonObject.pop(field, {})
+            field_data = tempJsonObject.pop(field, {})
             for key, value in field_data.items():
                 flattened_data[f"{field}_{key}"] = value
 
         # Merge flattened columns with main data
-        inter_data = {**self.jsonObject, **flattened_data}
+        inter_data = {**tempJsonObject, **flattened_data}
 
         # Extract JSONB fields
         jsonb_data = {key: inter_data.pop(key, {}) for key in self.json_columns}
@@ -43,23 +64,6 @@ class jsonDataObject:
             ('TRUE' if final_data[col] is True else 'FALSE' if final_data[col] is False else 'NULL' if final_data[col] is None else str(final_data[col]))
             for col in sorted_keys
         )
-    def __str__(self):
-        return json.dumps(self.jsonObject, indent=4)
-
-    def escape_sql_string(self, value):
-        """
-        Escape single quotes in SQL strings by replacing ' with ''.
-        Also wraps the value in single quotes.
-        """
-        if value is None:
-            return "NULL"  # Handle NULL values properly
-        return "'" + value.replace("'", "''") + "'"  # Correctly escape single quotes
-
-    def generate_insert_query(self):
-        """
-        Generate an INSERT SQL query for the PostgreSQL 'user_profiles' table.
-        Properly escapes strings and stores specific fields as JSONB.
-        """
 
         # Generate SQL query
         query = f"INSERT INTO {self.table} ({self.columns}) VALUES ({self.values});"

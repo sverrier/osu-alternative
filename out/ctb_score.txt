@@ -1,0 +1,88 @@
+{
+    "classic_total_score": 2830618,
+    "preserve": true,
+    "processed": true,
+    "ranked": true,
+    "maximum_statistics": {
+        "great": 277,
+        "large_tick_hit": 2,
+        "small_tick_hit": 271
+    },
+    "mods": [
+        {
+            "acronym": "SD"
+        },
+        {
+            "acronym": "FL"
+        },
+        {
+            "acronym": "HR"
+        },
+        {
+            "acronym": "HD"
+        },
+        {
+            "acronym": "CL"
+        }
+    ],
+    "statistics": {
+        "great": 277,
+        "large_tick_hit": 2,
+        "small_tick_hit": 271
+    },
+    "total_score_without_mods": 1000000,
+    "beatmap_id": 4940785,
+    "best_id": null,
+    "id": 4390294387,
+    "rank": "XH",
+    "type": "solo_score",
+    "user_id": 4568537,
+    "accuracy": 1,
+    "build_id": null,
+    "ended_at": "2025-02-20T20:34:43Z",
+    "has_replay": true,
+    "is_perfect_combo": true,
+    "legacy_perfect": true,
+    "legacy_score_id": 219920578,
+    "legacy_total_score": 1917583,
+    "max_combo": 279,
+    "passed": true,
+    "pp": 63.8327,
+    "ruleset_id": 2,
+    "started_at": null,
+    "total_score": 1276477,
+    "replay": true,
+    "current_user_attributes": {
+        "pin": null
+    },
+    "user": {
+        "avatar_url": "https://a.ppy.sh/4568537?1738279679.png",
+        "country_code": "BR",
+        "default_group": "default",
+        "id": 4568537,
+        "is_active": true,
+        "is_bot": false,
+        "is_deleted": false,
+        "is_online": false,
+        "is_supporter": true,
+        "last_visit": null,
+        "pm_friends_only": false,
+        "profile_colour": null,
+        "username": "Predominador",
+        "country": {
+            "code": "BR",
+            "name": "Brazil"
+        },
+        "cover": {
+            "custom_url": "https://assets.ppy.sh/user-profile-covers/4568537/47f85ef50f6432d3d48bde838af5c58f785252a2d4640e0457070077487800c6.png",
+            "url": "https://assets.ppy.sh/user-profile-covers/4568537/47f85ef50f6432d3d48bde838af5c58f785252a2d4640e0457070077487800c6.png",
+            "id": null
+        },
+        "team": {
+            "flag_url": "https://assets.ppy.sh/teams/flag/25/1ec34ff581eb79e724b770854370383ad5d3882698c25d5adb836a5d1386524f.png",
+            "id": 25,
+            "name": "osu! Medal Hunters",
+            "short_name": "OMH"
+        }
+    }
+}
