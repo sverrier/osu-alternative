@@ -1,6 +1,6 @@
 from osualt.user import User
 from osualt.beatmap import Beatmap
-from osualt.score import Score
+from osualt.scoreStandard import ScoreStandard
 from osualt.api import util_api
 from osualt.db import db
 
@@ -60,8 +60,6 @@ db.execSetupFiles()
 apiv2 = util_api(config_values)
 apiv2.refresh_token()
 
-print("Go")
-
 b = apiv2.get_beatmap(714001)
 
 with open(r'out\beatmap.txt', 'w') as f:
@@ -98,7 +96,7 @@ with open(r'out\ctb_score.txt', 'w') as f:
 with open(r'out\ctb_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
+#db.executeSQL(s.generate_insert_query())
 
 s = apiv2.get_beatmap_scores(4652885)
 
@@ -108,9 +106,9 @@ with open(r'out\mania_score.txt', 'w') as f:
 with open(r'out\mania_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
+#db.executeSQL(s.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4652885)
+s = apiv2.get_beatmap_scores(4935711)
 
 with open(r'out\taiko_score.txt', 'w') as f:
     print(s, file=f)
@@ -118,6 +116,6 @@ with open(r'out\taiko_score.txt', 'w') as f:
 with open(r'out\taiko_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
+#db.executeSQL(s.generate_insert_query())
 
 

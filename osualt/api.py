@@ -1,9 +1,12 @@
+from osualt.scoreCatchTheBeat import ScoreCatchTheBeat
+from osualt.scoreMania import ScoreMania
+from osualt.scoreTaiko import ScoreTaiko
 import requests
 import time
 import json
 from .user import User
 from .beatmap import Beatmap
-from .score import Score
+from .scoreStandard import ScoreStandard
 from .jsonDataObject import jsonDataObject
 
 class util_api:
@@ -38,7 +41,6 @@ class util_api:
             if response.status_code == 200:
                 json_response = response.json()
                 token = json_response.get("access_token")
-                print(token)
                 self.token = token 
 
             else: 
@@ -144,9 +146,15 @@ class util_api:
                         return None
                     list = json_response.get("scores", [])
                     for l in list:
-                        b = Score(l)
-                        print(l)
-                        print(b)
+                        if l["ruleset_id"] == 0:
+                            b = ScoreStandard(l)
+                        elif l["ruleset_id"] == 1:
+                            b = ScoreTaiko(l)
+                        elif l["ruleset_id"] == 2:
+                            b = ScoreCatchTheBeat(l)
+                        elif l["ruleset_id"] == 3:
+                            b = ScoreMania(l)
+
                         break
                 else:
                     raise Exception(f"Unexpected response code: {status}")

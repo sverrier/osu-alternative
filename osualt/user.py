@@ -20,8 +20,9 @@ class User(jsonDataObject):
                     "groups"}
     flatten_columns = {"country", "cover", "kudosu", "team",
                        "daily_challenge_user_stats", "rank_highest", "statistics"}
-    ignore_columns = {"page", "rankHistory"}
 
     def __init__(self, user):
+        user.pop("page", {})
+        user.pop("rankHistory", {})
         super().__init__(user, self.table, self.flatten_columns,
-                         self.json_columns, self.ignore_columns)
+                         self.json_columns)

@@ -3,11 +3,19 @@
     "preserve": true,
     "processed": true,
     "ranked": true,
+    "maximum_statistics": {
+        "perfect": 2353,
+        "legacy_combo_increase": 478
+    },
     "mods": [
         {
             "acronym": "CL"
         }
     ],
+    "statistics": {
+        "great": 109,
+        "perfect": 2244
+    },
     "total_score_without_mods": 998314,
     "beatmap_id": 4652885,
     "best_id": null,

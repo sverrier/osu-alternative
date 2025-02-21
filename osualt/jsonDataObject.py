@@ -1,16 +1,16 @@
 import json
+from typing import final
 
 class jsonDataObject:
     columns = ''
     values = ''
 
 
-    def __init__(self, jsonObject, table, flatten_columns, json_columns, ignore_columns):
+    def __init__(self, jsonObject, table, flatten_columns, json_columns):
         self.jsonObject = jsonObject
         self.table = table 
         self.flatten_columns = flatten_columns
         self.json_columns = json_columns
-        self.ignore_columns = ignore_columns
 
         
     def __str__(self):
@@ -33,10 +33,6 @@ class jsonDataObject:
 
         tempJsonObject = self.jsonObject.copy()
 
-        # Ignore fields in IGNORE_COLUMNS
-        for field in self.ignore_columns:
-            tempJsonObject.pop(field, {})
-
         # Flatten fields specified in FLATTEN_COLUMNS
         flattened_data = {}
         for field in self.flatten_columns:
@@ -52,17 +48,14 @@ class jsonDataObject:
 
         # Merge all data together
         final_data = {**inter_data, **jsonb_data}
-
-        # Sort data alphabetically by keys
-        sorted_keys = sorted(final_data.keys())
         
         # Prepare column names and values in alphabetical order
-        self.columns = ', '.join(f'{col}' for col in sorted_keys)
+        self.columns = ', '.join(f'{col}' for col in final_data)
         self.values = ', '.join(
             f"'{json.dumps(final_data[col])}'::jsonb" if col in self.json_columns else
             self.escape_sql_string(final_data[col]) if isinstance(final_data[col], str) else
             ('TRUE' if final_data[col] is True else 'FALSE' if final_data[col] is False else 'NULL' if final_data[col] is None else str(final_data[col]))
-            for col in sorted_keys
+            for col in final_data
         )
 
         # Generate SQL query

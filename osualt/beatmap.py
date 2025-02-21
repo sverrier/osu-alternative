@@ -11,8 +11,7 @@ class Beatmap(jsonDataObject):
                     "beatmapset_ratings", 
                     "failtimes", 
                     "owners"}
-    ignore_columns = {}
 
     def __init__(self, beatmap):
         super().__init__(beatmap, self.table, self.flatten_columns,
-                         self.json_columns, self.ignore_columns)
+                         self.json_columns)
