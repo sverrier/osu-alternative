@@ -76,7 +76,7 @@ with open(r'out\user.txt', 'w') as f:
 with open(r'out\user_sql.txt', 'w') as f:
     print(u.generate_insert_query(), file=f)
 
-s = apiv2.get_beatmap_scores(714001)
+s = apiv2.get_beatmap_scores(4796487)
 
 with open(r'out\std_score.txt', 'w') as f:
     print(s, file=f)
@@ -88,7 +88,7 @@ db.executeSQL(b.generate_insert_query())
 db.executeSQL(s.generate_insert_query())
 db.executeSQL(u.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4940785)
+s = apiv2.get_beatmap_scores(4254301)
 
 with open(r'out\ctb_score.txt', 'w') as f:
     print(s, file=f)
@@ -96,9 +96,9 @@ with open(r'out\ctb_score.txt', 'w') as f:
 with open(r'out\ctb_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-#db.executeSQL(s.generate_insert_query())
+db.executeSQL(s.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4652885)
+s = apiv2.get_beatmap_scores(4097226)
 
 with open(r'out\mania_score.txt', 'w') as f:
     print(s, file=f)
@@ -106,9 +106,9 @@ with open(r'out\mania_score.txt', 'w') as f:
 with open(r'out\mania_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-#db.executeSQL(s.generate_insert_query())
+db.executeSQL(s.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4935711)
+s = apiv2.get_beatmap_scores(4941880)
 
 with open(r'out\taiko_score.txt', 'w') as f:
     print(s, file=f)
@@ -116,6 +116,6 @@ with open(r'out\taiko_score.txt', 'w') as f:
 with open(r'out\taiko_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-#db.executeSQL(s.generate_insert_query())
+db.executeSQL(s.generate_insert_query())
 
 

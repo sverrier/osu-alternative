@@ -1,46 +1,44 @@
 {
-    "classic_total_score": 3362200,
+    "classic_total_score": 1044335135,
     "preserve": true,
     "processed": true,
     "ranked": true,
     "maximum_statistics": {
-        "great": 298,
-        "ignore_hit": 73,
-        "slider_tail_hit": 73
+        "great": 6351,
+        "legacy_combo_increase": 2998
     },
     "mods": [
         {
-            "acronym": "HR"
-        },
-        {
-            "acronym": "HD"
+            "acronym": "CL"
         }
     ],
     "statistics": {
-        "great": 298,
-        "ignore_hit": 73,
-        "slider_tail_hit": 73
+        "ok": 185,
+        "meh": 2,
+        "miss": 13,
+        "great": 6151
     },
-    "beatmap_id": 714001,
+    "total_score_without_mods": 828006,
+    "beatmap_id": 4796487,
     "best_id": null,
-    "id": 2470079770,
-    "rank": "XH",
+    "id": 4404693479,
+    "rank": "A",
     "type": "solo_score",
-    "user_id": 2932510,
-    "accuracy": 1,
-    "build_id": 7462,
-    "ended_at": "2024-03-08T11:12:57Z",
+    "user_id": 7562902,
+    "accuracy": 0.978271,
+    "build_id": null,
+    "ended_at": "2025-02-23T04:51:44Z",
     "has_replay": true,
-    "is_perfect_combo": true,
-    "legacy_perfect": true,
-    "legacy_score_id": null,
-    "legacy_total_score": 0,
-    "max_combo": 371,
+    "is_perfect_combo": false,
+    "legacy_perfect": false,
+    "legacy_score_id": 4784892966,
+    "legacy_total_score": 990714140,
+    "max_combo": 7901,
     "passed": true,
-    "pp": 510.518,
+    "pp": 771.067,
     "ruleset_id": 0,
-    "started_at": "2024-03-08T11:11:52Z",
-    "total_score": 1123600,
+    "started_at": null,
+    "total_score": 794886,
     "replay": true,
     "current_user_attributes": {
         "pin": null

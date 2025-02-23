@@ -1,11 +1,11 @@
 {
-    "classic_total_score": 958381,
+    "classic_total_score": 894414,
     "preserve": true,
     "processed": true,
     "ranked": true,
     "maximum_statistics": {
-        "perfect": 2353,
-        "legacy_combo_increase": 478
+        "perfect": 9250,
+        "legacy_combo_increase": 5027
     },
     "mods": [
         {
@@ -13,30 +13,33 @@
         }
     ],
     "statistics": {
-        "great": 109,
-        "perfect": 2244
+        "ok": 22,
+        "meh": 10,
+        "good": 176,
+        "miss": 36,
+        "great": 2452,
+        "perfect": 6554
     },
-    "total_score_without_mods": 998314,
-    "beatmap_id": 4652885,
+    "beatmap_id": 4097226,
     "best_id": null,
-    "id": 4389809915,
-    "rank": "X",
+    "id": 3497634351,
+    "rank": "S",
     "type": "solo_score",
-    "user_id": 11585213,
-    "accuracy": 0.999241,
+    "user_id": 2071008,
+    "accuracy": 0.98271,
     "build_id": null,
-    "ended_at": "2025-02-20T19:01:55Z",
+    "ended_at": "2024-09-11T09:30:34Z",
     "has_replay": true,
     "is_perfect_combo": false,
-    "legacy_perfect": true,
-    "legacy_score_id": 607915526,
-    "legacy_total_score": 998552,
-    "max_combo": 2810,
+    "legacy_perfect": false,
+    "legacy_score_id": 588161042,
+    "legacy_total_score": 931417,
+    "max_combo": 3522,
     "passed": true,
-    "pp": 373.507,
+    "pp": 1438.15,
     "ruleset_id": 3,
     "started_at": null,
-    "total_score": 958381,
+    "total_score": 894414,
     "replay": true,
     "current_user_attributes": {
         "pin": null
