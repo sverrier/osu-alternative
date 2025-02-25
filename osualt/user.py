@@ -12,17 +12,19 @@ class User(jsonDataObject):
                     "replays_watched_counts", 
                     "user_achievements",
                     "rank_history", 
-                    "statistics_level", 
-                    "statistics_grade_counts", 
-                    "statistics_rank", 
                     "account_history", 
                     "active_tournament_banners", 
                     "groups"}
     flatten_columns = {"country", "cover", "kudosu", "team",
-                       "daily_challenge_user_stats", "rank_highest", "statistics"}
+                       "daily_challenge_user_stats", "rank_highest", 
+                       "statistics_level", "statistics_grade_counts", "statistics_rank"}
 
     def __init__(self, user):
         user.pop("page", {})
         user.pop("rankHistory", {})
+        
+        for key, value in user.pop("statistics", {}).items():
+            user[f"statistics_{key}"] = value
+
         super().__init__(user, self.table, self.flatten_columns,
                          self.json_columns)

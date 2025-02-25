@@ -1,3 +1,4 @@
+from osualt.userDailyHistory import UserDailyHistory
 from osualt.user import User
 from osualt.beatmap import Beatmap
 from osualt.scoreStandard import ScoreStandard
@@ -75,6 +76,14 @@ with open(r'out\user.txt', 'w') as f:
 
 with open(r'out\user_sql.txt', 'w') as f:
     print(u.generate_insert_query(), file=f)
+
+daily_u = UserDailyHistory(u.jsonObject)
+with open(r'out\user.txt', 'w') as f:
+    print(daily_u, file=f)
+
+with open(r'out\user_sql.txt', 'w') as f:
+    print(daily_u.generate_insert_query(), file=f)
+
 
 s = apiv2.get_beatmap_scores(4796487)
 
