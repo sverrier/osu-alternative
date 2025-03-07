@@ -1,11 +1,14 @@
-from osualt.userDailyHistory import UserDailyHistory
+from osualt.userHistory import UserHistory
 from osualt.user import User
 from osualt.beatmap import Beatmap
+from osualt.beatmapDaily import BeatmapHistory
 from osualt.scoreStandard import ScoreStandard
 from osualt.api import util_api
 from osualt.db import db
 
 import os
+
+
 
 # File name
 config_file = "config.txt"
@@ -42,6 +45,11 @@ def read_config_file(file_name):
                 config[key] = value
     return config
 
+def generate_id_batches(start_id, end_id, batch_size=50):
+    """Generate batches of IDs in ascending order."""
+    for i in range(start_id, end_id, batch_size):
+        yield list(range(i, min(i + batch_size, end_id)))
+
 # Main logic
 if os.path.exists(config_file):
     print(f"Found '{config_file}'. Reading configuration...")
@@ -61,13 +69,31 @@ db.execSetupFiles()
 apiv2 = util_api(config_values)
 apiv2.refresh_token()
 
-b = apiv2.get_beatmap(714001)
+print("1: Fetch beatmaps")
+print("2: Fetch users")
 
-with open(r'out\beatmap.txt', 'w') as f:
-    print(b, file=f)
+routine = input("Choose an option: ")
 
-with open(r'out\beatmap_sql.txt', 'w') as f:
-    print(b.generate_insert_query(), file=f)
+
+for batch in generate_id_batches(4887842, 4887892, batch_size=50):
+
+    beatmaps = apiv2.get_beatmaps(batch)
+
+    li = beatmaps.get("beatmaps", [])
+    for l in li:
+        b = Beatmap(l)
+        print(b)
+        with open(r'out\beatmap.txt', 'w', encoding='utf-8') as f:
+            print(b, file=f)
+
+        bd = BeatmapDaily(l)
+
+        with open(r'out\beatmapDaily.txt', 'w', encoding='utf-8') as f:
+            print(bd, file=f)
+
+        db.executeSQL(b.generate_insert_query())
+
+        db.executeSQL(bd.generate_insert_query())
 
 u = apiv2.get_user(6245906)
 
@@ -93,7 +119,6 @@ with open(r'out\std_score.txt', 'w') as f:
 with open(r'out\std_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
-db.executeSQL(b.generate_insert_query())
 db.executeSQL(s.generate_insert_query())
 db.executeSQL(u.generate_insert_query())
 
@@ -126,5 +151,3 @@ with open(r'out\taiko_score_sql.txt', 'w') as f:
     print(s.generate_insert_query(), file=f)
 
 db.executeSQL(s.generate_insert_query())
-
-

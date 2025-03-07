@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS beatmaps;
-
-CREATE TABLE beatmaps (
+CREATE TABLE IF NOT EXISTS beatmap (
     beatmapset_id INTEGER,
     difficulty_rating NUMERIC,
     id INTEGER PRIMARY KEY,
@@ -33,7 +31,8 @@ CREATE TABLE beatmaps (
     beatmapset_artist_unicode TEXT,
     beatmapset_creator TEXT,
     beatmapset_favourite_count INTEGER,
-    beatmapset_hype JSONB,
+    beatmapset_hype_current INTEGER,
+    beatmapset_hype_required INTEGER,
     beatmapset_nsfw BOOLEAN,
     beatmapset_offset INTEGER,
     beatmapset_play_count INTEGER,

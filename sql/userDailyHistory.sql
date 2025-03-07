@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS userDailyHistory;
+DROP TABLE IF EXISTS userHistory;
 
 CREATE TABLE userDailyHistory (
     "id" BIGINT PRIMARY KEY,

@@ -25,7 +25,7 @@ class db:
     def executeSQL(self, query):
         with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password, client_encoding="UTF8") as conn:
             with conn.cursor() as cur:
-                with open(r'out\debug.txt', 'w') as f:
+                with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
                     print(query, file=f)
                 cur.execute(query)
                 conn.commit()   
@@ -33,7 +33,7 @@ class db:
     def executeQuery(self, query):
         with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password, client_encoding="UTF8") as conn:
             with conn.cursor() as cur:
-                with open(r'out\debug.txt', 'w') as f:
+                with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
                     print(query, file=f)
                 cur.execute(query)
                 rs = cur.fetchall()

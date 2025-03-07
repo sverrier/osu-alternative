@@ -8,7 +8,7 @@
     "is_deleted": false,
     "is_online": false,
     "is_supporter": true,
-    "last_visit": "2025-02-24T22:58:59+00:00",
+    "last_visit": "2025-03-07T12:54:33+00:00",
     "pm_friends_only": false,
     "profile_colour": null,
     "username": "billie eilish",
@@ -66,7 +66,7 @@
             "url": ""
         }
     ],
-    "beatmap_playcounts_count": 43335,
+    "beatmap_playcounts_count": 43443,
     "comments_count": 9,
     "daily_challenge_user_stats": {
         "daily_streak_best": 0,
@@ -81,7 +81,7 @@
         "weekly_streak_current": 0
     },
     "favourite_beatmapset_count": 35,
-    "follower_count": 988,
+    "follower_count": 990,
     "graveyard_beatmapset_count": 8,
     "groups": [],
     "guest_beatmapset_count": 0,
@@ -494,7 +494,11 @@
         },
         {
             "start_date": "2025-02-01",
-            "count": 160
+            "count": 228
+        },
+        {
+            "start_date": "2025-03-01",
+            "count": 230
         }
     ],
     "nominated_beatmapset_count": 0,
@@ -951,7 +955,11 @@
         },
         {
             "start_date": "2025-02-01",
-            "count": 65
+            "count": 77
+        },
+        {
+            "start_date": "2025-03-01",
+            "count": 13
         }
     ],
     "scores_best_count": 100,
@@ -2182,16 +2190,6 @@
     "rank_history": {
         "mode": "osu",
         "data": [
-            4972,
-            4978,
-            4984,
-            4991,
-            4999,
-            5005,
-            5011,
-            5017,
-            5023,
-            5029,
             5037,
             5043,
             5046,
@@ -2271,6 +2269,16 @@
             4944,
             4953,
             4958,
+            4962,
+            4972,
+            4978,
+            4984,
+            4991,
+            4999,
+            5005,
+            5011,
+            5017,
+            5023,
             0
         ]
     },
@@ -2295,7 +2303,7 @@
     "statistics_total_score": 932029515593,
     "statistics_total_hits": 52333491,
     "statistics_maximum_combo": 9385,
-    "statistics_replays_watched_by_others": 54011,
+    "statistics_replays_watched_by_others": 54036,
     "statistics_is_ranked": false,
     "statistics_grade_counts": {
         "ss": 35,

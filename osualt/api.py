@@ -123,6 +123,45 @@ class util_api:
         
         return b
 
+    def get_beatmaps(self, ids):
+        complete = False
+        b = None
+        magnitude = 1
+        backoff = 2  # Assuming a backoff value, adjust as necessary
+
+        # Format the IDs into the query string
+        id_query = "&".join([f"ids[]={id}" for id in ids])
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/beatmaps?" + id_query
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                self.delay = backoff * magnitude
+                time.sleep(self.delay)
+                magnitude += 1
+                self.refresh_token()
+        
+        return json_response
+
     def get_beatmap_scores(self, beatmap_id):
         complete = False
         b = None
