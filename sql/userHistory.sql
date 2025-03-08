@@ -1,7 +1,6 @@
-DROP TABLE IF EXISTS userHistory;
-
-CREATE TABLE userDailyHistory (
-    "id" BIGINT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS userHistory (
+    "id" BIGINT,
+    "record_date" DATE,
     "username" TEXT NOT NULL,
     "post_count" INTEGER,
     "beatmap_playcounts_count" INTEGER,
@@ -57,5 +56,6 @@ CREATE TABLE userDailyHistory (
     "daily_challenge_user_stats_top_50p_placements" INTEGER,
     "daily_challenge_user_stats_user_id" BIGINT,
     "daily_challenge_user_stats_weekly_streak_best" INTEGER,
-    "daily_challenge_user_stats_weekly_streak_current" INTEGER
+    "daily_challenge_user_stats_weekly_streak_current" INTEGER,
+    PRIMARY KEY (id, record_date)
 );

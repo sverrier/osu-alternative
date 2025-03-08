@@ -1,0 +1,60 @@
+{
+    "avatar_url": "https://a.ppy.sh/6245906?1658867010.png",
+    "country_code": "CA",
+    "default_group": "default",
+    "id": 6245906,
+    "is_active": true,
+    "is_bot": false,
+    "is_deleted": false,
+    "is_online": false,
+    "is_supporter": true,
+    "last_visit": "2025-03-08T07:34:35+00:00",
+    "pm_friends_only": false,
+    "profile_colour": null,
+    "username": "billie eilish",
+    "country": {
+        "code": "CA",
+        "name": "Canada"
+    },
+    "cover": {
+        "custom_url": "https://assets.ppy.sh/user-profile-covers/6245906/a07075f1d40f49d8539e30873ed6998fec3e34724580140e121f4449c5eb69d6.png",
+        "url": "https://assets.ppy.sh/user-profile-covers/6245906/a07075f1d40f49d8539e30873ed6998fec3e34724580140e121f4449c5eb69d6.png",
+        "id": null
+    },
+    "groups": [],
+    "team": {
+        "flag_url": "https://assets.ppy.sh/teams/flag/2446/1996657bd30b49d3e34785789a1a4bfede00b8a1b692b2b8773c464d2e86881a.png",
+        "id": 2446,
+        "name": "osu!alternative",
+        "short_name": "OALT"
+    },
+    "osu_count_100": 1711782,
+    "osu_count_300": 50446805,
+    "osu_count_50": 174904,
+    "osu_count_miss": 579840,
+    "osu_level": {
+        "current": 109,
+        "progress": 5
+    },
+    "osu_global_rank": null,
+    "osu_global_rank_exp": null,
+    "osu_pp": 0,
+    "osu_pp_exp": 0,
+    "osu_ranked_score": 441047983792,
+    "osu_hit_accuracy": 98.8564,
+    "osu_play_count": 179952,
+    "osu_play_time": 14294814,
+    "osu_total_score": 932029515593,
+    "osu_total_hits": 52333491,
+    "osu_maximum_combo": 9385,
+    "osu_replays_watched_by_others": 54037,
+    "osu_is_ranked": false,
+    "osu_grade_counts": {
+        "ss": 35,
+        "ssh": 2967,
+        "s": 3596,
+        "sh": 28057,
+        "a": 966
+    },
+    "record_date": "2025-03-08"
+}

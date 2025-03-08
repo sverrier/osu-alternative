@@ -1,8 +1,9 @@
 from osualt.userHistory import UserHistory
-from osualt.user import User
+from osualt.userExtended import UserExtended
+from osualt.userOsu import UserOsu
 from osualt.beatmap import Beatmap
-from osualt.beatmapDaily import BeatmapHistory
-from osualt.scoreStandard import ScoreStandard
+from osualt.beatmapHistory import BeatmapHistory
+from osualt.scoreOsu import ScoreOsu
 from osualt.api import util_api
 from osualt.db import db
 
@@ -74,80 +75,105 @@ print("2: Fetch users")
 
 routine = input("Choose an option: ")
 
+if routine == "1":
+    for batch in generate_id_batches(4887842, 4888892, batch_size=50):
 
-for batch in generate_id_batches(4887842, 4887892, batch_size=50):
+        beatmaps = apiv2.get_beatmaps(batch)
 
-    beatmaps = apiv2.get_beatmaps(batch)
+        li = beatmaps.get("beatmaps", [])
+        for l in li:
+            b = Beatmap(l)
+            with open(r'out\beatmap.txt', 'w', encoding='utf-8') as f:
+                print(b, file=f)
 
-    li = beatmaps.get("beatmaps", [])
-    for l in li:
-        b = Beatmap(l)
-        print(b)
-        with open(r'out\beatmap.txt', 'w', encoding='utf-8') as f:
-            print(b, file=f)
+            bd = BeatmapHistory(l)
 
-        bd = BeatmapDaily(l)
+            with open(r'out\beatmapHistory.txt', 'w', encoding='utf-8') as f:
+                print(bd, file=f)
 
-        with open(r'out\beatmapDaily.txt', 'w', encoding='utf-8') as f:
-            print(bd, file=f)
+            db.executeSQL(b.generate_insert_query())
 
-        db.executeSQL(b.generate_insert_query())
+            db.executeSQL(bd.generate_insert_query())
 
-        db.executeSQL(bd.generate_insert_query())
+elif routine == "2":
+    for batch in generate_id_batches(6245906, 6245956, batch_size=50):
 
-u = apiv2.get_user(6245906)
+        users = apiv2.get_users(batch)
 
-with open(r'out\user.txt', 'w') as f:
-    print(u, file=f)
+        li = users.get("users", [])
+        for l in li:
+            print(l)
+            u = UserOsu(l)
+            with open(r'out\userOsu.txt', 'w', encoding='utf-8') as f:
+                print(u, file=f)
 
-with open(r'out\user_sql.txt', 'w') as f:
-    print(u.generate_insert_query(), file=f)
+            with open(r'out\userOsuSQL.txt', 'w', encoding='utf-8') as f:
+                print(u.generate_insert_query(), file=f)
 
-daily_u = UserDailyHistory(u.jsonObject)
-with open(r'out\user.txt', 'w') as f:
-    print(daily_u, file=f)
+            ud = UserHistory(l)
 
-with open(r'out\user_sql.txt', 'w') as f:
-    print(daily_u.generate_insert_query(), file=f)
+            with open(r'out\userHistory.txt', 'w', encoding='utf-8') as f:
+                print(ud, file=f)
+
+            db.executeSQL(u.generate_insert_query())
+
+            db.executeSQL(ud.generate_insert_query())
+
+else:
+
+    u = apiv2.get_user(6245906)
+
+    with open(r'out\user.txt', 'w') as f:
+        print(u, file=f)
+
+    with open(r'out\user_sql.txt', 'w') as f:
+        print(u.generate_insert_query(), file=f)
+
+    daily_u = UserHistory(u.jsonObject)
+    with open(r'out\user.txt', 'w') as f:
+        print(daily_u, file=f)
+
+    with open(r'out\user_sql.txt', 'w') as f:
+        print(daily_u.generate_insert_query(), file=f)
 
 
-s = apiv2.get_beatmap_scores(4796487)
+    s = apiv2.get_beatmap_scores(4796487)
 
-with open(r'out\std_score.txt', 'w') as f:
-    print(s, file=f)
+    with open(r'out\std_score.txt', 'w') as f:
+        print(s, file=f)
 
-with open(r'out\std_score_sql.txt', 'w') as f:
-    print(s.generate_insert_query(), file=f)
+    with open(r'out\std_score_sql.txt', 'w') as f:
+        print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
-db.executeSQL(u.generate_insert_query())
+    db.executeSQL(s.generate_insert_query())
+    db.executeSQL(u.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4254301)
+    s = apiv2.get_beatmap_scores(4254301)
 
-with open(r'out\ctb_score.txt', 'w') as f:
-    print(s, file=f)
+    with open(r'out\ctb_score.txt', 'w') as f:
+        print(s, file=f)
 
-with open(r'out\ctb_score_sql.txt', 'w') as f:
-    print(s.generate_insert_query(), file=f)
+    with open(r'out\ctb_score_sql.txt', 'w') as f:
+        print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
+    db.executeSQL(s.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4097226)
+    s = apiv2.get_beatmap_scores(4097226)
 
-with open(r'out\mania_score.txt', 'w') as f:
-    print(s, file=f)
+    with open(r'out\mania_score.txt', 'w') as f:
+        print(s, file=f)
 
-with open(r'out\mania_score_sql.txt', 'w') as f:
-    print(s.generate_insert_query(), file=f)
+    with open(r'out\mania_score_sql.txt', 'w') as f:
+        print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
+    db.executeSQL(s.generate_insert_query())
 
-s = apiv2.get_beatmap_scores(4941880)
+    s = apiv2.get_beatmap_scores(4941880)
 
-with open(r'out\taiko_score.txt', 'w') as f:
-    print(s, file=f)
+    with open(r'out\taiko_score.txt', 'w') as f:
+        print(s, file=f)
 
-with open(r'out\taiko_score_sql.txt', 'w') as f:
-    print(s.generate_insert_query(), file=f)
+    with open(r'out\taiko_score_sql.txt', 'w') as f:
+        print(s.generate_insert_query(), file=f)
 
-db.executeSQL(s.generate_insert_query())
+    db.executeSQL(s.generate_insert_query())

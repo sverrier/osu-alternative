@@ -1,9 +1,10 @@
 import json
 from osualt.jsonDataObject import jsonDataObject
+from datetime import datetime
 
 
-class UserDailyHistory(jsonDataObject):
-    table = "userExtended"  # Hardcoded table name
+class UserHistory(jsonDataObject):
+    table = "userHistory"  # Hardcoded table name
     json_columns = {"playstyle", 
                     "profile_order", 
                     "badges", 
@@ -19,7 +20,7 @@ class UserDailyHistory(jsonDataObject):
                        "daily_challenge_user_stats", "rank_highest", 
                        "statistics_level", "statistics_grade_counts", "statistics_rank"}
 
-    included_columns = {'id', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count', 
+    included_columns = {'id', 'record_date', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count', 
         'favourite_beatmapset_count', 'follower_count', 'graveyard_beatmapset_count', 
         'guest_beatmapset_count', 'loved_beatmapset_count', 'mapping_follower_count', 
         'nominated_beatmapset_count', 'pending_beatmapset_count', 'ranked_beatmapset_count', 
@@ -43,6 +44,8 @@ class UserDailyHistory(jsonDataObject):
         
         for key, value in user.pop("statistics", {}).items():
             user[f"statistics_{key}"] = value
+
+        user["record_date"] = datetime.today().strftime('%Y-%m-%d')
 
         super().__init__(user, self.table, self.flatten_columns,
                          self.json_columns)

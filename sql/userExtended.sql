@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS userExtended;
-
-CREATE TABLE userExtended (
+CREATE TABLE IF NOT EXISTS userExtended (
     account_history JSONB,
     active_tournament_banner TEXT,
     active_tournament_banners JSONB,

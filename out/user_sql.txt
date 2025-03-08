@@ -1,1 +1,1 @@
-INSERT INTO userExtended () VALUES ();
+INSERT INTO userHistory () VALUES () ON CONFLICT DO NOTHING;

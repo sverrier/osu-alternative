@@ -2,7 +2,7 @@ import json
 from osualt.jsonDataObject import jsonDataObject
 
 
-class User(jsonDataObject):
+class UserExtended(jsonDataObject):
     table = "userExtended"  # Hardcoded table name
     json_columns = {"playstyle", 
                     "profile_order", 

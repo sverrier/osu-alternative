@@ -65,5 +65,5 @@ class jsonDataObject:
         )
 
         # Generate SQL query
-        query = f"INSERT INTO {self.table} ({self.columns}) VALUES ({self.values});"
+        query = f"INSERT INTO {self.table} ({self.columns}) VALUES ({self.values}) ON CONFLICT DO NOTHING;"
         return query

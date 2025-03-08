@@ -4,9 +4,9 @@ from osualt.scoreTaiko import ScoreTaiko
 import requests
 import time
 import json
-from .user import User
+from .userExtended import UserExtended
 from .beatmap import Beatmap
-from .scoreStandard import ScoreStandard
+from .scoreOsu import ScoreOsu
 from .jsonDataObject import jsonDataObject
 
 class util_api:
@@ -70,7 +70,7 @@ class util_api:
                     json_response = response.json()
                     if not json_response:
                         return None
-                    u = User(json_response)
+                    u = UserExtended(json_response)
                 else:
                     raise Exception(f"Unexpected response code: {status}")
                 
@@ -85,6 +85,45 @@ class util_api:
                 self.refresh_token()
         
         return u
+
+    def get_users(self, ids):
+        complete = False
+        b = None
+        magnitude = 1
+        backoff = 2  # Assuming a backoff value, adjust as necessary
+
+        # Format the IDs into the query string
+        id_query = "&".join([f"ids[]={id}" for id in ids])
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/users?" + id_query
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                self.delay = backoff * magnitude
+                time.sleep(self.delay)
+                magnitude += 1
+                self.refresh_token()
+        
+        return json_response
 
     def get_beatmap(self, beatmap_id):
         complete = False
@@ -186,7 +225,7 @@ class util_api:
                     list = json_response.get("scores", [])
                     for l in list:
                         if l["ruleset_id"] == 0:
-                            b = ScoreStandard(l)
+                            b = ScoreOsu(l)
                         elif l["ruleset_id"] == 1:
                             b = ScoreTaiko(l)
                         elif l["ruleset_id"] == 2:

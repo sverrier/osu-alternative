@@ -1,8 +1,8 @@
 import json
 from osualt.jsonDataObject import jsonDataObject
 
-class ScoreStandard(jsonDataObject):
-    table = "scoreStandard"  # Hardcoded table name
+class ScoreOsu(jsonDataObject):
+    table = "scoreOsu"  # Hardcoded table name
     json_columns = {"mods", "current_user_attributes"}  # JSONB fields
     flatten_columns = {"statistics", "maximum_statistics"}  # Flattened fields
 

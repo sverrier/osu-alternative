@@ -1,0 +1,48 @@
+CREATE TABLE IF NOT EXISTS userOsu (
+    id BIGINT PRIMARY KEY,  -- Unique identifier for the user
+    avatar_url TEXT,  -- URL of the avatar image
+    cover_custom_url TEXT,  -- Custom cover URL
+    cover_id BIGINT,  -- Cover ID (nullable)
+    cover_url TEXT,  -- Default cover URL
+    country_code VARCHAR(2),  -- Two-letter country code
+    country_name TEXT,  -- Full country name
+    default_group TEXT,  -- User's default group
+    groups JSONB,  -- Groups in JSONB format
+    is_active BOOLEAN,  -- Whether the user is active
+    is_bot BOOLEAN,  -- Whether the user is a bot
+    is_deleted BOOLEAN,  -- Whether the user is deleted
+    is_online BOOLEAN,  -- Whether the user is online
+    is_supporter BOOLEAN,  -- Whether the user is an osu! supporter
+    last_visit TIMESTAMPTZ,  -- Last visit timestamp (ISO 8601 format)
+    osu_count_100 INTEGER,  -- Number of 100s hit
+    osu_count_300 INTEGER,  -- Number of 300s hit
+    osu_count_50 INTEGER,  -- Number of 50s hit
+    osu_count_miss INTEGER,  -- Number of misses
+    osu_global_rank INTEGER,  -- Global rank (nullable)
+    osu_global_rank_exp INTEGER,  -- Global rank (expanded, nullable)
+    osu_grade_counts_a INTEGER,  -- Number of A ranks
+    osu_grade_counts_s INTEGER,  -- Number of S ranks
+    osu_grade_counts_sh INTEGER,  -- Number of SH ranks
+    osu_grade_counts_ss INTEGER,  -- Number of SS ranks
+    osu_grade_counts_ssh INTEGER,  -- Number of SSH ranks
+    osu_hit_accuracy DOUBLE PRECISION,  -- Hit accuracy percentage
+    osu_is_ranked BOOLEAN,  -- Whether the osu! profile is ranked
+    osu_level_current INTEGER,  -- Current osu! level
+    osu_level_progress INTEGER,  -- Level progress percentage
+    osu_maximum_combo INTEGER,  -- Maximum combo
+    osu_play_count INTEGER,  -- Number of plays
+    osu_play_time INTEGER,  -- Total play time in seconds
+    osu_pp DOUBLE PRECISION,  -- Performance points (nullable)
+    osu_pp_exp DOUBLE PRECISION,  -- Extended performance points (nullable)
+    osu_ranked_score BIGINT,  -- Ranked score
+    osu_replays_watched_by_others INTEGER,  -- Replays watched by others
+    osu_total_hits BIGINT,  -- Total hits
+    osu_total_score BIGINT,  -- Total score
+    pm_friends_only BOOLEAN,  -- Whether private messages are restricted
+    profile_colour TEXT,  -- Profile color (nullable)
+    team_flag_url TEXT,
+    team_id INTEGER,
+    team_name TEXT,
+    team_short_name TEXT,
+    username TEXT NOT NULL  -- User's display name
+);
