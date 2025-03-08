@@ -4,6 +4,7 @@ from osualt.jsonDataObject import jsonDataObject
 
 class UserExtended(jsonDataObject):
     table = "userExtended"  # Hardcoded table name
+    key_columns = "id"
     json_columns = {"playstyle", 
                     "profile_order", 
                     "badges", 
@@ -26,5 +27,5 @@ class UserExtended(jsonDataObject):
         for key, value in user.pop("statistics", {}).items():
             user[f"statistics_{key}"] = value
 
-        super().__init__(user, self.table, self.flatten_columns,
+        super().__init__(user, self.table, self.key_columns, self.flatten_columns,
                          self.json_columns)

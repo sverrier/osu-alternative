@@ -5,6 +5,7 @@ from datetime import datetime
 
 class UserHistory(jsonDataObject):
     table = "userHistory"  # Hardcoded table name
+    key_columns = "id,record_date"
     json_columns = {"playstyle", 
                     "profile_order", 
                     "badges", 
@@ -47,7 +48,7 @@ class UserHistory(jsonDataObject):
 
         user["record_date"] = datetime.today().strftime('%Y-%m-%d')
 
-        super().__init__(user, self.table, self.flatten_columns,
+        super().__init__(user, self.table, self.key_columns, self.flatten_columns,
                          self.json_columns)
 
     def generate_insert_query(self):

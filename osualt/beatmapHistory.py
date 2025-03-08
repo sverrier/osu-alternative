@@ -6,6 +6,7 @@ from datetime import datetime
 
 class BeatmapHistory(jsonDataObject):
     table = "beatmapHistory"  # Hardcoded table name
+    key_columns = "id,record_date"
     flatten_columns = {"beatmapset_hype"}
     json_columns = {"beatmapset_covers", 
                     "beatmapset_nominations_summary",
@@ -22,7 +23,7 @@ class BeatmapHistory(jsonDataObject):
 
         beatmap["record_date"] = datetime.today().strftime('%Y-%m-%d')
         
-        super().__init__(beatmap, self.table, self.flatten_columns,
+        super().__init__(beatmap, self.table, self.key_columns, self.flatten_columns,
                          self.json_columns)
                          
     def generate_insert_query(self):

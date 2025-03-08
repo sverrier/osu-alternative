@@ -6,9 +6,10 @@ class jsonDataObject:
     values = ''
 
 
-    def __init__(self, jsonObject, table, flatten_columns, json_columns):
+    def __init__(self, jsonObject, table, key_columns, flatten_columns, json_columns):
         self.jsonObject = jsonObject
         self.table = table 
+        self.key_columns = key_columns
         self.flatten_columns = flatten_columns
         self.json_columns = json_columns
 
@@ -64,6 +65,13 @@ class jsonDataObject:
             for col in self.final_json
         )
 
-        # Generate SQL query
-        query = f"INSERT INTO {self.table} ({self.columns}) VALUES ({self.values}) ON CONFLICT DO NOTHING;"
+        columns = self.columns.split(", ")
+        set_clause = ", ".join([f"{col} = EXCLUDED.{col}" for col in columns])
+
+        query = f"""
+        INSERT INTO {self.table} ({self.columns}) 
+        VALUES ({self.values}) 
+        ON CONFLICT ({self.key_columns})
+        DO UPDATE SET {set_clause};
+        """
         return query

@@ -1,4 +1,4 @@
-from osualt.scoreCatchTheBeat import ScoreCatchTheBeat
+from osualt.scoreFruits import ScoreFruits
 from osualt.scoreMania import ScoreMania
 from osualt.scoreTaiko import ScoreTaiko
 import requests
@@ -229,7 +229,7 @@ class util_api:
                         elif l["ruleset_id"] == 1:
                             b = ScoreTaiko(l)
                         elif l["ruleset_id"] == 2:
-                            b = ScoreCatchTheBeat(l)
+                            b = ScoreFruits(l)
                         elif l["ruleset_id"] == 3:
                             b = ScoreMania(l)
 
