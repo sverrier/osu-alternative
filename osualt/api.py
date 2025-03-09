@@ -7,7 +7,6 @@ import json
 from .userExtended import UserExtended
 from .beatmap import Beatmap
 from .scoreOsu import ScoreOsu
-from .jsonDataObject import jsonDataObject
 
 class util_api:
     def __init__(self, config):
@@ -222,18 +221,8 @@ class util_api:
                     json_response = response.json()
                     if not json_response:
                         return None
-                    list = json_response.get("scores", [])
-                    for l in list:
-                        if l["ruleset_id"] == 0:
-                            b = ScoreOsu(l)
-                        elif l["ruleset_id"] == 1:
-                            b = ScoreTaiko(l)
-                        elif l["ruleset_id"] == 2:
-                            b = ScoreFruits(l)
-                        elif l["ruleset_id"] == 3:
-                            b = ScoreMania(l)
+                    scores = json_response.get("scores", [])
 
-                        break
                 else:
                     raise Exception(f"Unexpected response code: {status}")
                 
@@ -247,5 +236,5 @@ class util_api:
                 magnitude += 1
                 self.refresh_token()
         
-        return b
+        return scores
 
