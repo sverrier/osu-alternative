@@ -1,6 +1,9 @@
 from osualt.userHistory import UserHistory
 from osualt.userExtended import UserExtended
 from osualt.userOsu import UserOsu
+from osualt.userTaiko import UserTaiko
+from osualt.userFruits import UserFruits
+from osualt.userMania import UserMania
 from osualt.beatmap import Beatmap
 from osualt.beatmapHistory import BeatmapHistory
 from osualt.scoreOsu import ScoreOsu
@@ -102,22 +105,41 @@ elif routine == "2":
 
         li = users.get("users", [])
         for l in li:
-            print(l)
-            u = UserOsu(l)
+            u = UserOsu(l.copy())
             with open(r'out\userOsu.txt', 'w', encoding='utf-8') as f:
                 print(u, file=f)
 
             with open(r'out\userOsuSQL.txt', 'w', encoding='utf-8') as f:
                 print(u.generate_insert_query(), file=f)
-
-            ud = UserHistory(l)
-
-            with open(r'out\userHistory.txt', 'w', encoding='utf-8') as f:
-                print(ud, file=f)
-
+            
             db.executeSQL(u.generate_insert_query())
 
-            db.executeSQL(ud.generate_insert_query())
+            u = UserTaiko(l.copy())
+            with open(r'out\userTaiko.txt', 'w', encoding='utf-8') as f:
+                print(u, file=f)
+
+            with open(r'out\userTaikoSQL.txt', 'w', encoding='utf-8') as f:
+                print(u.generate_insert_query(), file=f)
+ 
+            db.executeSQL(u.generate_insert_query())
+
+            u = UserFruits(l.copy())
+            with open(r'out\userFruits.txt', 'w', encoding='utf-8') as f:
+                print(u, file=f)
+
+            with open(r'out\userFruitsSQL.txt', 'w', encoding='utf-8') as f:
+                print(u.generate_insert_query(), file=f)
+ 
+            db.executeSQL(u.generate_insert_query())
+
+            u = UserMania(l.copy())
+            with open(r'out\userMania.txt', 'w', encoding='utf-8') as f:
+                print(u, file=f)
+
+            with open(r'out\userManiaSQL.txt', 'w', encoding='utf-8') as f:
+                print(u.generate_insert_query(), file=f)
+ 
+            db.executeSQL(u.generate_insert_query())
 
 else:
 

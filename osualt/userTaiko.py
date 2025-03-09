@@ -2,12 +2,12 @@ import json
 from osualt.jsonDataObject import jsonDataObject
 
 
-class UserOsu(jsonDataObject):
-    table = "userOsu"  # Hardcoded table name
+class UserTaiko(jsonDataObject):
+    table = "userTaiko"  # Hardcoded table name
     key_columns = "id"
     json_columns = {"groups"}
     flatten_columns = {"country", "cover", "team",
-                       "osu_level", "osu_grade_counts"}
+                       "taiko_level", "taiko_grade_counts"}
 
     def __init__(self, user):
 
@@ -15,13 +15,12 @@ class UserOsu(jsonDataObject):
         if isinstance(statistics_rulesets, dict):
             for key, value in statistics_rulesets.items():
                 user[f"{key}"] = value
+        
+            for key, value in user.pop("taiko", {}).items():
+                user[f"taiko_{key}"] = value
 
-                
-            for key, value in user.pop("osu", {}).items():
-                user[f"osu_{key}"] = value
-
-            user.pop("taiko", None)
             user.pop("fruits", None)
+            user.pop("osu", None)
             user.pop("mania", None)
 
         super().__init__(user, self.table, self.key_columns, self.flatten_columns,
