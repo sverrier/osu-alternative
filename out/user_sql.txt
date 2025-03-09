@@ -1,1 +1,6 @@
-INSERT INTO userHistory () VALUES () ON CONFLICT DO NOTHING;
+
+        INSERT INTO userHistory () 
+        VALUES () 
+        ON CONFLICT (id,record_date)
+        DO UPDATE SET  = EXCLUDED.;
+        

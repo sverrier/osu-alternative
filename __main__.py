@@ -7,6 +7,9 @@ from osualt.userMania import UserMania
 from osualt.beatmap import Beatmap
 from osualt.beatmapHistory import BeatmapHistory
 from osualt.scoreOsu import ScoreOsu
+from osualt.scoreFruits import ScoreFruits
+from osualt.scoreMania import ScoreMania
+from osualt.scoreTaiko import ScoreTaiko
 from osualt.api import util_api
 from osualt.db import db
 
@@ -75,24 +78,20 @@ apiv2.refresh_token()
 
 print("1: Fetch beatmaps")
 print("2: Fetch users")
+print("3: Fetch scores")
 
 routine = input("Choose an option: ")
 
 if routine == "1":
-    for batch in generate_id_batches(4887842, 4888892, batch_size=50):
+    for batch in generate_id_batches(4241, 20000, batch_size=50):
 
         beatmaps = apiv2.get_beatmaps(batch)
 
         li = beatmaps.get("beatmaps", [])
         for l in li:
             b = Beatmap(l)
-            with open(r'out\beatmap.txt', 'w', encoding='utf-8') as f:
-                print(b, file=f)
 
             bd = BeatmapHistory(l)
-
-            with open(r'out\beatmapHistory.txt', 'w', encoding='utf-8') as f:
-                print(bd, file=f)
 
             db.executeSQL(b.generate_insert_query())
 
@@ -106,40 +105,39 @@ elif routine == "2":
         li = users.get("users", [])
         for l in li:
             u = UserOsu(l.copy())
-            with open(r'out\userOsu.txt', 'w', encoding='utf-8') as f:
-                print(u, file=f)
-
-            with open(r'out\userOsuSQL.txt', 'w', encoding='utf-8') as f:
-                print(u.generate_insert_query(), file=f)
             
             db.executeSQL(u.generate_insert_query())
 
             u = UserTaiko(l.copy())
-            with open(r'out\userTaiko.txt', 'w', encoding='utf-8') as f:
-                print(u, file=f)
-
-            with open(r'out\userTaikoSQL.txt', 'w', encoding='utf-8') as f:
-                print(u.generate_insert_query(), file=f)
  
             db.executeSQL(u.generate_insert_query())
 
             u = UserFruits(l.copy())
-            with open(r'out\userFruits.txt', 'w', encoding='utf-8') as f:
-                print(u, file=f)
-
-            with open(r'out\userFruitsSQL.txt', 'w', encoding='utf-8') as f:
-                print(u.generate_insert_query(), file=f)
  
             db.executeSQL(u.generate_insert_query())
 
             u = UserMania(l.copy())
-            with open(r'out\userMania.txt', 'w', encoding='utf-8') as f:
-                print(u, file=f)
-
-            with open(r'out\userManiaSQL.txt', 'w', encoding='utf-8') as f:
-                print(u.generate_insert_query(), file=f)
  
             db.executeSQL(u.generate_insert_query())
+
+elif routine == "3":
+
+    rs = db.executeQuery("select id from beatmap where status = 'ranked';")
+    print(rs)
+    for row in rs:
+        beatmap_id = row[0]
+        scores = apiv2.get_beatmap_scores(beatmap_id)
+        for l in scores:
+            if l["ruleset_id"] == 0:
+                s = ScoreOsu(l)
+            elif l["ruleset_id"] == 1:
+                s = ScoreTaiko(l)
+            elif l["ruleset_id"] == 2:
+                s = ScoreFruits(l)
+            elif l["ruleset_id"] == 3:
+                s = ScoreMania(l)
+
+            db.executeSQL(s.generate_insert_query())
 
 else:
 

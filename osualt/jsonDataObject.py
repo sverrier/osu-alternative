@@ -59,7 +59,7 @@ class jsonDataObject:
         self.columns = ', '.join(f'{col}' for col in self.final_json)
 
         self.values = ', '.join(
-            f"'{json.dumps(self.final_json[col], ensure_ascii=False)}'::jsonb" if col in self.json_columns else
+            self.escape_sql_string(f"{json.dumps(self.final_json[col], ensure_ascii=False)}")+"::jsonb" if col in self.json_columns else
             self.escape_sql_string(self.final_json[col]) if isinstance(self.final_json[col], str) else
             ('TRUE' if self.final_json[col] is True else 'FALSE' if self.final_json[col] is False else 'NULL' if self.final_json[col] is None else str(self.final_json[col]))
             for col in self.final_json

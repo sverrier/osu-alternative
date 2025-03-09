@@ -37,5 +37,4 @@ class db:
                     print(query, file=f)
                 cur.execute(query)
                 rs = cur.fetchall()
-                print(rs)
                 return rs
