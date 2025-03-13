@@ -14,6 +14,7 @@ from osualt.api import util_api
 from osualt.db import db
 
 import os
+from datetime import datetime
 
 
 
@@ -79,11 +80,13 @@ apiv2.refresh_token()
 print("1: Fetch beatmaps")
 print("2: Fetch users")
 print("3: Fetch scores")
+print("4: Fetch recent scores")
 
 routine = input("Choose an option: ")
 
 if routine == "1":
-    for batch in generate_id_batches(4241, 20000, batch_size=50):
+    maxid = db.executeQuery("select max(id) from beatmap;")[0][0]
+    for batch in generate_id_batches(maxid, maxid + 500000, batch_size=50):
 
         beatmaps = apiv2.get_beatmaps(batch)
 
@@ -122,10 +125,27 @@ elif routine == "2":
 
 elif routine == "3":
 
-    rs = db.executeQuery("select id from beatmap where status = 'ranked';")
-    print(rs)
+    maxid = db.executeQuery("""
+        select
+            max(beatmap_id)
+        from
+            (
+            select
+                beatmap_id,
+                count(*) as countscores
+            from
+                scoreOsu
+            group by
+                beatmap_id
+            order by
+                countscores) t
+        where
+            countscores >= 50""")[0][0]
+
+    rs = db.executeQuery("select id from beatmap where status = 'ranked' and id > " + str(maxid) + " order by id;")
     for row in rs:
         beatmap_id = row[0]
+        print(beatmap_id)
         scores = apiv2.get_beatmap_scores(beatmap_id)
         for l in scores:
             if l["ruleset_id"] == 0:
@@ -138,6 +158,41 @@ elif routine == "3":
                 s = ScoreMania(l)
 
             db.executeSQL(s.generate_insert_query())
+
+elif routine == "4": 
+
+    counter = 0
+
+    while True:
+
+        cursor_string = db.executeQuery("SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1")[0][0]
+
+        print(cursor_string)
+
+        json_response = apiv2.get_scores(cursor_string)
+        scores = json_response["scores"]
+        cursor_string = json_response["cursor_string"]
+        for l in scores:
+            if l["ruleset_id"] == 0:
+                s = ScoreOsu(l)
+            elif l["ruleset_id"] == 1:
+                s = ScoreTaiko(l)
+            elif l["ruleset_id"] == 2:
+                s = ScoreFruits(l)
+            elif l["ruleset_id"] == 3:
+                s = ScoreMania(l)
+
+            db.executeSQL(s.generate_insert_query())
+
+        counter = counter + 1
+
+        sql = "INSERT INTO cursorString values ('" + cursor_string + "', '" + str(datetime.now()) +  "')"
+
+        print(sql)
+
+        db.executeSQL(sql)
+
+        print(counter)
 
 else:
 

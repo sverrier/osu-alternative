@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS scoreMania;
-
-CREATE TABLE scoreMania (
+CREATE TABLE IF NOT EXISTS scoreMania (
     accuracy NUMERIC NOT NULL,
     beatmap_id INTEGER NOT NULL,
     best_id INTEGER NULL,
@@ -20,7 +18,7 @@ CREATE TABLE scoreMania (
     maximum_statistics_ignore_hit INTEGER NULL,
     mods JSONB NOT NULL,
     passed BOOLEAN NOT NULL,
-    pp NUMERIC NOT NULL,
+    pp NUMERIC NULL,
     preserve BOOLEAN NOT NULL,
     processed BOOLEAN NOT NULL,
     rank VARCHAR(5) NOT NULL,
@@ -28,6 +26,7 @@ CREATE TABLE scoreMania (
     replay BOOLEAN NOT NULL,
     ruleset_id INTEGER NOT NULL,
     started_at TIMESTAMPTZ NULL,
+    statistics_combo_break INTEGER NULL,
     statistics_perfect INTEGER NULL,
     statistics_great INTEGER NULL,
     statistics_good INTEGER NULL,
@@ -35,6 +34,7 @@ CREATE TABLE scoreMania (
     statistics_meh INTEGER NULL,
     statistics_miss INTEGER NULL,
     statistics_ignore_hit INTEGER NULL,
+    statistics_ignore_miss INTEGER NULL,
     total_score BIGINT NOT NULL,
     total_score_without_mods BIGINT NULL,
     type VARCHAR(50) NOT NULL,
