@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS scoreOsu (
     maximum_statistics_large_bonus INTEGER NULL,
     maximum_statistics_large_tick_hit INTEGER NULL,
     maximum_statistics_small_bonus INTEGER NULL,
+    maximum_statistics_small_tick_hit INTEGER NULL,
     mods JSONB NOT NULL,
     passed BOOLEAN NOT NULL,
     pp NUMERIC NULL,
@@ -38,10 +39,16 @@ CREATE TABLE IF NOT EXISTS scoreOsu (
     statistics_ignore_hit INTEGER NULL,
     statistics_ignore_miss INTEGER NULL,
     statistics_slider_tail_hit INTEGER NULL,
+    statistics_slider_tail_miss INTEGER NULL,
     statistics_large_bonus INTEGER NULL,
     statistics_large_tick_hit INTEGER NULL,
+    statistics_large_tick_miss INTEGER NULL,
     statistics_small_bonus INTEGER NULL,
+    statistics_small_tick_hit INTEGER NULL,
+    statistics_small_tick_miss INTEGER NULL,
     total_score BIGINT NULL,
     total_score_without_mods BIGINT NULL,
     type VARCHAR(50) NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS scoreOsu_score on scoreOsu(beatmap_id, user_id, classic_total_score desc)

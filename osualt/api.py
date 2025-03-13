@@ -1,3 +1,4 @@
+from psycopg import cursor
 from osualt.scoreFruits import ScoreFruits
 from osualt.scoreMania import ScoreMania
 from osualt.scoreTaiko import ScoreTaiko
@@ -12,7 +13,7 @@ class util_api:
     def __init__(self, config):
         self.client = config["CLIENT"]
         self.key = config["KEY"]
-        self.delay = config["DELAY"]
+        self.delay = float(config["DELAY"]) / 1000
         self.dbname = config["DBNAME"]
         self.username = config["USERNAME"]
         self.password = config["PASSWORD"]
@@ -50,9 +51,7 @@ class util_api:
 
     def get_user(self, user_id):
         complete = False
-        u = None
         magnitude = 1
-        backoff = 2  # Assuming a backoff value, adjust as necessary
         
         while not complete:
             try:
@@ -78,18 +77,15 @@ class util_api:
 
             except Exception as e:
                 print(e)
-                self.delay = backoff * magnitude
-                time.sleep(self.delay)
-                magnitude += 1
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
                 self.refresh_token()
         
         return u
 
     def get_users(self, ids):
         complete = False
-        b = None
         magnitude = 1
-        backoff = 2  # Assuming a backoff value, adjust as necessary
 
         # Format the IDs into the query string
         id_query = "&".join([f"ids[]={id}" for id in ids])
@@ -117,18 +113,15 @@ class util_api:
 
             except Exception as e:
                 print(e)
-                self.delay = backoff * magnitude
-                time.sleep(self.delay)
-                magnitude += 1
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
                 self.refresh_token()
         
         return json_response
 
     def get_beatmap(self, beatmap_id):
         complete = False
-        b = None
         magnitude = 1
-        backoff = 2  # Assuming a backoff value, adjust as necessary
         
         while not complete:
             try:
@@ -154,18 +147,15 @@ class util_api:
 
             except Exception as e:
                 print(e)
-                self.delay = backoff * magnitude
-                time.sleep(self.delay)
-                magnitude += 1
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
                 self.refresh_token()
         
         return b
 
     def get_beatmaps(self, ids):
         complete = False
-        b = None
         magnitude = 1
-        backoff = 2  # Assuming a backoff value, adjust as necessary
 
         # Format the IDs into the query string
         id_query = "&".join([f"ids[]={id}" for id in ids])
@@ -186,25 +176,22 @@ class util_api:
                     if not json_response:
                         return None
                 else:
-                    raise Exception(f"Unexpected response code: {status}")
+                    raise Exception(f"Unexpected response code: {status}") 
                 
                 complete = True
                 magnitude = 1
 
             except Exception as e:
                 print(e)
-                self.delay = backoff * magnitude
-                time.sleep(self.delay)
-                magnitude += 1
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
                 self.refresh_token()
         
         return json_response
 
     def get_beatmap_scores(self, beatmap_id):
         complete = False
-        b = None
         magnitude = 1
-        backoff = 2  # Assuming a backoff value, adjust as necessary
         
         while not complete:
             try:
@@ -231,10 +218,46 @@ class util_api:
 
             except Exception as e:
                 print(e)
-                self.delay = backoff * magnitude
-                time.sleep(self.delay)
-                magnitude += 1
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
                 self.refresh_token()
         
         return scores
+
+    def get_scores(self, cursor_string = None):
+        complete = False
+        magnitude = 1
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/scores" 
+                if cursor_string != None:
+                    url = url + "?cursor_string=" + cursor_string
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+
+                print(url)
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return json_response
 

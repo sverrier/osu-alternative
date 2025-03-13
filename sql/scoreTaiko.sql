@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS scoreTaiko;
-
-CREATE TABLE scoreTaiko (
+CREATE TABLE if not EXISTS scoreTaiko (
     accuracy NUMERIC NOT NULL,
     beatmap_id INTEGER NOT NULL,
     best_id INTEGER NULL,
@@ -17,10 +15,12 @@ CREATE TABLE scoreTaiko (
     max_combo INTEGER NOT NULL,
     maximum_statistics_great INTEGER NOT NULL,
     maximum_statistics_large_bonus INTEGER NULL,
+    maximum_statistics_small_bonus INTEGER NULL,
     maximum_statistics_ignore_hit INTEGER NULL,
+    maximum_statistics_legacy_combo_increase INTEGER NULL,
     mods JSONB NOT NULL,
     passed BOOLEAN NOT NULL,
-    pp NUMERIC NOT NULL,
+    pp NUMERIC NULL,
     preserve BOOLEAN NOT NULL,
     processed BOOLEAN NOT NULL,
     rank VARCHAR(5) NOT NULL,
@@ -34,6 +34,7 @@ CREATE TABLE scoreTaiko (
     statistics_large_bonus INTEGER NULL,
     statistics_ignore_hit INTEGER NULL,
     statistics_ignore_miss INTEGER NULL,
+    statistics_small_bonus INTEGER NULL,
     total_score BIGINT NOT NULL,
     total_score_without_mods BIGINT NULL,
     type VARCHAR(50) NOT NULL,
