@@ -86,7 +86,10 @@ routine = input("Choose an option: ")
 
 if routine == "1":
     maxid = db.executeQuery("select max(id) from beatmap;")[0][0]
+    finalquery = ""
     for batch in generate_id_batches(maxid, maxid + 500000, batch_size=50):
+
+        print(batch)
 
         beatmaps = apiv2.get_beatmaps(batch)
 
@@ -96,12 +99,18 @@ if routine == "1":
 
             bd = BeatmapHistory(l)
 
-            db.executeSQL(b.generate_insert_query())
+            finalquery = finalquery + b.generate_insert_query()
+            finalquery = finalquery + bd.generate_insert_query()
 
-            db.executeSQL(bd.generate_insert_query())
+
+        db.executeSQL(finalquery)
 
 elif routine == "2":
-    for batch in generate_id_batches(6245906, 6245956, batch_size=50):
+    maxid = db.executeQuery("select coalesce(max(id), 1) from userOsu;")[0][0]
+    finalquery = ""
+    for batch in generate_id_batches(maxid, maxid + 500000, batch_size=50):
+
+        print(batch)
 
         users = apiv2.get_users(batch)
 
@@ -109,25 +118,27 @@ elif routine == "2":
         for l in li:
             u = UserOsu(l.copy())
             
-            db.executeSQL(u.generate_insert_query())
+            finalquery = finalquery + u.generate_insert_query()
 
             u = UserTaiko(l.copy())
  
-            db.executeSQL(u.generate_insert_query())
+            finalquery = finalquery + u.generate_insert_query()
 
             u = UserFruits(l.copy())
  
-            db.executeSQL(u.generate_insert_query())
+            finalquery = finalquery + u.generate_insert_query()
 
             u = UserMania(l.copy())
  
-            db.executeSQL(u.generate_insert_query())
+            finalquery = finalquery + u.generate_insert_query()
+
+        db.executeSQL(finalquery)
 
 elif routine == "3":
 
     maxid = db.executeQuery("""
         select
-            max(beatmap_id)
+            min(beatmap_id)
         from
             (
             select
@@ -140,7 +151,9 @@ elif routine == "3":
             order by
                 countscores) t
         where
-            countscores >= 50""")[0][0]
+            countscores < 50""")[0][0]
+
+    finalquery = ""
 
     rs = db.executeQuery("select id from beatmap where status = 'ranked' and id > " + str(maxid) + " order by id;")
     for row in rs:
@@ -157,11 +170,15 @@ elif routine == "3":
             elif l["ruleset_id"] == 3:
                 s = ScoreMania(l)
 
-            db.executeSQL(s.generate_insert_query())
+            finalquery = finalquery + s.generate_insert_query()
+
+        db.executeSQL(finalquery)
 
 elif routine == "4": 
 
     counter = 0
+
+    finalquery = ""
 
     while True:
 
@@ -182,7 +199,9 @@ elif routine == "4":
             elif l["ruleset_id"] == 3:
                 s = ScoreMania(l)
 
-            db.executeSQL(s.generate_insert_query())
+            finalquery = finalquery + s.generate_insert_query()
+
+        db.executeSQL(finalquery)
 
         counter = counter + 1
 
