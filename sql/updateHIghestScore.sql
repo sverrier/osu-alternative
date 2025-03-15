@@ -1,4 +1,8 @@
-CREATE OR REPLACE FUNCTION update_highest_score() RETURNS TRIGGER AS $$
+DROP FUNCTION update_highest_score;
+
+DROP TRIGGER set_highest_score on scoreOsu;
+
+/*CREATE OR REPLACE FUNCTION update_highest_score() RETURNS TRIGGER AS $$
 BEGIN
     -- Reset previous highest score for the same (beatmap_id, user_id)
     UPDATE scoreOsu
@@ -17,4 +21,4 @@ CREATE TRIGGER set_highest_score
 BEFORE INSERT OR UPDATE ON scoreOsu
 FOR EACH ROW
 WHEN (NEW.classic_total_score IS NOT NULL)
-EXECUTE FUNCTION update_highest_score();
+EXECUTE FUNCTION update_highest_score();*/

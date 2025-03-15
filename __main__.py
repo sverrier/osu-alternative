@@ -86,11 +86,10 @@ routine = input("Choose an option: ")
 
 if routine == "1":
     maxid = db.executeQuery("select max(id) from beatmap;")[0][0]
-    finalquery = ""
     for batch in generate_id_batches(maxid, maxid + 1000000, batch_size=50):
 
         print(batch)
-
+        finalquery = ""
         beatmaps = apiv2.get_beatmaps(batch)
 
         li = beatmaps.get("beatmaps", [])
@@ -107,12 +106,11 @@ if routine == "1":
 
 elif routine == "2":
     maxid = db.executeQuery("select coalesce(max(id), 1) from userOsu;")[0][0]
-    finalquery = ""
     for batch in generate_id_batches(maxid, maxid + 500000, batch_size=50):
 
         print(batch)
-
         users = apiv2.get_users(batch)
+        finalquery = ""
 
         li = users.get("users", [])
         for l in li:
@@ -153,10 +151,9 @@ elif routine == "3":
         where
             countscores < 50""")[0][0]
 
-    finalquery = ""
-
     rs = db.executeQuery("select id from beatmap where status = 'ranked' and id > " + str(maxid) + " order by id;")
     for row in rs:
+        finalquery = ""
         beatmap_id = row[0]
         print(beatmap_id)
         scores = apiv2.get_beatmap_scores(beatmap_id)
@@ -178,13 +175,11 @@ elif routine == "4":
 
     counter = 0
 
-    finalquery = ""
-
     while True:
 
         cursor_string = db.executeQuery("SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1")[0][0]
-
         print(cursor_string)
+        finalquery = ""
 
         json_response = apiv2.get_scores(cursor_string)
         scores = json_response["scores"]

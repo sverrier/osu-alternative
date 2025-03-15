@@ -16,6 +16,7 @@ class db:
         )
         self.conn.autocommit = False  # ✅ Manually commit for batching
         self.cur = self.conn.cursor()
+        self.counter = 0
 
     def execSetupFiles(self):
          for filename in sorted(os.listdir("sql")):
@@ -37,7 +38,9 @@ class db:
                 print(query, file=f)
 
             self.cur.execute(query)
-            self.conn.commit()  # ✅ Commit if successful
+            self.counter = self.counter + 1
+            if self.counter % 10 == 0:
+                self.conn.commit()  # ✅ Commit if successful
 
         except Exception as e:
             self.conn.rollback()  # ✅ Rollback transaction to recover
