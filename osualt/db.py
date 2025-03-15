@@ -7,6 +7,15 @@ class db:
         self.username = config["USERNAME"]
         self.password = config["PASSWORD"]
         self.port = config["PORT"]
+        self.conn = psycopg.connect(
+            dbname=self.dbname, 
+            port=self.port, 
+            user=self.username, 
+            password=self.password, 
+            client_encoding="UTF8"
+        )
+        self.conn.autocommit = False  # ✅ Manually commit for batching
+        self.cur = self.conn.cursor()
 
     def execSetupFiles(self):
          for filename in sorted(os.listdir("sql")):
@@ -23,18 +32,25 @@ class db:
                         print(f"Error executing {filename}: {e}")
 
     def executeSQL(self, query):
-        with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password, client_encoding="UTF8") as conn:
-            with conn.cursor() as cur:
-                with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
-                    print(query, file=f)
-                cur.execute(query)
-                conn.commit()   
+        try:
+            with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
+                print(query, file=f)
+
+            self.cur.execute(query)
+            self.conn.commit()  # ✅ Commit if successful
+
+        except Exception as e:
+            self.conn.rollback()  # ✅ Rollback transaction to recover
+            print(f"Error executing query: {e}")
 
     def executeQuery(self, query):
-        with psycopg.connect(dbname = self.dbname, port=self.port, user = self.username, password = self.password, client_encoding="UTF8") as conn:
-            with conn.cursor() as cur:
-                with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
-                    print(query, file=f)
-                cur.execute(query)
-                rs = cur.fetchall()
-                return rs
+        with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
+            print(query, file=f)
+        
+        self.cur.execute(query)
+        return self.cur.fetchall()  # ✅ Returns query result
+
+    def close(self):
+        """ Gracefully close the database connection """
+        self.cur.close()
+        self.conn.close()

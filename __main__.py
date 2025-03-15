@@ -87,7 +87,7 @@ routine = input("Choose an option: ")
 if routine == "1":
     maxid = db.executeQuery("select max(id) from beatmap;")[0][0]
     finalquery = ""
-    for batch in generate_id_batches(maxid, maxid + 500000, batch_size=50):
+    for batch in generate_id_batches(maxid, maxid + 1000000, batch_size=50):
 
         print(batch)
 

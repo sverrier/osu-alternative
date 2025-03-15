@@ -8,7 +8,7 @@
     "is_deleted": false,
     "is_online": false,
     "is_supporter": true,
-    "last_visit": "2025-03-09T04:11:55+00:00",
+    "last_visit": "2025-03-15T02:24:18+00:00",
     "pm_friends_only": false,
     "profile_colour": null,
     "username": "billie eilish",
@@ -66,7 +66,7 @@
             "url": ""
         }
     ],
-    "beatmap_playcounts_count": 43443,
+    "beatmap_playcounts_count": 43502,
     "comments_count": 9,
     "daily_challenge_user_stats": {
         "daily_streak_best": 0,
@@ -498,7 +498,7 @@
         },
         {
             "start_date": "2025-03-01",
-            "count": 230
+            "count": 500
         }
     ],
     "nominated_beatmapset_count": 0,
@@ -959,7 +959,7 @@
         },
         {
             "start_date": "2025-03-01",
-            "count": 15
+            "count": 37
         }
     ],
     "scores_best_count": 100,
@@ -2190,10 +2190,6 @@
     "rank_history": {
         "mode": "osu",
         "data": [
-            5037,
-            5043,
-            5046,
-            5051,
             5053,
             5058,
             5061,
@@ -2279,6 +2275,10 @@
             5011,
             5017,
             5023,
+            5029,
+            5037,
+            5043,
+            5046,
             0
         ]
     },
@@ -2303,7 +2303,7 @@
     "statistics_total_score": 932029515593,
     "statistics_total_hits": 52333491,
     "statistics_maximum_combo": 9385,
-    "statistics_replays_watched_by_others": 54038,
+    "statistics_replays_watched_by_others": 54060,
     "statistics_is_ranked": false,
     "statistics_grade_counts": {
         "ss": 35,
@@ -2316,5 +2316,5 @@
     "statistics_rank": {
         "country": null
     },
-    "record_date": "2025-03-09"
+    "record_date": "2025-03-14"
 }
