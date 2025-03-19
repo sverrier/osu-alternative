@@ -1,5 +1,5 @@
 import json
-from osualt.jsonDataObject import jsonDataObject
+from util.jsonDataObject import jsonDataObject
 
 
 class Beatmap(jsonDataObject):
@@ -14,8 +14,10 @@ class Beatmap(jsonDataObject):
                     "owners"}
 
     def __init__(self, beatmap):
-        for key, value in beatmap.pop("beatmapset", {}).items():
-            beatmap[f"beatmapset_{key}"] = value
+        beatmapset = beatmap.pop("beatmapset", {})
+        if isinstance(beatmapset, dict):
+            for key, value in beatmapset.items():
+                beatmap[f"beatmapset_{key}"] = value
         
         super().__init__(beatmap, self.table, self.key_columns, self.flatten_columns,
                          self.json_columns)

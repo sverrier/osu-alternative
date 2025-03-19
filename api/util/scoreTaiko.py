@@ -1,8 +1,8 @@
 import json
-from osualt.jsonDataObject import jsonDataObject
+from util.jsonDataObject import jsonDataObject
 
-class ScoreMania(jsonDataObject):
-    table = "scoreMania"  # Hardcoded table name
+class ScoreTaiko(jsonDataObject):
+    table = "scoreTaiko"  # Hardcoded table name
     key_columns = "id"
     json_columns = {"mods", "current_user_attributes"}  # JSONB fields
     flatten_columns = {"statistics", "maximum_statistics"}  # Flattened fields
