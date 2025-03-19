@@ -1,7 +1,7 @@
 from psycopg import cursor
-from osualt.scoreFruits import ScoreFruits
-from osualt.scoreMania import ScoreMania
-from osualt.scoreTaiko import ScoreTaiko
+from util.scoreFruits import ScoreFruits
+from util.scoreMania import ScoreMania
+from util.scoreTaiko import ScoreTaiko
 import requests
 import time
 import json
@@ -198,6 +198,42 @@ class util_api:
                 url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/solo-scores"
                 headers = {
                     "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                    scores = json_response.get("scores", [])
+
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return scores
+
+    def get_beatmap_user_scores(self, beatmap_id, user_id):
+        complete = False
+        magnitude = 1
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/scores/users/{user_id}/all"
+                headers = {
+                    "Authorization": f"Bearer {self.token}",
+                    "Version": "2024-07-30"
                 }
                 
                 response = requests.get(url, headers=headers)

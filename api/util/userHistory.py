@@ -1,5 +1,5 @@
 import json
-from osualt.jsonDataObject import jsonDataObject
+from util.jsonDataObject import jsonDataObject
 from datetime import datetime
 
 

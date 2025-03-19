@@ -1,17 +1,17 @@
-from osualt.userHistory import UserHistory
-from osualt.userExtended import UserExtended
-from osualt.userOsu import UserOsu
-from osualt.userTaiko import UserTaiko
-from osualt.userFruits import UserFruits
-from osualt.userMania import UserMania
-from osualt.beatmap import Beatmap
-from osualt.beatmapHistory import BeatmapHistory
-from osualt.scoreOsu import ScoreOsu
-from osualt.scoreFruits import ScoreFruits
-from osualt.scoreMania import ScoreMania
-from osualt.scoreTaiko import ScoreTaiko
-from osualt.api import util_api
-from osualt.db import db
+from util.userHistory import UserHistory
+from util.userExtended import UserExtended
+from util.userOsu import UserOsu
+from util.userTaiko import UserTaiko
+from util.userFruits import UserFruits
+from util.userMania import UserMania
+from util.beatmap import Beatmap
+from util.beatmapHistory import BeatmapHistory
+from util.scoreOsu import ScoreOsu
+from util.scoreFruits import ScoreFruits
+from util.scoreMania import ScoreMania
+from util.scoreTaiko import ScoreTaiko
+from util.api import util_api
+from util.db import db
 
 import os
 from datetime import datetime
@@ -79,14 +79,15 @@ apiv2.refresh_token()
 
 print("1: Fetch beatmaps")
 print("2: Fetch users")
-print("3: Fetch scores")
-print("4: Fetch recent scores")
+print("3: Fetch leaderboard scores")
+print("4: Fetch user beatmap scores")
+print("5: Fetch recent scores")
 
 routine = input("Choose an option: ")
 
 if routine == "1":
     maxid = db.executeQuery("select max(id) from beatmap;")[0][0]
-    for batch in generate_id_batches(maxid, maxid + 1000000, batch_size=50):
+    for batch in generate_id_batches(maxid, maxid + 2000000, batch_size=50):
 
         print(batch)
         finalquery = ""
@@ -106,7 +107,7 @@ if routine == "1":
 
 elif routine == "2":
     maxid = db.executeQuery("select coalesce(max(id), 1) from userOsu;")[0][0]
-    for batch in generate_id_batches(maxid, maxid + 500000, batch_size=50):
+    for batch in generate_id_batches(maxid, maxid + 5000000, batch_size=50):
 
         print(batch)
         users = apiv2.get_users(batch)
@@ -171,7 +172,42 @@ elif routine == "3":
 
         db.executeSQL(finalquery)
 
-elif routine == "4": 
+
+elif routine == "4":
+
+    user_id = input("Enter a user_id:")
+
+    rs = db.executeQuery("select id from beatmap where beatmap.status = 'ranked'" +
+        " except (select beatmap_id from scoreosu where user_id = " + user_id +
+        " UNION " +
+        "select beatmap_id from scoretaiko where user_id = " + user_id +
+        " UNION " +
+        " select beatmap_id from scorefruits where user_id = " + user_id +
+        " UNION " +
+        " select beatmap_id from scoremania where user_id = " + user_id + ")" +
+        " order by ID;")
+
+    for row in rs:
+        finalquery = ""
+        beatmap_id = row[0]
+        print(beatmap_id)
+        scores = apiv2.get_beatmap_user_scores(beatmap_id, user_id)
+        print(scores)
+        for l in scores:
+            if l["ruleset_id"] == 0:
+                s = ScoreOsu(l)
+            elif l["ruleset_id"] == 1:
+                s = ScoreTaiko(l)
+            elif l["ruleset_id"] == 2:
+                s = ScoreFruits(l)
+            elif l["ruleset_id"] == 3:
+                s = ScoreMania(l)
+
+            finalquery = finalquery + s.generate_insert_query()
+
+        db.executeSQL(finalquery)
+
+elif routine == "5": 
 
     counter = 0
 
