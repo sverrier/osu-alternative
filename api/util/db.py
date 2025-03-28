@@ -19,9 +19,9 @@ class db:
         self.counter = 0
 
     def execSetupFiles(self):
-         for filename in sorted(os.listdir("sql")):
+         for filename in sorted(os.listdir("sql\creates")):
             if filename.endswith(".sql"):
-                file_path = os.path.join("sql", filename)
+                file_path = os.path.join("sql\creates", filename)
                 print(f"Executing {file_path}...")
                 
                 with open(file_path, 'r', encoding='utf-8') as sql_file:

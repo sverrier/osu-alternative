@@ -3,6 +3,7 @@ from discord.ext import commands
 import os
 import sys
 import traceback
+from osu_collections import CollectionBeatmap, CollectionSingle
 from db import Database
 
 # File name
@@ -118,12 +119,31 @@ async def beatmaps(ctx, *args):
 
     print(args[0])
 
-    rs = await db.execute_query(args[0])
+    await db.export_to_csv(args[0], "temp.csv")
 
-    print(rs)
-    print(rs[0])
-    print(rs[0][0])
+    attach = discord.File("temp.csv")
+
+    await ctx.reply(file=attach, content="Here is your response:")
+
+@bot.command(pass_context=True)
+async def generateosdb(ctx, *, arg=None):
+    di = getArgs(arg)
+
+    query = "SELECT hash, beatmap_id, beatmapset_id, artist, title, version, mode, stars FROM beatmapLive"
+    result = await db.execute_query(query)
     
-    await ctx.reply(str(rs))
+    # Convert result rows into CollectionBeatmap instances
+    beatmaps = {CollectionBeatmap(**row) for row in result}
+
+    # Create a CollectionSingle instance with these beatmaps
+    collection = CollectionSingle(name="Generated Collection", beatmaps=beatmaps)
+
+        # Write collection to .osdb format
+    with open("collection.osdb", "wb") as f:
+        collection.encode_beatmaps_osdb(f)
+
+
+    with open("collection.osdb", "rb") as file:
+        await ctx.reply("Your file is:", file=discord.File(file, "collection.osdb"))
 
 bot.run(DISCORD_TOKEN)

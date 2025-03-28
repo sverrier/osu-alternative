@@ -48,7 +48,9 @@ CREATE TABLE IF NOT EXISTS scoreOsu (
     statistics_small_tick_miss INTEGER NULL,
     total_score BIGINT NULL,
     total_score_without_mods BIGINT NULL,
-    type VARCHAR(50) NOT NULL
+    type VARCHAR(50) NOT NULL,
+    highest_score BOOL NULL,
+    highest_pp BOOL NULL
 );
 
 CREATE INDEX if not exists idx_scoreOsu_ended_at ON scoreOsu USING BRIN (ended_at);
