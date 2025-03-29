@@ -28,5 +28,6 @@ CREATE TABLE IF NOT EXISTS beatmapLive (
     title TEXT,
     artist TEXT,
     source TEXT,
-    tags TEXT
+    tags TEXT,
+    checksum TEXT
 );

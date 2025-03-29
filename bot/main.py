@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 import sys
 import traceback
-from osu_collections import CollectionBeatmap, CollectionSingle
+from osu_collections import CollectionBeatmap, CollectionSingle, CollectionDatabase
 from db import Database
 
 # File name
@@ -84,6 +84,39 @@ bot = commands.Bot(
     help_command=None,
 )
 
+def escape_string(s):
+    """
+    Escapes special characters for use in SQL queries
+    """
+    special_chars = {"'": "''", "\\": "\\\\", '"': ""}
+    for char, escaped in special_chars.items():
+        s = s.replace(char, escaped)
+    return s
+
+def get_args(arg=None):
+    args = []
+    if arg != None:
+        args = arg
+    di = {}
+    for i in range(0, len(args) - 1):
+        if args[i].startswith("-"):
+            key = args[i].lower()
+            value = args[i + 1].lower()
+            if key == "-u":
+                di[key] = escape_string(value)
+            elif " " in value:
+                raise ValueError("spaces are not allowed for argument " + key)
+            else:
+                di[key] = value
+
+    # replace underscores on numbers
+    for key, value in di.items():
+        if value.isdigit() or (value.replace("_", "").isdigit() and "." not in value):
+            # value is a number with underscores as thousand separators
+            di[key] = value.replace("_", "")  # remove the underscores
+
+    return di
+
 
 @bot.event
 async def on_ready():
@@ -127,21 +160,18 @@ async def beatmaps(ctx, *args):
 
 @bot.command(pass_context=True)
 async def generateosdb(ctx, *, arg=None):
-    di = getArgs(arg)
+    di = get_args(arg)
 
-    query = "SELECT hash, beatmap_id, beatmapset_id, artist, title, version, mode, stars FROM beatmapLive"
+    query = "SELECT checksum as hash, beatmap_id, beatmapset_id, artist, title, version, mode, stars FROM beatmapLive limit 10"
     result = await db.execute_query(query)
+
+    print(result)
     
     # Convert result rows into CollectionBeatmap instances
     beatmaps = {CollectionBeatmap(**row) for row in result}
 
-    # Create a CollectionSingle instance with these beatmaps
-    collection = CollectionSingle(name="Generated Collection", beatmaps=beatmaps)
-
-        # Write collection to .osdb format
-    with open("collection.osdb", "wb") as f:
-        collection.encode_beatmaps_osdb(f)
-
+    collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
+    collections.encode_collections_osdb(open("collection.osdb", 'wb'))
 
     with open("collection.osdb", "rb") as file:
         await ctx.reply("Your file is:", file=discord.File(file, "collection.osdb"))
