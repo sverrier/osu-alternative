@@ -233,7 +233,7 @@ class util_api:
                 url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/scores/users/{user_id}/all"
                 headers = {
                     "Authorization": f"Bearer {self.token}",
-                    "Version": "2024-07-30"
+                    "x-api-version": "2024-07-30"
                 }
                 
                 response = requests.get(url, headers=headers)

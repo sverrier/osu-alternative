@@ -38,5 +38,7 @@ CREATE TABLE if not EXISTS scoreTaiko (
     total_score BIGINT NOT NULL,
     total_score_without_mods BIGINT NULL,
     type VARCHAR(50) NOT NULL,
-    user_id INTEGER NOT NULL
+    user_id INTEGER NOT NULL,
+    highest_score BOOL NULL,
+    highest_pp BOOL NULL
 );

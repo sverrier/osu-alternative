@@ -150,7 +150,7 @@ elif routine == "3":
             order by
                 countscores) t
         where
-            countscores < 50""")[0][0]
+            countscores < 25""")[0][0]
 
     rs = db.executeQuery("select id from beatmap where status = 'ranked' and id > " + str(maxid) + " order by id;")
     for row in rs:
