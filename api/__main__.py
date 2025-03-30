@@ -177,7 +177,8 @@ elif routine == "4":
 
     user_id = input("Enter a user_id:")
 
-    rs = db.executeQuery("select id from beatmap where beatmap.status = 'ranked'" +
+    rs = db.executeQuery("select id from beatmap where beatmap.status = 'ranked'" + 
+        " and beatmap.id > (select max(beatmap_id) from logger where logType = 'FETCHER' and user_id = " + user_id + ")"
         " except (select beatmap_id from scoreosu where user_id = " + user_id +
         " UNION " +
         "select beatmap_id from scoretaiko where user_id = " + user_id +
@@ -192,7 +193,6 @@ elif routine == "4":
         beatmap_id = row[0]
         print(beatmap_id)
         scores = apiv2.get_beatmap_user_scores(beatmap_id, user_id)
-        print(scores)
         for l in scores:
             if l["ruleset_id"] == 0:
                 s = ScoreOsu(l)
@@ -237,8 +237,6 @@ elif routine == "5":
         counter = counter + 1
 
         sql = "INSERT INTO cursorString values ('" + cursor_string + "', '" + str(datetime.now()) +  "')"
-
-        print(sql)
 
         db.executeSQL(sql)
 

@@ -5,6 +5,7 @@ import sys
 import traceback
 from osu_collections import CollectionBeatmap, CollectionSingle, CollectionDatabase
 from db import Database
+from querybuilder import QueryBuilder
 
 # File name
 config_file = "botconfig.txt"
@@ -159,13 +160,18 @@ async def beatmaps(ctx, *args):
     await ctx.reply(file=attach, content="Here is your response:")
 
 @bot.command(pass_context=True)
-async def generateosdb(ctx, *, arg=None):
-    di = get_args(arg)
+async def generateosdb(ctx, *args):
+    di = get_args(args)
 
-    query = "SELECT checksum as hash, beatmap_id, beatmapset_id, artist, title, version, mode, stars FROM beatmapLive limit 10"
-    result = await db.execute_query(query)
+    columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
 
-    print(result)
+    query = QueryBuilder(columns, di)
+
+    sql = query.getQuery()
+
+    print(sql)
+
+    result = await db.execute_query(sql)
     
     # Convert result rows into CollectionBeatmap instances
     beatmaps = {CollectionBeatmap(**row) for row in result}
