@@ -47,3 +47,18 @@ CREATE TABLE IF NOT EXISTS scoreFruits (
     highest_score BOOL NULL,
     highest_pp BOOL NULL
 );
+
+CREATE INDEX if not exists idx_scoreFruits_ended_at ON scoreFruits USING BRIN (ended_at);
+
+CREATE INDEX IF NOT EXISTS scoreFruits_score 
+on scoreFruits(beatmap_id, user_id, classic_total_score desc);
+
+CREATE INDEX IF NOT EXISTS scoreFruits_user
+on scoreFruits(user_id);
+
+CREATE INDEX IF NOT EXISTS scoreFruits_beatmap
+on scoreFruits(beatmap_id);
+
+CREATE INDEX IF NOT EXISTS idx_scoreFruits_highest_only 
+ON scoreFruits (beatmap_id, user_id) 
+WHERE highest_score = TRUE;
