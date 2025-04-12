@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS scoreLive (
     pp NUMERIC NULL,
     preserve BOOLEAN NOT NULL,
     processed BOOLEAN NOT NULL,
-    rank VARCHAR(3) NOT NULL,
+    grade VARCHAR(3) NOT NULL,
     ranked BOOLEAN NOT NULL,
     replay BOOLEAN NOT NULL,
     ruleset_id INTEGER NOT NULL,

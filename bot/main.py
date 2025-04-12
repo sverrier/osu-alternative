@@ -1,10 +1,12 @@
 import discord
+import aiohttp
 from discord.ext import commands
 import os
 import sys
 import traceback
 from osu_collections import CollectionBeatmap, CollectionSingle, CollectionDatabase
 from db import Database
+from querybuilder import QueryBuilder
 
 # File name
 config_file = "botconfig.txt"
@@ -159,21 +161,84 @@ async def beatmaps(ctx, *args):
     await ctx.reply(file=attach, content="Here is your response:")
 
 @bot.command(pass_context=True)
-async def generateosdb(ctx, *, arg=None):
-    di = get_args(arg)
+async def generateosdb(ctx, *args):
+    di = get_args(args)
 
-    query = "SELECT checksum as hash, beatmap_id, beatmapset_id, artist, title, version, mode, stars FROM beatmapLive limit 10"
-    result = await db.execute_query(query)
+    columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
 
-    print(result)
+    query = QueryBuilder(columns, di)
+
+    sql = query.getQuery()
+
+    print(sql)
+
+    result = await db.execute_query(sql)
     
     # Convert result rows into CollectionBeatmap instances
     beatmaps = {CollectionBeatmap(**row) for row in result}
 
-    collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
-    collections.encode_collections_osdb(open("collection.osdb", 'wb'))
+    if di.__contains__("-name"):
+        filename = di["-name"] + ".osdb"
+    else:
+        filename = "collection.osdb"
 
-    with open("collection.osdb", "rb") as file:
-        await ctx.reply("Your file is:", file=discord.File(file, "collection.osdb"))
+    collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
+    collections.encode_collections_osdb(open(filename, 'wb'))
+
+    with open(filename, "rb") as file:
+        await ctx.reply("Your file is:", file=discord.File(file, filename))
+
+@bot.command(pass_context=True)
+async def generateosdbs(ctx):
+    if not ctx.message.attachments:
+        await ctx.reply("Please attach a .txt file with commands.")
+        return
+
+    attachment = ctx.message.attachments[0]
+    if not attachment.filename.endswith(".txt"):
+        await ctx.reply("The attached file must be a .txt file.")
+        return
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(attachment.url) as resp:
+            if resp.status == 200:
+                file_content = await resp.text()
+            else:
+                await ctx.reply("Failed to download the file.")
+                return
+
+    commands_list = file_content.strip().split("\n")
+    collections = []  
+
+    for command in commands_list:
+        args = command.split()
+        di = get_args(args)
+
+        columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
+        query = QueryBuilder(columns, di)
+        sql = query.getQuery()
+        print(sql)
+
+        result = await db.execute_query(sql)
+
+        # Convert result rows into CollectionBeatmap instances
+        beatmaps = {CollectionBeatmap(**row) for row in result}
+
+        collection_name = di.get("-name", "collection")
+        collections.append(CollectionSingle(collection_name, beatmaps))
+
+    if not collections:
+        await ctx.reply("No valid collections were generated.")
+        return
+
+    # Merge all collections into a single CollectionDatabase
+    merged_collections = CollectionDatabase(collections)
+    
+    filename = "db.osdb"
+    with open(filename, "wb") as f:
+        merged_collections.encode_collections_osdb(f)
+
+    with open(filename, "rb") as file:
+        await ctx.reply("Here is your merged collection file:", file=discord.File(file, filename))
 
 bot.run(DISCORD_TOKEN)

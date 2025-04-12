@@ -42,3 +42,18 @@ CREATE TABLE IF NOT EXISTS scoreMania (
     highest_score BOOL NULL,
     highest_pp BOOL NULL
 );
+
+CREATE INDEX if not exists idx_scoreMania_ended_at ON scoreMania USING BRIN (ended_at);
+
+CREATE INDEX IF NOT EXISTS scoreMania_score 
+on scoreMania(beatmap_id, user_id, classic_total_score desc);
+
+CREATE INDEX IF NOT EXISTS scoreMania_user
+on scoreMania(user_id);
+
+CREATE INDEX IF NOT EXISTS scoreMania_beatmap
+on scoreMania(beatmap_id);
+
+CREATE INDEX IF NOT EXISTS idx_scoreMania_highest_only 
+ON scoreMania (beatmap_id, user_id) 
+WHERE highest_score = TRUE;

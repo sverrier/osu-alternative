@@ -58,6 +58,16 @@ def generate_id_batches(start_id, end_id, batch_size=50):
     for i in range(start_id, end_id, batch_size):
         yield list(range(i, min(i + batch_size, end_id)))
 
+def generate_id_batches_from_query(db, query, batch_size=50):
+    """Fetch distinct beatmap_ids and generate batches."""
+    
+    rs = db.executeQuery(query)  # Fetch query result
+    beatmap_ids = sorted(row[0] for row in rs)  # Extract and sort IDs
+
+    # Generate batches
+    for i in range(0, len(beatmap_ids), batch_size):
+        yield beatmap_ids[i:i + batch_size]
+
 # Main logic
 if os.path.exists(config_file):
     print(f"Found '{config_file}'. Reading configuration...")
@@ -82,6 +92,7 @@ print("2: Fetch users")
 print("3: Fetch leaderboard scores")
 print("4: Fetch user beatmap scores")
 print("5: Fetch recent scores")
+print("6: Sync newly ranked maps")
 
 routine = input("Choose an option: ")
 
@@ -177,7 +188,8 @@ elif routine == "4":
 
     user_id = input("Enter a user_id:")
 
-    rs = db.executeQuery("select id from beatmap where beatmap.status = 'ranked'" +
+    rs = db.executeQuery("select id from beatmap where beatmap.status = 'ranked'" + 
+        " and beatmap.id > (select max(beatmap_id) from logger where logType = 'FETCHER' and user_id = " + user_id + ")"
         " except (select beatmap_id from scoreosu where user_id = " + user_id +
         " UNION " +
         "select beatmap_id from scoretaiko where user_id = " + user_id +
@@ -192,7 +204,6 @@ elif routine == "4":
         beatmap_id = row[0]
         print(beatmap_id)
         scores = apiv2.get_beatmap_user_scores(beatmap_id, user_id)
-        print(scores)
         for l in scores:
             if l["ruleset_id"] == 0:
                 s = ScoreOsu(l)
@@ -238,20 +249,51 @@ elif routine == "5":
 
         sql = "INSERT INTO cursorString values ('" + cursor_string + "', '" + str(datetime.now()) +  "')"
 
-        print(sql)
-
         db.executeSQL(sql)
 
         print(counter)
 
+elif routine == "6":
+
+    query = """
+        SELECT DISTINCT beatmap_id 
+        FROM scoreosu s 
+        EXCEPT 
+        SELECT beatmap_id FROM beatmaplive b
+    """
+    
+    for batch in generate_id_batches_from_query(db, query, batch_size=50):
+        print(batch)
+        finalquery = ""
+        beatmaps = apiv2.get_beatmaps(batch)
+
+        li = beatmaps.get("beatmaps", [])
+        for l in li:
+            b = Beatmap(l)
+
+            bd = BeatmapHistory(l)
+
+            finalquery = finalquery + b.generate_insert_query()
+            finalquery = finalquery + bd.generate_insert_query()
+
+
+        db.executeSQL(finalquery)
+
 else:
+
+    b = apiv2.get_beatmaps(['4645011']).get("beatmaps", [])[0]
+
+    print(b)
+
+    with open(r'out\beatmap.txt', 'w', encoding="utf-8") as f:
+        print(b, file=f)
 
     u = apiv2.get_user(6245906)
 
-    with open(r'out\user.txt', 'w') as f:
+    with open(r'out\user.txt', 'w', encoding="utf-8") as f:
         print(u, file=f)
 
-    with open(r'out\user_sql.txt', 'w') as f:
+    with open(r'out\user_sql.txt', 'w', encoding="utf-8") as f:
         print(u.generate_insert_query(), file=f)
 
     daily_u = UserHistory(u.jsonObject)
