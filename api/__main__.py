@@ -97,7 +97,7 @@ print("6: Sync newly ranked maps")
 routine = input("Choose an option: ")
 
 if routine == "1":
-    maxid = db.executeQuery("select max(id) from beatmap;")[0][0]
+    maxid = db.executeQuery("select coalesce(max(id), 1) from beatmap;")[0][0]
     for batch in generate_id_batches(maxid, maxid + 2000000, batch_size=50):
 
         print(batch)
@@ -189,7 +189,7 @@ elif routine == "4":
     user_id = input("Enter a user_id:")
 
     rs = db.executeQuery("select id from beatmap where beatmap.status = 'ranked'" + 
-        " and beatmap.id > (select max(beatmap_id) from logger where logType = 'FETCHER' and user_id = " + user_id + ")"
+        " and beatmap.id > (select coalesce(max(beatmap_id), 0) from logger where logType = 'FETCHER' and user_id = " + user_id + ")"
         " except (select beatmap_id from scoreosu where user_id = " + user_id +
         " UNION " +
         "select beatmap_id from scoretaiko where user_id = " + user_id +
@@ -224,7 +224,8 @@ elif routine == "5":
 
     while True:
 
-        cursor_string = db.executeQuery("SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1")[0][0]
+        result = db.executeQuery("SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1")
+        cursor_string = result[0][0] if result else None        
         print(cursor_string)
         finalquery = ""
 

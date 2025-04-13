@@ -1,74 +1,71 @@
-CREATE TABLE IF NOT EXISTS scoreLive (
-    id BIGINT PRIMARY KEY,
-    beatmap_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    accuracy NUMERIC NOT NULL,
-    best_id INTEGER NULL,
-    build_id INTEGER NULL,
-    classic_total_score BIGINT NOT NULL,
-    ended_at TIMESTAMPTZ NOT NULL,
-    has_replay BOOLEAN NOT NULL,
-    is_perfect_combo BOOLEAN NOT NULL,
-    legacy_perfect BOOLEAN NOT NULL,
-    legacy_score_id BIGINT NULL,
-    legacy_total_score BIGINT NOT NULL,
-    max_combo INTEGER NOT NULL,
-    maximum_statistics_perfect INTEGER NULL,
-    maximum_statistics_great INTEGER NULL,
-    maximum_statistics_miss INTEGER NULL,
-    maximum_statistics_ignore_hit INTEGER NULL,
-    maximum_statistics_ignore_miss INTEGER NULL,
-    maximum_statistics_slider_tail_hit INTEGER NULL,
-    maximum_statistics_legacy_combo_increase INTEGER NULL,
-    maximum_statistics_large_bonus INTEGER NULL,
-    maximum_statistics_large_tick_hit INTEGER NULL,
-    maximum_statistics_small_bonus INTEGER NULL,
-    maximum_statistics_small_tick_hit INTEGER NULL,
-    mods JSONB NOT NULL,
-    passed BOOLEAN NOT NULL,
-    pp NUMERIC NULL,
-    preserve BOOLEAN NOT NULL,
-    processed BOOLEAN NOT NULL,
-    grade VARCHAR(3) NOT NULL,
-    ranked BOOLEAN NOT NULL,
-    replay BOOLEAN NOT NULL,
-    ruleset_id INTEGER NOT NULL,
-    started_at TIMESTAMPTZ NULL,
-    statistics_perfect INTEGER NULL,
-    statistics_great INTEGER NULL,
-    statistics_good INTEGER NULL,
-    statistics_ok INTEGER NULL,
-    statistics_meh INTEGER NULL,
-    statistics_miss INTEGER NULL,
-    statistics_ignore_hit INTEGER NULL,
-    statistics_ignore_miss INTEGER NULL,
-    statistics_slider_tail_hit INTEGER NULL,
-    statistics_slider_tail_miss INTEGER NULL,
-    statistics_large_bonus INTEGER NULL,
-    statistics_large_tick_hit INTEGER NULL,
-    statistics_large_tick_miss INTEGER NULL,
-    statistics_small_bonus INTEGER NULL,
-    statistics_small_tick_hit INTEGER NULL,
-    statistics_small_tick_miss INTEGER NULL,
-    statistics_combo_break INTEGER NULL,
-    total_score BIGINT NULL,
-    total_score_without_mods BIGINT NULL,
-    type VARCHAR(50) NOT NULL,
-    highest_score BOOL NULL,
-    highest_pp BOOL NULL
+-- public.scorelive definition
+
+-- Drop table
+
+-- DROP TABLE public.scorelive;
+
+CREATE TABLE IF NOT EXISTS public.scorelive (
+	id int8 NOT NULL,
+	beatmap_id int4 NOT NULL,
+	user_id int4 NOT NULL,
+	accuracy numeric NOT NULL,
+	best_id int4 NULL,
+	build_id int4 NULL,
+	classic_total_score int8 NOT NULL,
+	ended_at timestamptz NOT NULL,
+	has_replay bool NOT NULL,
+	is_perfect_combo bool NOT NULL,
+	legacy_perfect bool NOT NULL,
+	legacy_score_id int8 NULL,
+	legacy_total_score int8 NOT NULL,
+	max_combo int4 NOT NULL,
+	maximum_statistics_perfect int4 NULL,
+	maximum_statistics_great int4 NULL,
+	maximum_statistics_miss int4 NULL,
+	maximum_statistics_ignore_hit int4 NULL,
+	maximum_statistics_ignore_miss int4 NULL,
+	maximum_statistics_slider_tail_hit int4 NULL,
+	maximum_statistics_legacy_combo_increase int4 NULL,
+	maximum_statistics_large_bonus int4 NULL,
+	maximum_statistics_large_tick_hit int4 NULL,
+	maximum_statistics_small_bonus int4 NULL,
+	maximum_statistics_small_tick_hit int4 NULL,
+	mods jsonb NOT NULL,
+	passed bool NOT NULL,
+	pp numeric NULL,
+	"preserve" bool NOT NULL,
+	processed bool NOT NULL,
+	grade varchar(3) NOT NULL,
+	ranked bool NOT NULL,
+	replay bool NOT NULL,
+	ruleset_id int4 NOT NULL,
+	started_at timestamptz NULL,
+	statistics_perfect int4 NULL,
+	statistics_great int4 NULL,
+	statistics_good int4 NULL,
+	statistics_ok int4 NULL,
+	statistics_meh int4 NULL,
+	statistics_miss int4 NULL,
+	statistics_ignore_hit int4 NULL,
+	statistics_ignore_miss int4 NULL,
+	statistics_slider_tail_hit int4 NULL,
+	statistics_slider_tail_miss int4 NULL,
+	statistics_large_bonus int4 NULL,
+	statistics_large_tick_hit int4 NULL,
+	statistics_large_tick_miss int4 NULL,
+	statistics_small_bonus int4 NULL,
+	statistics_small_tick_hit int4 NULL,
+	statistics_small_tick_miss int4 NULL,
+	statistics_combo_break int4 NULL,
+	total_score int8 NULL,
+	total_score_without_mods int8 NULL,
+	"type" varchar(50) NOT NULL,
+	highest_score bool NULL,
+	highest_pp bool NULL,
+	CONSTRAINT scorelive_pkey PRIMARY KEY (id)
 );
-
-CREATE INDEX if not exists idx_scoreLive_ended_at ON scoreLive USING BRIN (ended_at);
-
-CREATE INDEX IF NOT EXISTS scoreLive_score 
-on scoreLive(beatmap_id, user_id, classic_total_score desc);
-
-CREATE INDEX IF NOT EXISTS scoreLive_user
-on scoreLive(user_id);
-
-CREATE INDEX IF NOT EXISTS scoreLive_beatmap
-on scoreLive(beatmap_id);
-
-CREATE INDEX IF NOT EXISTS idx_scoreLive_highest_only 
-ON scoreLive (beatmap_id, user_id) 
-WHERE highest_score = TRUE;
+CREATE INDEX IF NOT EXISTS idx_scorelive_ended_at ON public.scorelive USING brin (ended_at);
+CREATE INDEX IF NOT EXISTS idx_scorelive_highest_only ON public.scorelive USING btree (beatmap_id, user_id) WHERE (highest_score = true);
+CREATE INDEX IF NOT EXISTS scorelive_beatmap ON public.scorelive USING btree (beatmap_id);
+CREATE INDEX IF NOT EXISTS scorelive_score ON public.scorelive USING btree (beatmap_id, user_id, classic_total_score DESC);
+CREATE INDEX IF NOT EXISTS scorelive_user ON public.scorelive USING btree (user_id);
