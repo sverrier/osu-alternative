@@ -8,6 +8,13 @@ BEGIN
       AND highest_score = TRUE  -- ✅ Only reset the current highest
       AND classic_total_score < NEW.classic_total_score;  -- ✅ Only if the new score is higher
 
+    UPDATE scoreLive
+    SET highest_score = FALSE
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id
+      AND highest_score = TRUE  -- ✅ Only reset the current highest
+      AND classic_total_score < NEW.classic_total_score;
+
     -- Step 2: Set the new row as the highest score **only if it’s the new best**
     IF NOT EXISTS (
         SELECT 1 FROM scoreOsu 
@@ -44,7 +51,7 @@ BEGIN
         NEW.maximum_statistics_ignore_hit, NEW.maximum_statistics_slider_tail_hit,
         NEW.maximum_statistics_legacy_combo_increase, NEW.maximum_statistics_large_bonus,
         NEW.maximum_statistics_large_tick_hit, NEW.maximum_statistics_small_bonus, NEW.mods,
-        NEW.passed, NEW.pp, NEW.preserve, NEW.processed, NEW.grade, NEW.ranked, NEW.replay, NEW.ruleset_id,
+        NEW.passed, NEW.pp, NEW.preserve, NEW.processed, NEW.rank, NEW.ranked, NEW.replay, NEW.ruleset_id,
         NEW.started_at, NEW.statistics_great, NEW.statistics_ok, NEW.statistics_meh,
         NEW.statistics_miss, NEW.statistics_ignore_hit, NEW.statistics_ignore_miss,
         NEW.statistics_slider_tail_hit, NEW.statistics_slider_tail_miss,
@@ -54,7 +61,7 @@ BEGIN
         NEW.statistics_small_tick_miss, NEW.maximum_statistics_small_tick_hit, NEW.highest_score
     WHERE EXISTS (
         SELECT 1 FROM userLive WHERE user_id = NEW.user_id
-    )
+    );
 
     RETURN NULL;  -- ✅ AFTER triggers must return NULL
 END;

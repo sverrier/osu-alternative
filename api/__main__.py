@@ -224,7 +224,8 @@ elif routine == "5":
 
     while True:
 
-        cursor_string = db.executeQuery("SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1")[0][0]
+        result = db.executeQuery("SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1")
+        cursor_string = result[0][0] if result else None        
         print(cursor_string)
         finalquery = ""
 
