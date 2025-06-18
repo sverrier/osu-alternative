@@ -50,7 +50,9 @@ insert
 	statistics_small_tick_hit,
 	statistics_small_tick_miss,
 	maximum_statistics_small_tick_hit,
-	highest_score
+	highest_score,
+	highest_pp,
+	rank
 )
 select
 	id,
@@ -102,7 +104,9 @@ select
 	statistics_small_tick_hit,
 	statistics_small_tick_miss,
 	maximum_statistics_small_tick_hit,
-	highest_score
+	highest_score,
+	highest_pp,
+	leaderboard_rank
 from
 	scoreosu so
 inner join userLive ul on

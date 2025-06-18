@@ -1,3 +1,4 @@
+import psycopg
 from psycopg import cursor
 from util.scoreFruits import ScoreFruits
 from util.scoreMania import ScoreMania
@@ -68,7 +69,6 @@ class util_api:
                     json_response = response.json()
                     if not json_response:
                         return None
-                    u = UserExtended(json_response)
                 else:
                     raise Exception(f"Unexpected response code: {status}")
                 
@@ -81,7 +81,7 @@ class util_api:
                 magnitude += 5
                 self.refresh_token()
         
-        return u
+        return json_response
 
     def get_users(self, ids):
         complete = False

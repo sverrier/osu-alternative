@@ -1,6 +1,8 @@
-from util.userHistory import UserHistory
+from util.jsonDataObject import jsonDataObject
+from util.userExtendedHistory import UserExtendedHistory
 from util.userExtended import UserExtended
 from util.userOsu import UserOsu
+from util.userOsuHistory import UserOsuHistory
 from util.userTaiko import UserTaiko
 from util.userFruits import UserFruits
 from util.userMania import UserMania
@@ -93,6 +95,8 @@ print("3: Fetch leaderboard scores")
 print("4: Fetch user beatmap scores")
 print("5: Fetch recent scores")
 print("6: Sync newly ranked maps")
+print("7: Update registered users")
+
 
 routine = input("Choose an option: ")
 
@@ -148,7 +152,7 @@ elif routine == "3":
 
     maxid = db.executeQuery("""
         select
-            min(beatmap_id)
+            coalesce(min(beatmap_id), 0 )
         from
             (
             select
@@ -280,6 +284,32 @@ elif routine == "6":
 
         db.executeSQL(finalquery)
 
+elif routine == "7":
+
+    query = """
+        SELECT user_id 
+        FROM user s 
+        EXCEPT 
+        SELECT beatmap_id FROM beatmaplive b
+    """
+    
+    for batch in generate_id_batches_from_query(db, query, batch_size=50):
+        print(batch)
+        finalquery = ""
+        beatmaps = apiv2.get_beatmaps(batch)
+
+        li = beatmaps.get("beatmaps", [])
+        for l in li:
+            b = Beatmap(l)
+
+            bd = BeatmapHistory(l)
+
+            finalquery = finalquery + b.generate_insert_query()
+            finalquery = finalquery + bd.generate_insert_query()
+
+
+        db.executeSQL(finalquery)
+
 else:
 
     b = apiv2.get_beatmaps(['4645011']).get("beatmaps", [])[0]
@@ -289,7 +319,8 @@ else:
     with open(r'out\beatmap.txt', 'w', encoding="utf-8") as f:
         print(b, file=f)
 
-    u = apiv2.get_user(6245906)
+    json_response = apiv2.get_user(6245906)
+    u = UserExtended(json_response)
 
     with open(r'out\user.txt', 'w', encoding="utf-8") as f:
         print(u, file=f)
@@ -297,8 +328,8 @@ else:
     with open(r'out\user_sql.txt', 'w', encoding="utf-8") as f:
         print(u.generate_insert_query(), file=f)
 
-    daily_u = UserHistory(u.jsonObject)
-    with open(r'out\user.txt', 'w') as f:
+    daily_u = UserOsuHistory(json_response)
+    with open(r'out\userHistory.txt', 'w') as f:
         print(daily_u, file=f)
 
     with open(r'out\user_sql.txt', 'w') as f:

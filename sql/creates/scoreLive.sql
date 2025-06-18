@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS public.scorelive (
 	"type" varchar(50) NOT NULL,
 	highest_score bool NULL,
 	highest_pp bool NULL,
+	rank INT NULL,
 	CONSTRAINT scorelive_pkey PRIMARY KEY (id)
 );
 CREATE INDEX IF NOT EXISTS idx_scorelive_ended_at ON public.scorelive USING brin (ended_at);
