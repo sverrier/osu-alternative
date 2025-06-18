@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS scoreOsu (
     total_score_without_mods BIGINT NULL,
     type VARCHAR(50) NOT NULL,
     highest_score BOOL NULL,
-    highest_pp BOOL NULL
+    highest_pp BOOL NULL,
+    leaderboard_rank INT NULL
 );
 
 CREATE INDEX if not exists idx_scoreOsu_ended_at ON scoreOsu USING BRIN (ended_at);
