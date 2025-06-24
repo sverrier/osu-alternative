@@ -10,7 +10,7 @@ class UserOsuHistory(jsonDataObject):
     flatten_columns = {"country", "cover", "team",
                        "osu_level", "osu_grade_counts"}
 
-    included_columns = {'id', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count',
+    included_columns = {'id', 'record_date', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count',
                         'favourite_beatmapset_count', 'follower_count', 'graveyard_beatmapset_count', 'guest_beatmapset_count',
                         'loved_beatmapset_count', 'mapping_follower_count', 'nominated_beatmapset_count', 'pending_beatmapset_count',
                         'ranked_beatmapset_count', 'ranked_and_approved_beatmapset_count', 'unranked_beatmapset_count', 'osu_count_100',
@@ -41,11 +41,25 @@ class UserOsuHistory(jsonDataObject):
     def __init__(self, user):
 
         user["record_date"] = datetime.today().strftime('%Y-%m-%d')
+        
+        statistics_rulesets = user.pop("statistics_rulesets", {})
+        if isinstance(statistics_rulesets, dict):
+            for key, value in statistics_rulesets.items():
+                user[f"{key}"] = value
+
+                
+            for key, value in user.pop("osu", {}).items():
+                user[f"osu_{key}"] = value
+
+            user.pop("taiko", None)
+            user.pop("fruits", None)
+            user.pop("mania", None)
+            
+        print(user)
 
         super().__init__(user, self.table, self.key_columns, self.flatten_columns,
-                         self.json_columns)
+                         self.json_columns, )
 
     def generate_insert_query(self):
-        self.final_json = {key: value for key,
-                           value in self.final_json.items() if key in self.columns}
+        self.final_json = {key: value for key, value in self.final_json.items() if key in self.included_columns}
         return super().generate_insert_query()

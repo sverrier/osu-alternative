@@ -44,5 +44,6 @@ CREATE TABLE IF NOT EXISTS userOsu (
     team_id INTEGER,
     team_name TEXT,
     team_short_name TEXT,
-    username TEXT NOT NULL
+    username TEXT NOT NULL,
+    registered BOOLEAN DEFAULT FALSE
 );

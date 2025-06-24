@@ -288,25 +288,35 @@ elif routine == "7":
 
     query = """
         SELECT user_id 
-        FROM user s 
-        EXCEPT 
-        SELECT beatmap_id FROM beatmaplive b
+        FROM userLive
     """
     
     for batch in generate_id_batches_from_query(db, query, batch_size=50):
         print(batch)
         finalquery = ""
-        beatmaps = apiv2.get_beatmaps(batch)
+        users = apiv2.get_users(batch)
 
-        li = beatmaps.get("beatmaps", [])
+        li = users.get("users", [])
         for l in li:
-            b = Beatmap(l)
+            u = UserOsu(l.copy())
+            
+            finalquery = finalquery + u.generate_insert_query()
+            
+            u = UserOsuHistory(l.copy())    
+            
+            finalquery = finalquery + u.generate_insert_query()
 
-            bd = BeatmapHistory(l)
+            u = UserTaiko(l.copy())
+ 
+            finalquery = finalquery + u.generate_insert_query()
 
-            finalquery = finalquery + b.generate_insert_query()
-            finalquery = finalquery + bd.generate_insert_query()
+            u = UserFruits(l.copy())
+ 
+            finalquery = finalquery + u.generate_insert_query()
 
+            u = UserMania(l.copy())
+ 
+            finalquery = finalquery + u.generate_insert_query()
 
         db.executeSQL(finalquery)
 

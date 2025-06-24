@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS beatmap (
     beatmapset_title TEXT,
     beatmapset_title_unicode TEXT,
     beatmapset_track_id INTEGER,
+    beatmapset_genre_id INTEGER,
+    beatmapset_language_id INTEGER,
     beatmapset_user_id INTEGER,
     beatmapset_video BOOLEAN,
     beatmapset_bpm NUMERIC,
