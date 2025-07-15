@@ -3,12 +3,15 @@ from util.jsonDataObject import jsonDataObject
 from datetime import datetime
 
 
-class UserOsuHistory(jsonDataObject):
+class UserHistory(jsonDataObject):
     table = "userHistory"  # Hardcoded table name
     key_columns = "id,record_date"
     json_columns = {"groups"}
     flatten_columns = {"country", "cover", "team",
-                       "osu_level", "osu_grade_counts"}
+                       "osu_level", "osu_grade_counts",
+                       "taiko_level", "taiko_grade_counts",
+                       "fruits_level", "fruits_grade_counts",
+                       "mania_level", "mania_grade_counts"}
 
     included_columns = {'id', 'record_date', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count',
                         'favourite_beatmapset_count', 'follower_count', 'graveyard_beatmapset_count', 'guest_beatmapset_count',
@@ -51,14 +54,17 @@ class UserOsuHistory(jsonDataObject):
             for key, value in user.pop("osu", {}).items():
                 user[f"osu_{key}"] = value
 
-            user.pop("taiko", None)
-            user.pop("fruits", None)
-            user.pop("mania", None)
+            for key, value in user.pop("fruits", {}).items():
+                user[f"fruits_{key}"] = value
+                
+            for key, value in user.pop("taiko", {}).items():
+                user[f"taiko_{key}"] = value
+                
+            for key, value in user.pop("mania", {}).items():
+                user[f"mania_{key}"] = value
             
-        print(user)
-
         super().__init__(user, self.table, self.key_columns, self.flatten_columns,
-                         self.json_columns, )
+                         self.json_columns)
 
     def generate_insert_query(self):
         self.final_json = {key: value for key, value in self.final_json.items() if key in self.included_columns}

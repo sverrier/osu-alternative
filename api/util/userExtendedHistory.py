@@ -21,7 +21,7 @@ class UserExtendedHistory(jsonDataObject):
                        "daily_challenge_user_stats", "rank_highest",
                        "statistics_level", "statistics_grade_counts", "statistics_rank"}
 
-    included_columns = {'id', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count',
+    included_columns = {'id', 'record_date', 'username', 'post_count', 'beatmap_playcounts_count', 'comments_count',
                         'favourite_beatmapset_count', 'follower_count', 'graveyard_beatmapset_count', 'guest_beatmapset_count',
                         'loved_beatmapset_count', 'mapping_follower_count', 'nominated_beatmapset_count', 'pending_beatmapset_count',
                         'ranked_beatmapset_count', 'ranked_and_approved_beatmapset_count', 'unranked_beatmapset_count', 'osu_count_100',
@@ -55,11 +55,10 @@ class UserExtendedHistory(jsonDataObject):
             user[f"statistics_{key}"] = value
 
         user["record_date"] = datetime.today().strftime('%Y-%m-%d')
-
+        
         super().__init__(user, self.table, self.key_columns, self.flatten_columns,
                          self.json_columns)
 
     def generate_insert_query(self):
-        self.final_json = {key: value for key,
-                           value in self.final_json.items() if key in self.columns}
+        self.final_json = {key: value for key, value in self.final_json.items() if key in self.included_columns}
         return super().generate_insert_query()

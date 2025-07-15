@@ -8,6 +8,7 @@ class UserExtended(jsonDataObject):
     json_columns = {"playstyle", 
                     "profile_order", 
                     "badges", 
+                    "current_season_stats", 
                     "monthly_playcounts", 
                     "previous_usernames", 
                     "replays_watched_counts", 

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS userExtended (
     badges JSONB,
     beatmap_playcounts_count INTEGER,
     comments_count INTEGER,
+    current_season_stats JSONB,
     country_code VARCHAR(10),
     country_name TEXT,
     cover_custom_url TEXT,
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS userExtended (
     groups JSONB,
     guest_beatmapset_count INTEGER,
     has_supported BOOLEAN,
-    id BIGINT PRIMARY KEY,
+    id BIGINT,
     interests TEXT,
     is_active BOOLEAN,
     is_bot BOOLEAN,
@@ -104,6 +105,7 @@ CREATE TABLE IF NOT EXISTS userExtended (
     unranked_beatmapset_count INTEGER,
     user_achievements JSONB,
     username TEXT NOT NULL,
-    website TEXT
+    website TEXT,
+    PRIMARY KEY (id, playmode)
 );
 

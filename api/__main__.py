@@ -1,11 +1,8 @@
 from util.jsonDataObject import jsonDataObject
 from util.userExtendedHistory import UserExtendedHistory
 from util.userExtended import UserExtended
-from util.userOsu import UserOsu
-from util.userOsuHistory import UserOsuHistory
-from util.userTaiko import UserTaiko
-from util.userFruits import UserFruits
-from util.userMania import UserMania
+from util.userMaster import UserMaster
+from util.userHistory import UserHistory
 from util.beatmap import Beatmap
 from util.beatmapHistory import BeatmapHistory
 from util.scoreOsu import ScoreOsu
@@ -121,7 +118,7 @@ if routine == "1":
         db.executeSQL(finalquery)
 
 elif routine == "2":
-    maxid = db.executeQuery("select coalesce(max(id), 1) from userOsu;")[0][0]
+    maxid = db.executeQuery("select coalesce(max(id), 1) from userMaster;")[0][0]
     for batch in generate_id_batches(maxid, maxid + 5000000, batch_size=50):
 
         print(batch)
@@ -130,20 +127,8 @@ elif routine == "2":
 
         li = users.get("users", [])
         for l in li:
-            u = UserOsu(l.copy())
+            u = UserMaster(l.copy())
             
-            finalquery = finalquery + u.generate_insert_query()
-
-            u = UserTaiko(l.copy())
- 
-            finalquery = finalquery + u.generate_insert_query()
-
-            u = UserFruits(l.copy())
- 
-            finalquery = finalquery + u.generate_insert_query()
-
-            u = UserMania(l.copy())
- 
             finalquery = finalquery + u.generate_insert_query()
 
         db.executeSQL(finalquery)
@@ -298,25 +283,24 @@ elif routine == "7":
 
         li = users.get("users", [])
         for l in li:
-            u = UserOsu(l.copy())
+            u = UserMaster(l.copy())
             
             finalquery = finalquery + u.generate_insert_query()
             
-            u = UserOsuHistory(l.copy())    
+            u = UserHistory(l.copy())    
             
             finalquery = finalquery + u.generate_insert_query()
+            
+        json_response = apiv2.get_user(6245906)
+        u = UserExtended(json_response.copy())
+        with open(r'out\userExtended.txt', 'w', encoding="utf-8") as f:
+            print(u, file=f)
+        finalquery = finalquery + u.generate_insert_query()
+        
+        u = UserExtendedHistory(json_response.copy())
+        finalquery = finalquery + u.generate_insert_query()
 
-            u = UserTaiko(l.copy())
- 
-            finalquery = finalquery + u.generate_insert_query()
 
-            u = UserFruits(l.copy())
- 
-            finalquery = finalquery + u.generate_insert_query()
-
-            u = UserMania(l.copy())
- 
-            finalquery = finalquery + u.generate_insert_query()
 
         db.executeSQL(finalquery)
 
@@ -338,7 +322,7 @@ else:
     with open(r'out\user_sql.txt', 'w', encoding="utf-8") as f:
         print(u.generate_insert_query(), file=f)
 
-    daily_u = UserOsuHistory(json_response)
+    daily_u = UserHistory(json_response)
     with open(r'out\userHistory.txt', 'w') as f:
         print(daily_u, file=f)
 
