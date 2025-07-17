@@ -3,7 +3,7 @@ from util.jsonDataObject import jsonDataObject
 
 
 class UserMaster(jsonDataObject):
-    table = "userMaster"  # Hardcoded table name
+    table = "userMaster" 
     key_columns = "id"
     json_columns = {"groups"}
     flatten_columns = {"country", "cover", "team",
