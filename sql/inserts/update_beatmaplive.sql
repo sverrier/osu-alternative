@@ -30,7 +30,8 @@ insert
 	title,
 	artist,
 	"source",
-	tags)
+	tags,
+	checksum)
 select b.id,
 	b.user_id,
 	b.beatmapset_id,
@@ -60,7 +61,8 @@ select b.id,
 	b.beatmapset_title,
 	b.beatmapset_artist,
 	b.beatmapset_source,
-	b.beatmapset_tags
+	b.beatmapset_tags,
+	b.checksum
 from beatmap b
 	left join beatmapLive bl on b.id = bl.beatmap_id
 where beatmapset_ranked_date is not null and bl.beatmap_id is null;

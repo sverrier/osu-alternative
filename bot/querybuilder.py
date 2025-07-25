@@ -68,43 +68,61 @@ class QueryBuilder:
 
     def setWhereClause(self):
         whereClause = ""
-        if self.args.__contains__("-accuracy-min"):
-            whereClause += " AND accuracy >= " + self.args["-accuracy-min"]
-            self.fields.append("accuracy")
-        if self.args.__contains__("-accuracy-max"):
-            whereClause += " AND accuracy < " + self.args["-accuracy-max"]
-            self.fields.append("accuracy")
-        if self.args.__contains__("-mode"):
-            whereClause += " AND mode = " + self.args["-mode"]
-            self.fields.append("mode") 
-        if self.args.__contains__("-username"):
-            whereClause += " AND username = '" + self.args["-username"] + "'"
-            self.fields.append("username")
-        if self.args.__contains__("-unplayed"):
-            whereClause += " AND beatmapLive.beatmap_id not in (select beatmap_id from scoreLive where user_id = " + self.args["-user"] + ")"
-            self.fields.append("beatmap_id")
-        if self.args.__contains__("-grade"):
-            whereClause += " AND grade = upper('" + self.args["-grade"] + "')"
-            self.fields.append("grade")
-        if self.args.__contains__("-highest_score"):
-            whereClause += " AND highest_score = " + self.args["-highest_score"]
-            self.fields.append("highest_score")
-        if self.args.__contains__("-highest_pp"):
-            whereClause += " AND highest_pp = " + self.args["-highest_pp"]
-            self.fields.append("highest_pp")
-        if self.args.__contains__("-date_played-min"):
-            whereClause += " AND cast(ended_at as date) >= '" + self.args["-date_played-min"] + "'"
-            self.fields.append("ended_at")
-        if self.args.__contains__("-date_played-max"):
-            whereClause += " AND cast(ended_at as date) < '" + self.args["-date_played-max"] + "'"
-            self.fields.append("ended_at")
-        if self.args.__contains__("-tags"):
-            whereClause += " AND concat(artist, ',', title, ',', source, ',', version, ',', tags) LIKE '" + self.args["-tags"] + "'"
-            self.fields.append("artist")
-            self.fields.append("title")
-            self.fields.append("source")
-            self.fields.append("version")
-            self.fields.append("tags")
+        for key, value in self.args.items():
+            if key == "-accuracy-min":
+                whereClause += " AND accuracy >= " + value
+                self.fields.append("accuracy")
+            elif key == "-accuracy-max":
+                whereClause += " AND accuracy < " + value
+                self.fields.append("accuracy")
+            elif key == "-mode":
+                whereClause += " AND mode = " + value
+                self.fields.append("mode") 
+            elif key == "-username":
+                whereClause += " AND username = '" + value + "'"
+                self.fields.append("username")
+            elif key == "-unplayed":
+                whereClause += " AND beatmapLive.beatmap_id not in (select beatmap_id from scoreLive where user_id = " + value + ")"
+                self.fields.append("beatmap_id")
+            elif key == "-grade":
+                whereClause += " AND grade = upper('" + value + "')"
+                self.fields.append("grade")
+            elif key == "-highest_score":
+                whereClause += " AND highest_score = " + value
+                self.fields.append("highest_score")
+            elif key == "-highest_pp":
+                whereClause += " AND highest_pp = " + value
+                self.fields.append("highest_pp")
+            elif key == "-date_played-min":
+                whereClause += " AND cast(ended_at as date) >= '" + value + "'"
+                self.fields.append("ended_at")
+            elif key == "-date_played-max":
+                whereClause += " AND cast(ended_at as date) < '" + value + "'"
+                self.fields.append("ended_at")
+            elif key == "-tags":
+                whereClause += " AND concat(artist, ',', title, ',', source, ',', version, ',', tags) LIKE '" + value + "'"
+                self.fields.append("artist")
+                self.fields.append("title")
+                self.fields.append("source")
+                self.fields.append("version")
+                self.fields.append("tags")
+            else: #Attempt to generically resolve parameter
+                all_columns = set(col for cols in TableColumns.values() for col in cols)
+                raw_key = key[1:]
+                
+                if raw_key.endswith("-min"):
+                    column = raw_key[:-4]
+                    if column in all_columns:
+                        whereClause += f" AND {column} >= {value}"
+                        self.fields.append(column)
+                elif raw_key.endswith("-max"):
+                    column = raw_key[:-4]
+                    if column in all_columns:
+                        whereClause += f" AND {column} < {value}"
+                        self.fields.append(column)
+                elif raw_key in all_columns:
+                    whereClause += f" AND {raw_key} = {value}"
+                    self.fields.append(raw_key)
 
         if len(whereClause) > 0:
             self.whereclause = " WHERE " + whereClause[5:]

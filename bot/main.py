@@ -148,11 +148,37 @@ async def on_command_error(ctx, error):
 
     await ctx.reply(embed=embed)
 
-@bot.command(aliases=["b"])
+@bot.command(pass_context=True)
 async def beatmaps(ctx, *args):
-    """Returns statistics of a set of beatmaps"""
+    di = get_args(args)
 
-    print(args[0])
+    columns = "beatmap_id"
+
+    query = QueryBuilder(columns, di)
+
+    sql = query.getQuery()
+
+    print(sql)
+
+    result = await db.execute_query(sql)
+    
+    # Convert result rows into CollectionBeatmap instances
+    beatmaps = {CollectionBeatmap(**row) for row in result}
+
+    if di.__contains__("-name"):
+        filename = di["-name"] + ".osdb"
+    else:
+        filename = "collection.osdb"
+
+    collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
+    collections.encode_collections_osdb(open(filename, 'wb'))
+
+    with open(filename, "rb") as file:
+        await ctx.reply("Your file is:", file=discord.File(file, filename))
+
+@bot.command(aliases=["b"])
+async def manual_query(ctx, *args):
+    """Returns statistics of a set of beatmaps"""
 
     await db.export_to_csv(args[0], "temp.csv")
 

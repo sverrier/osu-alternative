@@ -1,10 +1,7 @@
 from util.jsonDataObject import jsonDataObject
-from util.userExtendedHistory import UserExtendedHistory
 from util.userExtended import UserExtended
 from util.userMaster import UserMaster
-from util.userHistory import UserHistory
 from util.beatmap import Beatmap
-from util.beatmapHistory import BeatmapHistory
 from util.scoreOsu import ScoreOsu
 from util.scoreFruits import ScoreFruits
 from util.scoreMania import ScoreMania
@@ -15,7 +12,7 @@ from util.db import db
 import os
 from datetime import datetime
 
-
+from cryptography.fernet import Fernet
 
 # File name
 config_file = "config.txt"
@@ -32,17 +29,34 @@ def create_config_file(file_name):
     config["PASSWORD"] = input("Enter the PASSWORD value (Postgres password): ").strip()
     config["PORT"] = input("Enter the PORT value: ").strip()
 
+    key = Fernet.generate_key()
+
+    print("SAVE THIS KEY")
+    print(key)
+
+    f = Fernet(key)
+
+    config["KEY"] = f.encrypt(config["KEY"].encode("utf-8")).decode("utf-8")
+    config["PASSWORD"] = f.encrypt(config["PASSWORD"].encode("utf-8")).decode("utf-8")
     
     # Write to file
     with open(file_name, "w") as file:
         for key, value in config.items():
             file.write(f"[{key}]={value}\n")
+
+    config["KEY"] = f.decrypt(config["KEY"].encode("utf-8")).decode("utf-8")
+    config["PASSWORD"] = f.decrypt(config["PASSWORD"].encode("utf-8")).decode("utf-8")
+
     print(f"Configuration file '{file_name}' created successfully.")
     return config
 
 # Function to read the configuration file
 def read_config_file(file_name):
     config = {}
+    config["ENCRYPTION_KEY"] = input("Enter your encryption key: ").encode("utf-8")
+
+    f = Fernet(config["ENCRYPTION_KEY"])
+
     with open(file_name, "r") as file:
         for line in file:
             # Parse lines of the format [KEY]=value
@@ -50,6 +64,12 @@ def read_config_file(file_name):
                 key, value = line.strip().split("=", 1)
                 key = key.strip("[]")  # Remove square brackets
                 config[key] = value
+
+    print(config["KEY"].encode("utf-8"))
+
+    config["KEY"] = f.decrypt(config["KEY"].encode("utf-8")).decode("utf-8")
+    config["PASSWORD"] = f.decrypt(config["PASSWORD"].encode("utf-8")).decode("utf-8")
+
     return config
 
 def generate_id_batches(start_id, end_id, batch_size=50):
@@ -109,11 +129,7 @@ if routine == "1":
         for l in li:
             b = Beatmap(l)
 
-            bd = BeatmapHistory(l)
-
             finalquery = finalquery + b.generate_insert_query()
-            finalquery = finalquery + bd.generate_insert_query()
-
 
         db.executeSQL(finalquery)
 
@@ -287,19 +303,10 @@ elif routine == "7":
             
             finalquery = finalquery + u.generate_insert_query()
             
-            u = UserHistory(l.copy())    
-            
-            finalquery = finalquery + u.generate_insert_query()
-            
         json_response = apiv2.get_user(6245906)
         u = UserExtended(json_response.copy())
-        with open(r'out\userExtended.txt', 'w', encoding="utf-8") as f:
-            print(u, file=f)
-        finalquery = finalquery + u.generate_insert_query()
-        
-        u = UserExtendedHistory(json_response.copy())
-        finalquery = finalquery + u.generate_insert_query()
 
+        finalquery = finalquery + u.generate_insert_query()
 
 
         db.executeSQL(finalquery)
@@ -321,13 +328,6 @@ else:
 
     with open(r'out\user_sql.txt', 'w', encoding="utf-8") as f:
         print(u.generate_insert_query(), file=f)
-
-    daily_u = UserHistory(json_response)
-    with open(r'out\userHistory.txt', 'w') as f:
-        print(daily_u, file=f)
-
-    with open(r'out\user_sql.txt', 'w') as f:
-        print(daily_u.generate_insert_query(), file=f)
 
 
     s = apiv2.get_beatmap_scores(4796487)
