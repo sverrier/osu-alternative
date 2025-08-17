@@ -96,10 +96,10 @@ insert
 	team_name,
 	team_short_name)
 select
-	uo.id,
-	uo.username,
-	uo.country_code,
-	uo.country_name,
+	id,
+	username,
+	country_code,
+	country_name,
 	osu_count_100,
 	osu_count_300,
 	osu_count_50,
@@ -184,16 +184,10 @@ select
 	mania_replays_watched_by_others,
 	mania_total_hits,
 	mania_total_score,
-	uo.team_flag_url,
-	uo.team_id,
-	uo.team_name,
-	uo.team_short_name
+	team_flag_url,
+	team_id,
+	team_name,
+	team_short_name
 from
-	userOsu uo
-full join userTaiko ut on
-	uo.id = ut.id
-full join userFruits uf on
-	uo.id = uf.id
-full join userMania um on
-	uo.id = um.id
-where uo.id in (6245906);
+	userMaster
+where id in (6245906);

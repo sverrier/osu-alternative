@@ -152,29 +152,81 @@ async def on_command_error(ctx, error):
 async def beatmaps(ctx, *args):
     di = get_args(args)
 
-    columns = "beatmap_id"
+    columns = "count(*)"
 
-    query = QueryBuilder(columns, di)
+    table = "beatmapLive"
+
+    query = QueryBuilder(di, columns, table)
 
     sql = query.getQuery()
 
     print(sql)
 
-    result = await db.execute_query(sql)
+    result = await db.export_to_csv(sql, "result.csv")
     
-    # Convert result rows into CollectionBeatmap instances
-    beatmaps = {CollectionBeatmap(**row) for row in result}
+    attach = discord.File("result.csv")
 
-    if di.__contains__("-name"):
-        filename = di["-name"] + ".osdb"
-    else:
-        filename = "collection.osdb"
+    await ctx.reply(file=attach, content="Here is your response:")
 
-    collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
-    collections.encode_collections_osdb(open(filename, 'wb'))
+@bot.command(pass_context=True)
+async def scores(ctx, *args):
+    di = get_args(args)
 
-    with open(filename, "rb") as file:
-        await ctx.reply("Your file is:", file=discord.File(file, filename))
+    columns = "count(*)"
+
+    table = "scoreLive"
+
+    query = QueryBuilder(di, columns, table)
+
+    sql = query.getQuery()
+
+    print(sql)
+
+    result = await db.export_to_csv(sql, "result.csv")
+    
+    attach = discord.File("result.csv")
+
+    await ctx.reply(file=attach, content="Here is your response:")
+
+@bot.command(pass_context=True)
+async def scorelist(ctx, *args):
+    di = get_args(args)
+
+    columns = "artist,title,version,stars,accuracy,pp,total_score,grade,mods"
+
+    table = "scoreLive"
+
+    query = QueryBuilder(di, columns, table)
+
+    sql = query.getQuery()
+
+    print(sql)
+
+    result = await db.export_to_csv(sql, "result.csv")
+    
+    attach = discord.File("result.csv")
+
+    await ctx.reply(file=attach, content="Here is your response:")
+
+@bot.command(pass_context=True)
+async def users(ctx, *args):
+    di = get_args(args)
+
+    columns = "count(*)"
+
+    table = "userLive"
+
+    query = QueryBuilder(di, columns, table)
+
+    sql = query.getQuery()
+
+    print(sql)
+
+    result = await db.export_to_csv(sql, "result.csv")
+    
+    attach = discord.File("result.csv")
+
+    await ctx.reply(file=attach, content="Here is your response:")
 
 @bot.command(aliases=["b"])
 async def manual_query(ctx, *args):

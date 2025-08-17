@@ -277,11 +277,7 @@ elif routine == "6":
         for l in li:
             b = Beatmap(l)
 
-            bd = BeatmapHistory(l)
-
             finalquery = finalquery + b.generate_insert_query()
-            finalquery = finalquery + bd.generate_insert_query()
-
 
         db.executeSQL(finalquery)
 
