@@ -6,9 +6,9 @@
     "is_active": true,
     "is_bot": false,
     "is_deleted": false,
-    "is_online": true,
-    "is_supporter": false,
-    "last_visit": "2025-07-22T19:45:17+00:00",
+    "is_online": false,
+    "is_supporter": true,
+    "last_visit": "2025-09-30T23:14:42+00:00",
     "pm_friends_only": false,
     "profile_colour": null,
     "username": "Furina-",
@@ -18,8 +18,8 @@
     "interests": "Sniping",
     "join_date": "2015-03-30T19:02:07+00:00",
     "location": "N-B",
-    "max_blocks": 100,
-    "max_friends": 500,
+    "max_blocks": 200,
+    "max_friends": 1000,
     "occupation": "Sniper",
     "playmode": "osu",
     "playstyle": [
@@ -66,23 +66,23 @@
             "url": ""
         }
     ],
-    "beatmap_playcounts_count": 43704,
+    "beatmap_playcounts_count": 43811,
     "comments_count": 9,
     "current_season_stats": null,
     "daily_challenge_user_stats": {
-        "daily_streak_best": 0,
-        "daily_streak_current": 0,
-        "last_update": "2000-01-01T00:00:00+00:00",
-        "last_weekly_streak": "2000-01-01T00:00:00+00:00",
-        "playcount": 0,
-        "top_10p_placements": 0,
-        "top_50p_placements": 0,
+        "daily_streak_best": 17,
+        "daily_streak_current": 17,
+        "last_update": "2025-09-30T00:00:00+00:00",
+        "last_weekly_streak": "2025-09-25T00:00:00+00:00",
+        "playcount": 17,
+        "top_10p_placements": 17,
+        "top_50p_placements": 17,
         "user_id": 6245906,
-        "weekly_streak_best": 0,
-        "weekly_streak_current": 0
+        "weekly_streak_best": 3,
+        "weekly_streak_current": 3
     },
     "favourite_beatmapset_count": 36,
-    "follower_count": 986,
+    "follower_count": 984,
     "graveyard_beatmapset_count": 8,
     "groups": [],
     "guest_beatmapset_count": 0,
@@ -508,6 +508,10 @@
         {
             "start_date": "2025-05-01",
             "count": 8
+        },
+        {
+            "start_date": "2025-09-01",
+            "count": 783
         }
     ],
     "nominated_beatmapset_count": 0,
@@ -985,14 +989,26 @@
         },
         {
             "start_date": "2025-07-01",
-            "count": 37
+            "count": 58
+        },
+        {
+            "start_date": "2025-08-01",
+            "count": 45
+        },
+        {
+            "start_date": "2025-09-01",
+            "count": 40
+        },
+        {
+            "start_date": "2025-10-01",
+            "count": 1
         }
     ],
     "scores_best_count": 200,
-    "scores_first_count": 3,
+    "scores_first_count": 15,
     "scores_pinned_count": 9,
-    "scores_recent_count": 0,
-    "support_level": 0,
+    "scores_recent_count": 5,
+    "support_level": 3,
     "team": {
         "flag_url": "https://assets.ppy.sh/teams/flag/2446/1996657bd30b49d3e34785789a1a4bfede00b8a1b692b2b8773c464d2e86881a.png",
         "id": 2446,
@@ -1000,6 +1016,70 @@
         "short_name": "OALT"
     },
     "user_achievements": [
+        {
+            "achieved_at": "2025-09-26T23:57:12Z",
+            "achievement_id": 350
+        },
+        {
+            "achieved_at": "2025-09-26T23:11:36Z",
+            "achievement_id": 347
+        },
+        {
+            "achieved_at": "2025-09-26T22:09:28Z",
+            "achievement_id": 335
+        },
+        {
+            "achieved_at": "2025-09-23T23:32:44Z",
+            "achievement_id": 344
+        },
+        {
+            "achieved_at": "2025-09-22T23:35:21Z",
+            "achievement_id": 349
+        },
+        {
+            "achieved_at": "2025-09-22T23:31:43Z",
+            "achievement_id": 346
+        },
+        {
+            "achieved_at": "2025-09-22T23:28:36Z",
+            "achievement_id": 307
+        },
+        {
+            "achieved_at": "2025-09-22T23:15:32Z",
+            "achievement_id": 345
+        },
+        {
+            "achieved_at": "2025-09-22T23:08:38Z",
+            "achievement_id": 343
+        },
+        {
+            "achieved_at": "2025-09-21T19:01:34Z",
+            "achievement_id": 94
+        },
+        {
+            "achieved_at": "2025-09-21T15:23:45Z",
+            "achievement_id": 33
+        },
+        {
+            "achieved_at": "2025-09-21T14:51:15Z",
+            "achievement_id": 340
+        },
+        {
+            "achieved_at": "2025-09-21T14:48:48Z",
+            "achievement_id": 267
+        },
+        {
+            "achieved_at": "2025-09-20T03:59:49Z",
+            "achievement_id": 337
+        },
+        {
+            "achieved_at": "2025-09-14T23:32:48Z",
+            "achievement_id": 336
+        },
+        {
+            "achieved_at": "2025-09-06T03:20:44Z",
+            "achievement_id": 339
+        },
         {
             "achieved_at": "2024-01-01T23:23:13Z",
             "achievement_id": 333
@@ -2216,77 +2296,6 @@
     "rank_history": {
         "mode": "osu",
         "data": [
-            6447,
-            6453,
-            6465,
-            6474,
-            6479,
-            6484,
-            6490,
-            6496,
-            6502,
-            6508,
-            6514,
-            6521,
-            6526,
-            6534,
-            6544,
-            6554,
-            6563,
-            6573,
-            6577,
-            6582,
-            6593,
-            6603,
-            6608,
-            6612,
-            6616,
-            6624,
-            6629,
-            6630,
-            6633,
-            6636,
-            6642,
-            6650,
-            6654,
-            6659,
-            6664,
-            6671,
-            6678,
-            6681,
-            6684,
-            6692,
-            6696,
-            6705,
-            6711,
-            6723,
-            6727,
-            6731,
-            6736,
-            6745,
-            6749,
-            6753,
-            6759,
-            6766,
-            6774,
-            6779,
-            6786,
-            6793,
-            6805,
-            6811,
-            6815,
-            6820,
-            6825,
-            6834,
-            6841,
-            6853,
-            6861,
-            6870,
-            6877,
-            6888,
-            6897,
-            6905,
-            6913,
             6916,
             6923,
             6929,
@@ -2305,41 +2314,112 @@
             7007,
             7012,
             7015,
-            7015
+            7025,
+            7031,
+            7037,
+            7040,
+            7047,
+            7053,
+            7055,
+            7060,
+            7062,
+            7066,
+            7070,
+            7078,
+            7086,
+            7092,
+            7100,
+            7105,
+            7110,
+            7116,
+            7122,
+            7128,
+            7134,
+            7135,
+            7140,
+            7144,
+            7146,
+            7150,
+            7153,
+            7158,
+            7167,
+            7170,
+            7175,
+            7181,
+            7185,
+            7188,
+            7193,
+            7199,
+            7206,
+            7212,
+            7219,
+            7226,
+            7237,
+            7246,
+            7253,
+            7259,
+            7266,
+            7273,
+            7276,
+            7284,
+            7291,
+            7299,
+            7311,
+            7314,
+            7320,
+            7330,
+            7336,
+            7341,
+            7345,
+            7352,
+            7355,
+            7363,
+            7367,
+            7374,
+            7383,
+            7386,
+            7388,
+            7394,
+            7398,
+            7405,
+            7415,
+            7420,
+            7423,
+            7423
         ]
     },
     "ranked_and_approved_beatmapset_count": 0,
     "unranked_beatmapset_count": 0,
-    "statistics_count_100": 1711792,
-    "statistics_count_300": 50446932,
-    "statistics_count_50": 174907,
-    "statistics_count_miss": 579843,
+    "statistics_count_100": 1729552,
+    "statistics_count_300": 50650077,
+    "statistics_count_50": 176455,
+    "statistics_count_miss": 587167,
     "statistics_level": {
         "current": 109,
-        "progress": 5
+        "progress": 8
     },
-    "statistics_global_rank": 7015,
+    "statistics_global_rank": 7423,
     "statistics_global_rank_exp": null,
     "statistics_pp": 9790.93,
     "statistics_pp_exp": 0,
-    "statistics_ranked_score": 441048213197,
+    "statistics_ranked_score": 441879951277,
     "statistics_hit_accuracy": 98.8985,
-    "statistics_play_count": 179956,
-    "statistics_play_time": 14294886,
-    "statistics_total_score": 932030132273,
-    "statistics_total_hits": 52333631,
+    "statistics_play_count": 180681,
+    "statistics_play_time": 14346396,
+    "statistics_total_score": 935808088390,
+    "statistics_total_hits": 52556084,
     "statistics_maximum_combo": 9385,
-    "statistics_replays_watched_by_others": 54324,
+    "statistics_replays_watched_by_others": 54431,
     "statistics_is_ranked": true,
     "statistics_grade_counts": {
-        "ss": 35,
-        "ssh": 2967,
-        "s": 3596,
-        "sh": 28058,
-        "a": 966
+        "ss": 30,
+        "ssh": 2945,
+        "s": 3600,
+        "sh": 28094,
+        "a": 976
     },
-    "statistics_country_rank": 312,
+    "statistics_country_rank": 328,
     "statistics_rank": {
-        "country": 312
+        "country": 328
     }
 }

@@ -169,6 +169,23 @@ async def beatmaps(ctx, *args):
     await ctx.reply(file=attach, content="Here is your response:")
 
 @bot.command(pass_context=True)
+async def register(ctx, *args):
+    di = get_args(args)
+
+    user = di["-u"]
+
+    discordname = ctx.author.name
+    discordid = ctx.author.id
+
+    query = (f"INSERT INTO registrations VALUES ({user}, '{discordname}', '{discordid}', NOW()) on conflict do nothing")
+
+    print(query)    
+
+    await db.execute_query(query)
+
+    await ctx.reply(content="Registered!")
+
+@bot.command(pass_context=True)
 async def scores(ctx, *args):
     di = get_args(args)
 
@@ -244,7 +261,7 @@ async def generateosdb(ctx, *args):
 
     columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
 
-    query = QueryBuilder(columns, di)
+    query = QueryBuilder(di, columns)
 
     sql = query.getQuery()
 
@@ -293,7 +310,7 @@ async def generateosdbs(ctx):
         di = get_args(args)
 
         columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
-        query = QueryBuilder(columns, di)
+        query = QueryBuilder(di, columns)
         sql = query.getQuery()
         print(sql)
 

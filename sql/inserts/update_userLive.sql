@@ -190,4 +190,4 @@ select
 	team_short_name
 from
 	userMaster
-where id in (6245906);
+where is_registered = true;

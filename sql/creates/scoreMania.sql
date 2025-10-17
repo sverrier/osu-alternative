@@ -39,8 +39,9 @@ CREATE TABLE IF NOT EXISTS scoreMania (
     total_score_without_mods BIGINT NULL,
     type VARCHAR(50) NOT NULL,
     user_id INTEGER NOT NULL,
-    highest_score BOOL NULL,
-    highest_pp BOOL NULL
+    highest_score BOOL DEFAULT false NOT NULL,
+    highest_pp BOOL DEFAULT false NOT NULL,
+    leaderboard_rank INT NULL
 );
 
 CREATE INDEX if not exists idx_scoreMania_ended_at ON scoreMania USING BRIN (ended_at);

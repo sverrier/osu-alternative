@@ -15,6 +15,43 @@ BEGIN
       AND highest_score = TRUE  -- ✅ Only reset the current highest
       AND classic_total_score < NEW.classic_total_score;
 
+    UPDATE scoreMania
+    SET highest_pp = FALSE
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id
+      AND highest_pp = TRUE  -- ✅ Only reset the current highest
+      AND pp < NEW.pp;  -- ✅ Only if the new score is higher
+
+    UPDATE scoreLive
+    SET highest_pp = FALSE
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id
+      AND highest_pp = TRUE  -- ✅ Only reset the current highest
+      AND pp < NEW.pp;
+
+    --Update beatmap statistics on INSERT
+    IF TG_OP = 'INSERT' THEN
+      IF NEW.rank = 'X' or NEW.rank = 'XH' THEN
+          UPDATE beatmapLive
+          SET ss_count = ss_count + 1
+          WHERE beatmap_id = NEW.beatmap_id;
+      END IF;
+
+      IF (
+          COALESCE(NEW.statistics_miss, 0) = 0
+          AND EXISTS (
+              SELECT 1
+              FROM beatmapLive b
+              WHERE b.beatmap_id = NEW.beatmap_id
+                AND (2 *(COALESCE(NEW.statistics_good, 0) + COALESCE(NEW.statistics_ok, 0))) >= (b.max_combo - NEW.max_combo)
+          )
+      ) THEN
+          UPDATE beatmapLive
+          SET fc_count = fc_count + 1
+          WHERE beatmap_id = NEW.beatmap_id;
+      END IF;
+    END IF;
+
     -- Step 2: Set the new row as the highest score **only if it’s the new best**
     IF NOT EXISTS (
         SELECT 1 FROM scoreMania 
@@ -24,6 +61,17 @@ BEGIN
     ) THEN
         UPDATE scoreMania
         SET highest_score = TRUE
+        WHERE id = NEW.id;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM scoreMania 
+        WHERE beatmap_id = NEW.beatmap_id 
+          AND user_id = NEW.user_id 
+          AND highest_pp = TRUE
+    ) THEN
+        UPDATE scoreMania
+        SET highest_pp = TRUE
         WHERE id = NEW.id;
     END IF;
 
@@ -37,21 +85,21 @@ BEGIN
         statistics_combo_break, statistics_perfect, statistics_great, statistics_good,
         statistics_ok, statistics_meh, statistics_miss, statistics_ignore_hit,
         statistics_ignore_miss, total_score, total_score_without_mods, type,
-        highest_score, highest_pp
+        highest_score, highest_pp, rank
     )
     SELECT
-        NEW.id, NEW.beatmap_id, NEW.user_id, NEW.accuracy, NEW.best_id, NEW.build_id, NEW.classic_total_score,
-        NEW.ended_at, NEW.has_replay, NEW.is_perfect_combo, NEW.legacy_perfect, NEW.legacy_score_id,
-        NEW.legacy_total_score, NEW.max_combo, NEW.maximum_statistics_legacy_combo_increase,
-        NEW.maximum_statistics_perfect, NEW.maximum_statistics_ignore_hit, NEW.mods, NEW.passed, NEW.pp,
-        NEW.preserve, NEW.processed, NEW.rank, NEW.ranked, NEW.replay, NEW.ruleset_id, NEW.started_at,
-        NEW.statistics_combo_break, NEW.statistics_perfect, NEW.statistics_great, NEW.statistics_good,
-        NEW.statistics_ok, NEW.statistics_meh, NEW.statistics_miss, NEW.statistics_ignore_hit,
-        NEW.statistics_ignore_miss, NEW.total_score, NEW.total_score_without_mods, NEW.type,
-        NEW.highest_score, NEW.highest_pp
-    WHERE EXISTS (
-        SELECT 1 FROM userLive WHERE user_id = NEW.user_id
-    )
+        s.id, s.beatmap_id, s.user_id, s.accuracy, s.best_id, s.build_id, s.classic_total_score,
+        s.ended_at, s.has_replay, s.is_perfect_combo, s.legacy_perfect, s.legacy_score_id,
+        s.legacy_total_score, s.max_combo, s.maximum_statistics_legacy_combo_increase,
+        s.maximum_statistics_perfect, s.maximum_statistics_ignore_hit, s.mods, s.passed, s.pp,
+        s.preserve, s.processed, s.rank, s.ranked, s.replay, s.ruleset_id, s.started_at,
+        s.statistics_combo_break, s.statistics_perfect, s.statistics_great, s.statistics_good,
+        s.statistics_ok, s.statistics_meh, s.statistics_miss, s.statistics_ignore_hit,
+        s.statistics_ignore_miss, s.total_score, s.total_score_without_mods, s.type,
+        s.highest_score, s.highest_pp, s.leaderboard_rank
+    FROM scoreMania s
+    WHERE s.id = NEW.id
+      AND EXISTS (SELECT 1 FROM userLive WHERE user_id = s.user_id)
     ON CONFLICT DO NOTHING;
 
 

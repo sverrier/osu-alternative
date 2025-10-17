@@ -118,6 +118,41 @@ class util_api:
                 self.refresh_token()
         
         return json_response
+    
+    def get_user_beatmaps_most_played(self, user, limit, offset):
+        complete = False
+        magnitude = 1
+
+        # Format the IDs into the query string
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/users/{user}/beatmapsets/most_played?limit={limit}&offset={offset}"
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}") 
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return json_response
 
     def get_beatmap(self, beatmap_id):
         complete = False

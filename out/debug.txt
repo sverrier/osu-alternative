@@ -1,1 +1,1 @@
-SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1
+INSERT INTO logger VALUES ('FETCHER', 5795337, 114421) ON CONFLICT (logtype, user_id) DO UPDATE SET beatmap_id = EXCLUDED.beatmap_id

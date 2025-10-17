@@ -40,7 +40,7 @@ class db:
             self.cur.execute(query)
             self.counter = self.counter + 1
             if self.counter % 10 == 0:
-                self.conn.commit()  # ✅ Commit if successful
+                self.conn.commit()
 
         except Exception as e:
             self.conn.rollback()  # ✅ Rollback transaction to recover
@@ -52,6 +52,9 @@ class db:
         
         self.cur.execute(query)
         return self.cur.fetchall()  # ✅ Returns query result
+    
+    def commit(self):
+        self.conn.commit()
 
     def close(self):
         """ Gracefully close the database connection """

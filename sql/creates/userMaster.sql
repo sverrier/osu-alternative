@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS public.userMaster (
 	team_name text NULL,
 	team_short_name text NULL,
 	username text NOT NULL,
-	registered bool DEFAULT false NULL,
+	is_registered bool DEFAULT false NULL,
+	is_synced bool DEFAULT false NULL,
 	CONSTRAINT user_pkey PRIMARY KEY (id)
 );

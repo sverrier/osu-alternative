@@ -65,9 +65,6 @@ class QueryBuilder:
                 raise ValueError(f"Missing join condition for {current_table}")
 
 
-
-        print(self.fromclause)
-
     def setWhereClause(self):
         whereClause = ""
         for key, value in self.args.items():
@@ -81,7 +78,7 @@ class QueryBuilder:
                 whereClause += " AND mode = " + value
                 self.fields.append("mode") 
             elif key == "-username":
-                whereClause += " AND username = '" + value + "'"
+                whereClause += " AND UPPER(username) = UPPER('" + value + "')"
                 self.fields.append("username")
             elif key == "-unplayed":
                 whereClause += " AND beatmapLive.beatmap_id not in (select beatmap_id from scoreLive where user_id = " + value + ")"
@@ -130,9 +127,7 @@ class QueryBuilder:
             self.whereclause = " WHERE " + whereClause[5:]
         else:
             self.whereclause = ""
-
-        print(self.whereclause)
-
+    
     def setGroupByClause(self, group):
         self.groupbyclause = ""
         if group is not None:
@@ -158,6 +153,7 @@ class QueryBuilder:
             self.limitclause = " LIMIT " + self.limitclause
 
     def getQuery(self):
+        print(self.selectclause + self.fromclause + self.whereclause + self.groupbyclause + self.limitclause)
         return self.selectclause + self.fromclause + self.whereclause + self.groupbyclause + self.limitclause
         
 

@@ -1,35 +1,13 @@
-CREATE OR REPLACE FUNCTION update_highest_score() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION update_highest_score_osu()
+RETURNS TRIGGER AS $$
+DECLARE
+    top_score_id BIGINT;
+    top_pp_id BIGINT;
 BEGIN
-    -- Step 1: Update highest_score, highest_pp flags
-    UPDATE scoreOsu
-    SET highest_score = FALSE
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id = NEW.user_id
-      AND highest_score = TRUE  -- ✅ Only reset the current highest
-      AND classic_total_score < NEW.classic_total_score;  -- ✅ Only if the new score is higher
 
-    UPDATE scoreLive
-    SET highest_score = FALSE
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id = NEW.user_id
-      AND highest_score = TRUE  -- ✅ Only reset the current highest
-      AND classic_total_score < NEW.classic_total_score;
-
-    UPDATE scoreOsu
-    SET highest_pp = FALSE
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id = NEW.user_id
-      AND highest_pp = TRUE  -- ✅ Only reset the current highest
-      AND pp < NEW.pp;  -- ✅ Only if the new score is higher
-
-    UPDATE scoreLive
-    SET highest_pp = FALSE
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id = NEW.user_id
-      AND highest_pp = TRUE  -- ✅ Only reset the current highest
-      AND pp < NEW.pp;
-
-    --Update beatmap statistics
+    ------------------------------------------------------------------------
+    -- Step 1: Update beatmap stats
+    ------------------------------------------------------------------------
     IF NEW.accuracy = 1.0 THEN
         UPDATE beatmapLive
         SET ss_count = ss_count + 1
@@ -50,30 +28,41 @@ BEGIN
         WHERE beatmap_id = NEW.beatmap_id;
     END IF;
 
-    -- Step 2: Set flags for the new rows **only if it’s the new best**
-    IF NOT EXISTS (
-        SELECT 1 FROM scoreOsu 
-        WHERE beatmap_id = NEW.beatmap_id 
-          AND user_id = NEW.user_id 
-          AND highest_score = TRUE
-    ) THEN
-        UPDATE scoreOsu
-        SET highest_score = TRUE
-        WHERE id = NEW.id;
-    END IF;
+    ------------------------------------------------------------------------
+    -- Step 2: Compute top score and pp IDs into variables
+    ------------------------------------------------------------------------
+    SELECT id INTO top_score_id
+    FROM scoreOsu
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id
+    ORDER BY classic_total_score DESC, id ASC
+    LIMIT 1;
 
-    IF NOT EXISTS (
-        SELECT 1 FROM scoreOsu 
-        WHERE beatmap_id = NEW.beatmap_id 
-          AND user_id = NEW.user_id 
-          AND highest_pp = TRUE
-    ) THEN
-        UPDATE scoreOsu
-        SET highest_pp = TRUE
-        WHERE id = NEW.id;
-    END IF;
+    SELECT id INTO top_pp_id
+    FROM scoreOsu
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id
+    ORDER BY pp DESC, id ASC
+    LIMIT 1;
 
-    -- Step 3: Insert into scoreLive if user exists
+    ------------------------------------------------------------------------
+    -- Step 3: Update flags in both scoreOsu and scoreLive
+    ------------------------------------------------------------------------
+    UPDATE scoreOsu
+    SET highest_score = (id = top_score_id),
+        highest_pp    = (id = top_pp_id)
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id;
+
+    UPDATE scoreLive
+    SET highest_score = (id = top_score_id),
+        highest_pp    = (id = top_pp_id)
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id;
+
+    ------------------------------------------------------------------------
+    -- Step 4: Sync into scoreLive (insert or update)
+    ------------------------------------------------------------------------
     INSERT INTO scoreLive (
         id, beatmap_id, user_id, accuracy, best_id, build_id, classic_total_score,
         ended_at, has_replay, is_perfect_combo, legacy_perfect, legacy_score_id,
@@ -92,34 +81,34 @@ BEGIN
         highest_pp, rank
     )
     SELECT
-        NEW.id, NEW.beatmap_id, NEW.user_id, NEW.accuracy, NEW.best_id, NEW.build_id, NEW.classic_total_score,
-        NEW.ended_at, NEW.has_replay, NEW.is_perfect_combo, NEW.legacy_perfect, NEW.legacy_score_id,
-        NEW.legacy_total_score, NEW.max_combo, NEW.maximum_statistics_great,
-        NEW.maximum_statistics_ignore_hit, NEW.maximum_statistics_slider_tail_hit,
-        NEW.maximum_statistics_legacy_combo_increase, NEW.maximum_statistics_large_bonus,
-        NEW.maximum_statistics_large_tick_hit, NEW.maximum_statistics_small_bonus, NEW.mods,
-        NEW.passed, NEW.pp, NEW.preserve, NEW.processed, NEW.rank, NEW.ranked, NEW.replay, NEW.ruleset_id,
-        NEW.started_at, NEW.statistics_great, NEW.statistics_ok, NEW.statistics_meh,
-        NEW.statistics_miss, NEW.statistics_ignore_hit, NEW.statistics_ignore_miss,
-        NEW.statistics_slider_tail_hit, NEW.statistics_slider_tail_miss,
-        NEW.statistics_large_bonus, NEW.statistics_large_tick_hit,
-        NEW.statistics_large_tick_miss, NEW.statistics_small_bonus, NEW.total_score,
-        NEW.total_score_without_mods, NEW.type, NEW.statistics_small_tick_hit,
-        NEW.statistics_small_tick_miss, NEW.maximum_statistics_small_tick_hit, NEW.highest_score,
-        NEW.highest_pp, NEW.leaderboard_rank
-    WHERE EXISTS (
-        SELECT 1 FROM userLive WHERE user_id = NEW.user_id
-    );
+        s.id, s.beatmap_id, s.user_id, s.accuracy, s.best_id, s.build_id, s.classic_total_score,
+        s.ended_at, s.has_replay, s.is_perfect_combo, s.legacy_perfect, s.legacy_score_id,
+        s.legacy_total_score, s.max_combo, s.maximum_statistics_great,
+        s.maximum_statistics_ignore_hit, s.maximum_statistics_slider_tail_hit,
+        s.maximum_statistics_legacy_combo_increase, s.maximum_statistics_large_bonus,
+        s.maximum_statistics_large_tick_hit, s.maximum_statistics_small_bonus, s.mods,
+        s.passed, s.pp, s.preserve, s.processed, s.rank, s.ranked, s.replay, s.ruleset_id,
+        s.started_at, s.statistics_great, s.statistics_ok, s.statistics_meh,
+        s.statistics_miss, s.statistics_ignore_hit, s.statistics_ignore_miss,
+        s.statistics_slider_tail_hit, s.statistics_slider_tail_miss,
+        s.statistics_large_bonus, s.statistics_large_tick_hit,
+        s.statistics_large_tick_miss, s.statistics_small_bonus, s.total_score,
+        s.total_score_without_mods, s.type, s.statistics_small_tick_hit,
+        s.statistics_small_tick_miss, s.maximum_statistics_small_tick_hit, s.highest_score,
+        s.highest_pp, s.leaderboard_rank
+    FROM scoreOsu s
+    WHERE s.id = NEW.id
+      AND EXISTS (SELECT 1 FROM userLive WHERE user_id = s.user_id)
+    ON CONFLICT (id) DO NOTHING;
 
-    RETURN NULL;  -- ✅ AFTER triggers must return NULL
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS  set_highest_score on scoreOsu;
+DROP TRIGGER IF EXISTS set_highest_score_osu ON scoreOsu;
 
--- ✅ Convert to AFTER trigger to avoid conflicts
-CREATE TRIGGER set_highest_score
+CREATE TRIGGER set_highest_score_osu
 AFTER INSERT ON scoreOsu
 FOR EACH ROW
-WHEN (NEW.classic_total_score IS NOT NULL)
-EXECUTE FUNCTION update_highest_score();
+WHEN (NEW.classic_total_score IS NOT NULL OR NEW.pp IS NOT NULL)
+EXECUTE FUNCTION update_highest_score_osu();
