@@ -1,5 +1,6 @@
 import discord
 import aiohttp
+import time
 from discord.ext import commands
 import os
 import sys
@@ -7,6 +8,7 @@ import traceback
 from osu_collections import CollectionBeatmap, CollectionSingle, CollectionDatabase
 from db import Database
 from querybuilder import QueryBuilder
+from formatter import Formatter
 
 # File name
 config_file = "botconfig.txt"
@@ -186,12 +188,49 @@ async def register(ctx, *args):
     await ctx.reply(content="Registered!")
 
 @bot.command(pass_context=True)
+async def link(ctx, *args):
+    di = get_args(args)
+
+    user = di["-u"]
+
+    discordname = ctx.author.name
+    discordid = ctx.author.id
+
+    query = (f"UPDATE registrations set discordname = null, discordid = null where discordid = '{discordid}'")
+
+    await db.execute_query(query)
+
+    query = (f"INSERT INTO registrations VALUES ({user}, '{discordname}', '{discordid}', NOW()) on conflict (user_id) do UPDATE SET discordname = EXCLUDED.discordname, discordid = EXCLUDED.discordid")
+
+    await db.execute_query(query)
+
+    await ctx.reply(content="Updated!")
+
+@bot.command(pass_context=True)
 async def scores(ctx, *args):
     di = get_args(args)
 
     columns = "count(*)"
 
+    if "-o" in di and di["-o"] == "score":
+        columns = "sum(classic_total_score)"
+
+    if "-o" in di and di["-o"] == "legacy":
+        columns = "sum(legacy_total_score)"
+
     table = "scoreLive"
+
+    discordid = ctx.author.id
+
+    if "-user_id" not in di and "-username" not in di:
+        query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
+        result = await db.execute_query(query)
+        if result and result[0]:
+            di["-user_id"] = result[0][0]
+
+
+    if "-highest_score" not in di and di.get("-show") != "all":
+        di["-highest_score"] = "true"
 
     query = QueryBuilder(di, columns, table)
 
@@ -204,6 +243,157 @@ async def scores(ctx, *args):
     attach = discord.File("result.csv")
 
     await ctx.reply(file=attach, content="Here is your response:")
+
+@bot.command(pass_context=True)
+async def hardclears(ctx, *args):
+    di = get_args(args)
+
+    columns = "username, count(*)"
+
+    table = "scoreLive"
+
+    discordid = ctx.author.id
+
+    di["-difficulty_reducing"] = "false"
+    di["-difficulty_removing"] = "false"
+    di["-grade-not"] = "D"
+    di["-group"] = "username"
+    di["-order"] = "COUNT(*)"
+
+
+    if "-highest_score" not in di and di.get("-show") != "all":
+        di["-highest_score"] = "true"
+
+    if "-limit" not in di:
+        di["-limit"] = "10"
+
+    query = QueryBuilder(di, columns, table)
+    sql = query.getQuery()
+
+    start = time.time()
+    result = await db.execute_query(sql)
+    elapsed = time.time() - start
+
+    leaderboard_data = []
+    for row in result:
+        username, count = row
+        leaderboard_data.append({"username": username, "count": int(count)})
+
+    for i in range(1, len(leaderboard_data)):
+        diff = leaderboard_data[i]["count"] - leaderboard_data[i - 1]["count"]
+        leaderboard_data[i]["difference"] = diff
+    leaderboard_data[0]["difference"] = None
+
+    total = sum(d["count"] for d in leaderboard_data)
+
+    formatter = Formatter(
+        title="Hard Clears",
+        total=total,
+        footer=f"Based on Scores in the database • took {elapsed:.2f}s"
+    )
+
+    embed = formatter.as_embed(leaderboard_data)
+    await ctx.reply(embed=embed)
+
+@bot.command(pass_context=True)
+async def clears(ctx, *args):
+    di = get_args(args)
+
+    columns = "username, count(*)"
+
+    table = "scoreLive"
+
+    discordid = ctx.author.id
+
+    di["-difficulty_removing"] = "false"
+    di["-grade-not"] = "D"
+    di["-group"] = "username"
+    di["-order"] = "COUNT(*)"
+
+
+    if "-highest_score" not in di and di.get("-show") != "all":
+        di["-highest_score"] = "true"
+
+    if "-limit" not in di:
+        di["-limit"] = "10"
+
+    query = QueryBuilder(di, columns, table)
+    sql = query.getQuery()
+
+    start = time.time()
+    result = await db.execute_query(sql)
+    elapsed = time.time() - start
+
+    leaderboard_data = []
+    for row in result:
+        username, count = row
+        leaderboard_data.append({"username": username, "count": int(count)})
+
+    for i in range(1, len(leaderboard_data)):
+        diff = leaderboard_data[i]["count"] - leaderboard_data[i - 1]["count"]
+        leaderboard_data[i]["difference"] = diff
+    leaderboard_data[0]["difference"] = None
+
+    total = sum(d["count"] for d in leaderboard_data)
+
+    formatter = Formatter(
+        title="Hard Clears",
+        total=total,
+        footer=f"Based on Scores in the database • took {elapsed:.2f}s"
+    )
+
+    embed = formatter.as_embed(leaderboard_data)
+    await ctx.reply(embed=embed)
+
+@bot.command(pass_context=True)
+async def plays(ctx, *args):
+    di = get_args(args)
+
+    columns = "username, count(*)"
+
+    table = "scoreLive"
+
+    discordid = ctx.author.id
+
+    if di.get("-include") != "D":
+        di["-grade-not"] = "D"
+    di["-group"] = "username"
+    di["-order"] = "COUNT(*)"
+
+
+    if "-highest_score" not in di and di.get("-show") != "all":
+        di["-highest_score"] = "true"
+
+    if "-limit" not in di:
+        di["-limit"] = "10"
+
+    query = QueryBuilder(di, columns, table)
+    sql = query.getQuery()
+
+    start = time.time()
+    result = await db.execute_query(sql)
+    elapsed = time.time() - start
+
+    leaderboard_data = []
+    for row in result:
+        username, count = row
+        leaderboard_data.append({"username": username, "count": int(count)})
+
+    for i in range(1, len(leaderboard_data)):
+        diff = leaderboard_data[i]["count"] - leaderboard_data[i - 1]["count"]
+        leaderboard_data[i]["difference"] = diff
+    leaderboard_data[0]["difference"] = None
+
+    total = sum(d["count"] for d in leaderboard_data)
+
+    formatter = Formatter(
+        title="Hard Clears",
+        total=total,
+        footer=f"Based on Scores in the database • took {elapsed:.2f}s"
+    )
+
+    embed = formatter.as_embed(leaderboard_data)
+    await ctx.reply(embed=embed)
 
 @bot.command(pass_context=True)
 async def scorelist(ctx, *args):

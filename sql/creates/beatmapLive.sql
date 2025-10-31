@@ -29,5 +29,7 @@ CREATE TABLE IF NOT EXISTS beatmapLive (
     artist TEXT,
     source TEXT,
     tags TEXT,
-    checksum TEXT
+    checksum TEXT,
+    track_id INTEGER,
+    pack VARCHAR
 );

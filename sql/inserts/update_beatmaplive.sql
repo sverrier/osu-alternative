@@ -29,7 +29,8 @@ INSERT INTO public.beatmaplive (
     artist,
     "source",
     tags,
-    checksum
+    checksum,
+    track_id
 )
 SELECT
     b.id,
@@ -62,11 +63,11 @@ SELECT
     b.beatmapset_artist,
     b.beatmapset_source,
     b.beatmapset_tags,
-    b.checksum
+    b.checksum,
+    b.beatmapset_track_id
 FROM beatmap b
 WHERE b.beatmapset_ranked_date IS NOT NULL
   AND b.status IN ('approved', 'loved', 'ranked')
-
 ON CONFLICT (beatmap_id)
 DO UPDATE SET
     user_id = EXCLUDED.user_id,
@@ -96,7 +97,8 @@ DO UPDATE SET
     artist = EXCLUDED.artist,
     "source" = EXCLUDED."source",
     tags = EXCLUDED.tags,
-    checksum = EXCLUDED.checksum;
+    checksum = EXCLUDED.checksum,
+    track_id = EXCLUDED.track_id;
 
 DELETE FROM beatmaplive bl
 WHERE NOT EXISTS (

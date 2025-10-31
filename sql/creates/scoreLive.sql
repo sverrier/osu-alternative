@@ -1,10 +1,4 @@
--- public.scorelive definition
-
--- Drop table
-
--- DROP TABLE public.scorelive;
-
-CREATE TABLE IF NOT EXISTS public.scorelive (
+CREATE TABLE public.scorelive (
 	id int8 NOT NULL,
 	beatmap_id int4 NOT NULL,
 	user_id int4 NOT NULL,
@@ -60,13 +54,18 @@ CREATE TABLE IF NOT EXISTS public.scorelive (
 	total_score int8 NULL,
 	total_score_without_mods int8 NULL,
 	"type" varchar(50) NOT NULL,
-	highest_score bool NULL,
-	highest_pp bool NULL,
-	rank INT NULL,
+	highest_score bool DEFAULT false NULL,
+	highest_pp bool DEFAULT false NULL,
+	"rank" int4 NULL,
+	mod_acronyms _text NULL,
+	mod_speed_change numeric NULL,
+	difficulty_reducing bool DEFAULT false NULL,
+	difficulty_removing bool DEFAULT false NULL,
 	CONSTRAINT scorelive_pkey PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS idx_scorelive_ended_at ON public.scorelive USING brin (ended_at);
-CREATE INDEX IF NOT EXISTS idx_scorelive_highest_only ON public.scorelive USING btree (beatmap_id, user_id) WHERE (highest_score = true);
-CREATE INDEX IF NOT EXISTS scorelive_beatmap ON public.scorelive USING btree (beatmap_id);
-CREATE INDEX IF NOT EXISTS scorelive_score ON public.scorelive USING btree (beatmap_id, user_id, classic_total_score DESC);
-CREATE INDEX IF NOT EXISTS scorelive_user ON public.scorelive USING btree (user_id);
+CREATE INDEX idx_scorelive_ended_at ON public.scorelive USING brin (ended_at);
+CREATE INDEX idx_scorelive_highest_only ON public.scorelive USING btree (beatmap_id, user_id) WHERE (highest_score = true);
+CREATE INDEX idx_scorelive_mods_path ON public.scorelive USING gin (mods jsonb_path_ops);
+CREATE INDEX scorelive_beatmap ON public.scorelive USING btree (beatmap_id);
+CREATE INDEX scorelive_score ON public.scorelive USING btree (beatmap_id, user_id, classic_total_score DESC);
+CREATE INDEX scorelive_user ON public.scorelive USING btree (user_id);

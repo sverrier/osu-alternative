@@ -23,7 +23,7 @@ class OsuDataFetcher:
         self.logger.info("Initializing OsuDataFetcher...")
         self.config_file = config_file
         self.config_values = self._load_or_create_config()
-        self.db = db(self.config_values)
+        self.db = db(self.config_values, self.logger)
         self.db.execSetupFiles()
         self.apiv2 = util_api(self.config_values)
         self.apiv2.refresh_token()
@@ -132,7 +132,7 @@ class OsuDataFetcher:
     def fetch_beatmaps(self):
         self.logger.info("Fetching beatmaps...")
         maxid = self.db.executeQuery("select coalesce(max(id), 1) from beatmap;")[0][0]
-        for batch in self._generate_id_batches(maxid, maxid + 100000, 50):
+        for batch in self._generate_id_batches(maxid, maxid+10000, 50):
             beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
             queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
             if queries:
@@ -141,6 +141,49 @@ class OsuDataFetcher:
             if len(beatmaps) == 0:
                 break
         self.db.commit()
+
+    def fetch_beatmaps_packs(self):
+        self.logger.info("Fetching beatmap packs...")
+
+        all_tags = []
+        cursor_string = None
+        total = 0
+
+        while True:
+            packs = self.apiv2.get_beatmap_packs(cursor_string=cursor_string)
+
+            beatmap_packs = packs.get("beatmap_packs", [])
+            if not beatmap_packs:
+                break  # No more pages
+
+            # Extract tags from current page
+            tags = [p.get("tag") for p in beatmap_packs if p.get("tag")]
+            all_tags.extend(tags)
+            total += len(tags)
+
+            # Prepare for next iteration
+            cursor_string = packs.get("cursor_string")
+            self.logger.info(f"Fetched {len(tags)} packs (total: {total}).")
+
+            # Stop if no cursor returned
+            if not cursor_string:
+                break
+
+        self.logger.info(f"Completed fetching all beatmap packs ({total} total).")
+
+        for tag in all_tags:
+            pack = self.apiv2.get_beatmap_pack(tag)
+            queries = ''
+            for map in pack.get("beatmapsets"):
+                id = map.get("id")
+                queries += (f"UPDATE beatmapLive SET pack = '{tag}' where beatmapset_id = {id};")
+            maps = len(pack.get("beatmapsets"))
+            self.db.executeSQL(queries)
+            self.logger.info(f"Updated {maps} beatmaps with pack tag '{tag}' total)'.")
+
+        self.db.commit()
+
+
 
     def fetch_users(self):
         self.logger.info("Fetching users...")
@@ -156,7 +199,7 @@ class OsuDataFetcher:
 
     def fetch_leaderboard_scores(self):
         self.logger.info("Fetching leaderboard scores...")
-        rs = self.db.executeQuery("select beatmap_id from beatmaplive where beatmap_id > 3550000 order by beatmap_id;")
+        rs = self.db.executeQuery("select beatmap_id from beatmaplive order by beatmap_id;")
         for row in rs:
             beatmap_id = row[0]
             scores = self.apiv2.get_beatmap_scores(beatmap_id)
@@ -178,7 +221,7 @@ class OsuDataFetcher:
             return
 
         all_beatmaps = []
-        limit = 50
+        limit = 100
         offset = 0
 
         self.logger.info(f"Fetching all beatmaps for user {user_id}...")
@@ -234,8 +277,10 @@ class OsuDataFetcher:
 
         query = (f"UPDATE registrations SET is_synced = true where user_id = {user_id}")
 
+        self.db.executeSQL(query)
+
         self.db.commit()
-        self.logger.info(f"✅ Sync complete for user {user_id} ({total} beatmaps processed).")
+        self.logger.info(f"Sync complete for user {user_id} ({total} beatmaps processed).")
 
 
     def fetch_recent_scores(self):
@@ -267,10 +312,50 @@ class OsuDataFetcher:
             self.db.executeSQL(queries)
         self.db.commit()
 
+        self.logger.info("Standard maps synced")
+
+        query = "SELECT DISTINCT beatmap_id FROM scoretaiko s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b"
+        for batch in self._generate_id_batches_from_query(query, 50):
+            beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
+            queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
+            self.db.executeSQL(queries)
+        self.db.commit()
+
+        self.logger.info("Taiko maps synced")
+
+        query = "SELECT DISTINCT beatmap_id FROM scorefruits s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b"
+        for batch in self._generate_id_batches_from_query(query, 50):
+            beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
+            queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
+            self.db.executeSQL(queries)
+        self.db.commit()
+
+        self.logger.info("Fruits maps synced")
+
+        query = "SELECT DISTINCT beatmap_id FROM scoremania s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b"
+        for batch in self._generate_id_batches_from_query(query, 50):
+            beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
+            queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
+            self.db.executeSQL(queries)
+        self.db.commit()
+
+        self.logger.info("Mania maps synced")
+
         self._execute_sql_file("update_beatmapLive.sql")
         self._execute_sql_file("insert_beatmapHistory.sql")
 
     def update_registered_users(self):
+        self.logger.info("Adding new registered users...")
+
+        query = "SELECT user_id from registrations EXCEPT SELECT user_id from userLive"
+        rs = self.db.executeQuery(query)
+
+        for row in rs:
+            user_id = row[0]
+            self.logger.info(f"Registering user {user_id}")
+            query = (f"CALL register_user({user_id})")
+            self.db.executeSQL(query)
+
         self.logger.info("Updating registered users...")
         query = "SELECT user_id FROM userLive"
         for batch in self._generate_id_batches_from_query(query, 50):
@@ -314,6 +399,7 @@ class OsuDataFetcher:
             '6': self.sync_newly_ranked_maps,
             '7': self.update_registered_users,
             '8': self.update_ranked_maps,
+            '9': self.fetch_beatmaps_packs
         }
 
         while True:
@@ -338,14 +424,14 @@ class OsuDataFetcher:
                 self.logger.info(f"Executing routine {choice}...")
 
                 if choice == '0':
-                    print("🚀 Starting standard loop (Ctrl+C to stop)...")
+                    print("Starting standard loop (Ctrl+C to stop)...")
                     while True:
                         try:
                             func()  # run standard_loop()
                             self.logger.info("Standard loop iteration complete. Sleeping 5 min...")
                             time.sleep(60)  # adjust interval as needed
                         except KeyboardInterrupt:
-                            print("\n⏹️  Standard loop interrupted by user.")
+                            print("\nStandard loop interrupted by user.")
                             self.logger.info("Standard loop manually interrupted.")
                             break
 

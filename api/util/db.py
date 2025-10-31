@@ -1,8 +1,9 @@
 import psycopg
 import os
+import logging
 
 class db:
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.dbname = config["DBNAME"]
         self.username = config["USERNAME"]
         self.password = config["PASSWORD"]
@@ -17,6 +18,7 @@ class db:
         self.conn.autocommit = False  # ✅ Manually commit for batching
         self.cur = self.conn.cursor()
         self.counter = 0
+        self.logger = logger
 
     def execSetupFiles(self):
          for filename in sorted(os.listdir("sql\creates")):
@@ -31,12 +33,10 @@ class db:
                         print(f"Successfully executed {filename}")
                     except Exception as e:
                         print(f"Error executing {filename}: {e}")
+                        raise
 
     def executeSQL(self, query):
         try:
-            with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
-                print(query, file=f)
-
             self.cur.execute(query)
             self.counter = self.counter + 1
             if self.counter % 10 == 0:
@@ -44,12 +44,11 @@ class db:
 
         except Exception as e:
             self.conn.rollback()  # ✅ Rollback transaction to recover
-            print(f"Error executing query: {e}")
+            self.logger.info(query)
+            raise
 
     def executeQuery(self, query):
-        with open(r'out\debug.txt', 'w', encoding='utf-8') as f:
-            print(query, file=f)
-        
+        self.logger.info(query)
         self.cur.execute(query)
         return self.cur.fetchall()  # ✅ Returns query result
     

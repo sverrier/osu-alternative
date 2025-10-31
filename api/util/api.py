@@ -258,6 +258,74 @@ class util_api:
                 self.refresh_token()
         
         return scores
+    
+    def get_beatmap_packs(self, cursor_string = None):
+        complete = False
+        magnitude = 1
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/beatmaps/packs"
+                if cursor_string != None:
+                    url = url + "?cursor_string=" + cursor_string
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return json_response
+    
+    def get_beatmap_pack(self, tag):
+        complete = False
+        magnitude = 1
+        
+        while not complete:
+            try:
+                url = f"https://osu.ppy.sh/api/v2/beatmaps/packs/{tag}"
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return json_response
 
     def get_beatmap_user_scores(self, beatmap_id, user_id):
         complete = False

@@ -8,24 +8,31 @@ BEGIN
     ------------------------------------------------------------------------
     -- Step 1: Update beatmap stats
     ------------------------------------------------------------------------
-    IF NEW.accuracy = 1.0 THEN
-        UPDATE beatmapLive
-        SET ss_count = ss_count + 1
-        WHERE beatmap_id = NEW.beatmap_id;
-    END IF;
+    IF NOT EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(NEW.mods) AS elem
+        WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+    )
+    THEN
+      IF NEW.accuracy = 1.0 THEN
+          UPDATE beatmapLive
+          SET ss_count = ss_count + 1
+          WHERE beatmap_id = NEW.beatmap_id;
+      END IF;
 
-    IF (
-        COALESCE(NEW.statistics_miss, 0) = 0
-        AND EXISTS (
-            SELECT 1
-            FROM beatmapLive b
-            WHERE b.beatmap_id = NEW.beatmap_id
-              AND COALESCE(NEW.statistics_ok, 0) >= (b.max_combo - NEW.max_combo)
-        )
-    ) THEN
-        UPDATE beatmapLive
-        SET fc_count = fc_count + 1
-        WHERE beatmap_id = NEW.beatmap_id;
+      IF (
+          COALESCE(NEW.statistics_miss, 0) = 0
+          AND EXISTS (
+              SELECT 1
+              FROM beatmapLive b
+              WHERE b.beatmap_id = NEW.beatmap_id
+                AND COALESCE(NEW.statistics_ok, 0) >= (b.max_combo - NEW.max_combo)
+          )
+      ) THEN
+          UPDATE beatmapLive
+          SET fc_count = fc_count + 1
+          WHERE beatmap_id = NEW.beatmap_id;
+      END IF;
     END IF;
 
     ------------------------------------------------------------------------
@@ -46,22 +53,7 @@ BEGIN
     LIMIT 1;
 
     ------------------------------------------------------------------------
-    -- Step 3: Update flags in both scoreOsu and scoreLive
-    ------------------------------------------------------------------------
-    UPDATE scoreOsu
-    SET highest_score = (id = top_score_id),
-        highest_pp    = (id = top_pp_id)
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id = NEW.user_id;
-
-    UPDATE scoreLive
-    SET highest_score = (id = top_score_id),
-        highest_pp    = (id = top_pp_id)
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id = NEW.user_id;
-
-    ------------------------------------------------------------------------
-    -- Step 4: Sync into scoreLive (insert or update)
+    -- Step 3: Sync into scoreLive (insert or update)
     ------------------------------------------------------------------------
     INSERT INTO scoreLive (
         id, beatmap_id, user_id, accuracy, best_id, build_id, classic_total_score,
@@ -78,28 +70,74 @@ BEGIN
         statistics_large_tick_miss, statistics_small_bonus, total_score,
         total_score_without_mods, type, statistics_small_tick_hit,
         statistics_small_tick_miss, maximum_statistics_small_tick_hit, highest_score,
-        highest_pp, rank
+        highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing
     )
     SELECT
-        s.id, s.beatmap_id, s.user_id, s.accuracy, s.best_id, s.build_id, s.classic_total_score,
-        s.ended_at, s.has_replay, s.is_perfect_combo, s.legacy_perfect, s.legacy_score_id,
-        s.legacy_total_score, s.max_combo, s.maximum_statistics_great,
-        s.maximum_statistics_ignore_hit, s.maximum_statistics_slider_tail_hit,
-        s.maximum_statistics_legacy_combo_increase, s.maximum_statistics_large_bonus,
-        s.maximum_statistics_large_tick_hit, s.maximum_statistics_small_bonus, s.mods,
-        s.passed, s.pp, s.preserve, s.processed, s.rank, s.ranked, s.replay, s.ruleset_id,
-        s.started_at, s.statistics_great, s.statistics_ok, s.statistics_meh,
-        s.statistics_miss, s.statistics_ignore_hit, s.statistics_ignore_miss,
-        s.statistics_slider_tail_hit, s.statistics_slider_tail_miss,
-        s.statistics_large_bonus, s.statistics_large_tick_hit,
-        s.statistics_large_tick_miss, s.statistics_small_bonus, s.total_score,
-        s.total_score_without_mods, s.type, s.statistics_small_tick_hit,
-        s.statistics_small_tick_miss, s.maximum_statistics_small_tick_hit, s.highest_score,
-        s.highest_pp, s.leaderboard_rank
-    FROM scoreOsu s
-    WHERE s.id = NEW.id
-      AND EXISTS (SELECT 1 FROM userLive WHERE user_id = s.user_id)
+        NEW.id, NEW.beatmap_id, NEW.user_id, NEW.accuracy, NEW.best_id, NEW.build_id, NEW.classic_total_score,
+        NEW.ended_at, NEW.has_replay, NEW.is_perfect_combo, NEW.legacy_perfect, NEW.legacy_score_id,
+        NEW.legacy_total_score, NEW.max_combo, NEW.maximum_statistics_great,
+        NEW.maximum_statistics_ignore_hit, NEW.maximum_statistics_slider_tail_hit,
+        NEW.maximum_statistics_legacy_combo_increase, NEW.maximum_statistics_large_bonus,
+        NEW.maximum_statistics_large_tick_hit, NEW.maximum_statistics_small_bonus, NEW.mods,
+        NEW.passed, NEW.pp, NEW.preserve, NEW.processed, NEW.rank, NEW.ranked, NEW.replay, NEW.ruleset_id,
+        NEW.started_at, NEW.statistics_great, NEW.statistics_ok, NEW.statistics_meh,
+        NEW.statistics_miss, NEW.statistics_ignore_hit, NEW.statistics_ignore_miss,
+        NEW.statistics_slider_tail_hit, NEW.statistics_slider_tail_miss,
+        NEW.statistics_large_bonus, NEW.statistics_large_tick_hit,
+        NEW.statistics_large_tick_miss, NEW.statistics_small_bonus, NEW.total_score,
+        NEW.total_score_without_mods, NEW.type, NEW.statistics_small_tick_hit,
+        NEW.statistics_small_tick_miss, NEW.maximum_statistics_small_tick_hit, NEW.highest_score,
+        NEW.highest_pp, NEW.leaderboard_rank,
+        (
+            SELECT array_agg(elem->>'acronym')
+            FROM jsonb_array_elements(NEW.mods) elem
+        ) as mod_acronyms,
+        COALESCE(
+            (
+                SELECT (elem->'settings'->>'speed_change')::numeric
+                FROM jsonb_array_elements(NEW.mods) elem
+                WHERE elem->>'acronym' IN ('DT','NC','HT','DC')
+                  AND elem->'settings' ? 'speed_change'
+                LIMIT 1
+            ),
+            (
+                SELECT CASE
+                    WHEN elem->>'acronym' IN ('DT','NC') THEN 1.5
+                    WHEN elem->>'acronym' IN ('HT','DC') THEN 0.75
+                END
+                FROM jsonb_array_elements(NEW.mods) elem
+                WHERE elem->>'acronym' IN ('DT','NC','HT','DC')
+                LIMIT 1
+            )
+        ) as mod_speed_change,
+        EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(NEW.mods) elem
+            WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+        ) as difficulty_reducing,
+        EXISTS (
+            SELECT 1 
+            FROM jsonb_array_elements(NEW.mods) elem
+            WHERE elem->>'acronym' IN ('NF','AT','CN','RX','AP')
+        ) as difficulty_removing
+    FROM (SELECT 1) as dummy_select
+    WHERE EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id)
     ON CONFLICT (id) DO NOTHING;
+
+    ------------------------------------------------------------------------
+    -- Step 4: Update flags in both scoreOsu and scoreLive
+    ------------------------------------------------------------------------
+    UPDATE scoreOsu
+    SET highest_score = (id = top_score_id),
+        highest_pp    = (id = top_pp_id)
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id;
+
+    UPDATE scoreLive
+    SET highest_score = (id = top_score_id),
+        highest_pp    = (id = top_pp_id)
+    WHERE beatmap_id = NEW.beatmap_id
+      AND user_id = NEW.user_id;
 
     RETURN NULL;
 END;

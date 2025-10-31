@@ -1,0 +1,908 @@
+{
+  "beatmap_packs": [
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-18T15:14:47.000000Z",
+      "name": "osu!mania Beatmap Pack #316",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM316",
+      "url": "https://packs.ppy.sh/SM316%20-%20osu%21mania%20Beatmap%20Pack%20%23316.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-18T15:12:53.000000Z",
+      "name": "osu! Beatmap Pack #1708",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1708",
+      "url": "https://packs.ppy.sh/S1708%20-%20osu%21%20Beatmap%20Pack%20%231708.zip?1760800435"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-16T17:53:25.000000Z",
+      "name": "osu!taiko Beatmap Pack #359",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST359",
+      "url": "https://packs.ppy.sh/ST359%20-%20osu%21taiko%20Beatmap%20Pack%20%23359.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-16T17:46:28.000000Z",
+      "name": "osu! Beatmap Pack #1707",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1707",
+      "url": "https://packs.ppy.sh/S1707%20-%20osu%21%20Beatmap%20Pack%20%231707.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-16T17:28:12.000000Z",
+      "name": "osu!catch Beatmap Pack #139",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC139",
+      "url": "https://packs.ppy.sh/SC139%20-%20osu%21catch%20Beatmap%20Pack%20%23139.zip?1760636741"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-16T03:09:28.000000Z",
+      "name": "osu!mania Beatmap Pack #315",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM315",
+      "url": "https://packs.ppy.sh/SM315%20-%20osu%21mania%20Beatmap%20Pack%20%23315.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-16T03:07:47.000000Z",
+      "name": "osu! Beatmap Pack #1706",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1706",
+      "url": "https://packs.ppy.sh/S1706%20-%20osu%21%20Beatmap%20Pack%20%231706.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-12T01:45:32.000000Z",
+      "name": "osu!taiko Beatmap Pack #358",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST358",
+      "url": "https://packs.ppy.sh/ST358%20-%20osu%21taiko%20Beatmap%20Pack%20%23358.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-12T01:43:32.000000Z",
+      "name": "osu! Beatmap Pack #1705",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1705",
+      "url": "https://packs.ppy.sh/S1705%20-%20osu%21%20Beatmap%20Pack%20%231705.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-08T15:35:54.000000Z",
+      "name": "osu!mania Beatmap Pack #314",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM314",
+      "url": "https://packs.ppy.sh/SM314%20-%20osu%21mania%20Beatmap%20Pack%20%23314.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-08T15:34:31.000000Z",
+      "name": "osu! Beatmap Pack #1704",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1704",
+      "url": "https://packs.ppy.sh/S1704%20-%20osu%21%20Beatmap%20Pack%20%231704.zip?1759937799"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-07T09:52:56.000000Z",
+      "name": "osu!catch Beatmap Pack #138",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC138",
+      "url": "https://packs.ppy.sh/SC138%20-%20osu%21catch%20Beatmap%20Pack%20%23138.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-07T09:51:34.000000Z",
+      "name": "osu!taiko Beatmap Pack #357",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST357",
+      "url": "https://packs.ppy.sh/ST357%20-%20osu%21taiko%20Beatmap%20Pack%20%23357.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-07T09:50:53.000000Z",
+      "name": "osu! Beatmap Pack #1703",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1703",
+      "url": "https://packs.ppy.sh/S1703%20-%20osu%21%20Beatmap%20Pack%20%231703.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-06T02:11:13.000000Z",
+      "name": "osu! Beatmap Pack #1702",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1702",
+      "url": "https://packs.ppy.sh/S1702%20-%20osu%21%20Beatmap%20Pack%20%231702.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-10-02T18:02:29.000000Z",
+      "name": "osu! Beatmap Pack #1701",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1701",
+      "url": "https://packs.ppy.sh/S1701%20-%20osu%21%20Beatmap%20Pack%20%231701.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-30T10:03:03.000000Z",
+      "name": "osu!mania Beatmap Pack #313",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM313",
+      "url": "https://packs.ppy.sh/SM313%20-%20osu%21mania%20Beatmap%20Pack%20%23313.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-30T10:02:12.000000Z",
+      "name": "osu! Beatmap Pack #1700",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1700",
+      "url": "https://packs.ppy.sh/S1700%20-%20osu%21%20Beatmap%20Pack%20%231700.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-26T15:13:21.000000Z",
+      "name": "osu! Beatmap Pack #1699",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1699",
+      "url": "https://packs.ppy.sh/S1699%20-%20osu%21%20Beatmap%20Pack%20%231699.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-25T11:18:00.000000Z",
+      "name": "osu!mania Beatmap Pack #312",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM312",
+      "url": "https://packs.ppy.sh/SM312%20-%20osu%21mania%20Beatmap%20Pack%20%23312.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-25T11:17:07.000000Z",
+      "name": "osu! Beatmap Pack #1698",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1698",
+      "url": "https://packs.ppy.sh/S1698%20-%20osu%21%20Beatmap%20Pack%20%231698.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-22T01:20:53.000000Z",
+      "name": "osu!catch Beatmap Pack #137",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC137",
+      "url": "https://packs.ppy.sh/SC137%20-%20osu%21catch%20Beatmap%20Pack%20%23137.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-22T00:45:40.000000Z",
+      "name": "osu!taiko Beatmap Pack #356",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST356",
+      "url": "https://packs.ppy.sh/ST356%20-%20osu%21taiko%20Beatmap%20Pack%20%23356.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-22T00:44:48.000000Z",
+      "name": "osu! Beatmap Pack #1697",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1697",
+      "url": "https://packs.ppy.sh/S1697%20-%20osu%21%20Beatmap%20Pack%20%231697.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-22T00:44:05.000000Z",
+      "name": "osu!mania Beatmap Pack #311",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM311",
+      "url": "https://packs.ppy.sh/SM311%20-%20osu%21mania%20Beatmap%20Pack%20%23311.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-18T02:05:38.000000Z",
+      "name": "osu! Beatmap Pack #1696",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1696",
+      "url": "https://packs.ppy.sh/S1696%20-%20osu%21%20Beatmap%20Pack%20%231696.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-17T00:34:49.000000Z",
+      "name": "osu! Beatmap Pack #1695",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1695",
+      "url": "https://packs.ppy.sh/S1695%20-%20osu%21%20Beatmap%20Pack%20%231695.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-16T15:20:14.000000Z",
+      "name": "osu! Beatmap Pack #1694",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1694",
+      "url": "https://packs.ppy.sh/S1694%20-%20osu%21%20Beatmap%20Pack%20%231694.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-10T02:08:37.000000Z",
+      "name": "osu!taiko Beatmap Pack #355",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST355",
+      "url": "https://packs.ppy.sh/ST355%20-%20osu%21taiko%20Beatmap%20Pack%20%23355.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-10T02:07:40.000000Z",
+      "name": "osu! Beatmap Pack #1693",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1693",
+      "url": "https://packs.ppy.sh/S1693%20-%20osu%21%20Beatmap%20Pack%20%231693.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-10T02:06:50.000000Z",
+      "name": "osu!catch Beatmap Pack #136",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC136",
+      "url": "https://packs.ppy.sh/SC136%20-%20osu%21catch%20Beatmap%20Pack%20%23136.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-08T16:09:29.000000Z",
+      "name": "osu!mania Beatmap Pack #310",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM310",
+      "url": "https://packs.ppy.sh/SM310%20-%20osu%21mania%20Beatmap%20Pack%20%23310.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-08T16:08:35.000000Z",
+      "name": "osu! Beatmap Pack #1692",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1692",
+      "url": "https://packs.ppy.sh/S1692%20-%20osu%21%20Beatmap%20Pack%20%231692.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-07T16:36:18.000000Z",
+      "name": "osu! Beatmap Pack #1691",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1691",
+      "url": "https://packs.ppy.sh/S1691%20-%20osu%21%20Beatmap%20Pack%20%231691.zip?1757272659"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-04T11:48:22.000000Z",
+      "name": "osu! Beatmap Pack #1690",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1690",
+      "url": "https://packs.ppy.sh/S1690%20-%20osu%21%20Beatmap%20Pack%20%231690.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-03T01:21:22.000000Z",
+      "name": "osu! Beatmap Pack #1689",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1689",
+      "url": "https://packs.ppy.sh/S1689%20-%20osu%21%20Beatmap%20Pack%20%231689.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-03T01:19:25.000000Z",
+      "name": "osu!mania Beatmap Pack #309",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM309",
+      "url": "https://packs.ppy.sh/SM309%20-%20osu%21mania%20Beatmap%20Pack%20%23309.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-09-03T01:17:59.000000Z",
+      "name": "osu!taiko Beatmap Pack #354",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST354",
+      "url": "https://packs.ppy.sh/ST354%20-%20osu%21taiko%20Beatmap%20Pack%20%23354.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-30T14:35:18.000000Z",
+      "name": "osu! Beatmap Pack #1688",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1688",
+      "url": "https://packs.ppy.sh/S1688%20-%20osu%21%20Beatmap%20Pack%20%231688.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-29T15:14:54.000000Z",
+      "name": "osu!catch Beatmap Pack #135",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC135",
+      "url": "https://packs.ppy.sh/SC135%20-%20osu%21catch%20Beatmap%20Pack%20%23135.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-29T15:13:23.000000Z",
+      "name": "osu! Beatmap Pack #1687",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1687",
+      "url": "https://packs.ppy.sh/S1687%20-%20osu%21%20Beatmap%20Pack%20%231687.zip?1756480570"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-26T14:05:20.000000Z",
+      "name": "osu!mania Beatmap Pack #308",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM308",
+      "url": "https://packs.ppy.sh/SM308%20-%20osu%21mania%20Beatmap%20Pack%20%23308.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-25T02:01:28.000000Z",
+      "name": "osu! Beatmap Pack #1686",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1686",
+      "url": "https://packs.ppy.sh/S1686%20-%20osu%21%20Beatmap%20Pack%20%231686.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-24T16:05:56.000000Z",
+      "name": "osu! Beatmap Pack #1685",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1685",
+      "url": "https://packs.ppy.sh/S1685%20-%20osu%21%20Beatmap%20Pack%20%231685.zip?1756051613"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-23T15:20:24.000000Z",
+      "name": "osu!taiko Beatmap Pack #353",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST353",
+      "url": "https://packs.ppy.sh/ST353%20-%20osu%21taiko%20Beatmap%20Pack%20%23353.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-23T15:19:31.000000Z",
+      "name": "osu!mania Beatmap Pack #307",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM307",
+      "url": "https://packs.ppy.sh/SM307%20-%20osu%21mania%20Beatmap%20Pack%20%23307.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-23T15:18:38.000000Z",
+      "name": "osu! Beatmap Pack #1684",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1684",
+      "url": "https://packs.ppy.sh/S1684%20-%20osu%21%20Beatmap%20Pack%20%231684.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-22T06:39:08.000000Z",
+      "name": "osu! Beatmap Pack #1683",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1683",
+      "url": "https://packs.ppy.sh/S1683%20-%20osu%21%20Beatmap%20Pack%20%231683.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-14T13:59:06.000000Z",
+      "name": "osu!mania Beatmap Pack #306",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM306",
+      "url": "https://packs.ppy.sh/SM306%20-%20osu%21mania%20Beatmap%20Pack%20%23306.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-14T13:59:56.000000Z",
+      "name": "osu! Beatmap Pack #1682",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1682",
+      "url": "https://packs.ppy.sh/S1682%20-%20osu%21%20Beatmap%20Pack%20%231682.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-11T15:27:08.000000Z",
+      "name": "osu!mania Beatmap Pack #305",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM305",
+      "url": "https://packs.ppy.sh/SM305%20-%20osu%21mania%20Beatmap%20Pack%20%23305.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-12T16:07:17.000000Z",
+      "name": "osu!taiko Beatmap Pack #352",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST352",
+      "url": "https://packs.ppy.sh/ST352%20-%20osu%21taiko%20Beatmap%20Pack%20%23352.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-12T16:06:04.000000Z",
+      "name": "osu! Beatmap Pack #1681",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1681",
+      "url": "https://packs.ppy.sh/S1681%20-%20osu%21%20Beatmap%20Pack%20%231681.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-12T16:05:18.000000Z",
+      "name": "osu!catch Beatmap Pack #134",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC134",
+      "url": "https://packs.ppy.sh/SC134%20-%20osu%21catch%20Beatmap%20Pack%20%23134.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-07T15:47:34.000000Z",
+      "name": "osu!mania Beatmap Pack #304",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM304",
+      "url": "https://packs.ppy.sh/SM304%20-%20osu%21mania%20Beatmap%20Pack%20%23304.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-11T14:59:42.000000Z",
+      "name": "osu! Beatmap Pack #1680",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1680",
+      "url": "https://packs.ppy.sh/S1680%20-%20osu%21%20Beatmap%20Pack%20%231680.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-10T09:45:34.000000Z",
+      "name": "osu! Beatmap Pack #1679",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1679",
+      "url": "https://packs.ppy.sh/S1679%20-%20osu%21%20Beatmap%20Pack%20%231679.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-08T03:43:29.000000Z",
+      "name": "osu! Beatmap Pack #1678",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1678",
+      "url": "https://packs.ppy.sh/S1678%20-%20osu%21%20Beatmap%20Pack%20%231678.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-07T15:48:56.000000Z",
+      "name": "osu!taiko Beatmap Pack #351",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST351",
+      "url": "https://packs.ppy.sh/ST351%20-%20osu%21taiko%20Beatmap%20Pack%20%23351.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-07T15:48:15.000000Z",
+      "name": "osu! Beatmap Pack #1677",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1677",
+      "url": "https://packs.ppy.sh/S1677%20-%20osu%21%20Beatmap%20Pack%20%231677.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-02T13:22:21.000000Z",
+      "name": "osu!mania Beatmap Pack #303",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM303",
+      "url": "https://packs.ppy.sh/SM303%20-%20osu%21mania%20Beatmap%20Pack%20%23303.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-06T04:18:45.000000Z",
+      "name": "osu! Beatmap Pack #1676",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1676",
+      "url": "https://packs.ppy.sh/S1676%20-%20osu%21%20Beatmap%20Pack%20%231676.zip?1754454893"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-05T03:31:10.000000Z",
+      "name": "osu! Beatmap Pack #1675",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1675",
+      "url": "https://packs.ppy.sh/S1675%20-%20osu%21%20Beatmap%20Pack%20%231675.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-04T15:36:16.000000Z",
+      "name": "osu! Beatmap Pack #1674",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1674",
+      "url": "https://packs.ppy.sh/S1674%20-%20osu%21%20Beatmap%20Pack%20%231674.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-03T09:44:39.000000Z",
+      "name": "osu! Beatmap Pack #1673",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1673",
+      "url": "https://packs.ppy.sh/S1673%20-%20osu%21%20Beatmap%20Pack%20%231673.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-03T13:19:53.000000Z",
+      "name": "osu!mania Beatmap Pack #302",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM302",
+      "url": "https://packs.ppy.sh/SM302%20-%20osu%21mania%20Beatmap%20Pack%20%23302.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-02T13:21:38.000000Z",
+      "name": "osu!catch Beatmap Pack #133",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC133",
+      "url": "https://packs.ppy.sh/SC133%20-%20osu%21catch%20Beatmap%20Pack%20%23133.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-02T13:21:00.000000Z",
+      "name": "osu!taiko Beatmap Pack #350",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST350",
+      "url": "https://packs.ppy.sh/ST350%20-%20osu%21taiko%20Beatmap%20Pack%20%23350.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-08-02T13:19:53.000000Z",
+      "name": "osu! Beatmap Pack #1672",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1672",
+      "url": "https://packs.ppy.sh/S1672%20-%20osu%21%20Beatmap%20Pack%20%231672.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-30T05:23:51.000000Z",
+      "name": "osu! Beatmap Pack #1671",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1671",
+      "url": "https://packs.ppy.sh/S1671%20-%20osu%21%20Beatmap%20Pack%20%231671.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-29T05:32:04.000000Z",
+      "name": "osu! Beatmap Pack #1670",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1670",
+      "url": "https://packs.ppy.sh/S1670%20-%20osu%21%20Beatmap%20Pack%20%231670.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-26T15:05:53.000000Z",
+      "name": "osu! Beatmap Pack #1669",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1669",
+      "url": "https://packs.ppy.sh/S1669%20-%20osu%21%20Beatmap%20Pack%20%231669.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-26T15:03:56.000000Z",
+      "name": "osu!mania Beatmap Pack #301",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM301",
+      "url": "https://packs.ppy.sh/SM301%20-%20osu%21mania%20Beatmap%20Pack%20%23301.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-24T03:57:36.000000Z",
+      "name": "osu! Beatmap Pack #1668",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1668",
+      "url": "https://packs.ppy.sh/S1668%20-%20osu%21%20Beatmap%20Pack%20%231668.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-24T03:55:46.000000Z",
+      "name": "osu!taiko Beatmap Pack #349",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST349",
+      "url": "https://packs.ppy.sh/ST349%20-%20osu%21taiko%20Beatmap%20Pack%20%23349.zip?1753329392"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-22T01:11:42.000000Z",
+      "name": "osu!catch Beatmap Pack #132",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC132",
+      "url": "https://packs.ppy.sh/SC132%20-%20osu%21catch%20Beatmap%20Pack%20%23132.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-21T13:01:05.000000Z",
+      "name": "osu! Beatmap Pack #1667",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1667",
+      "url": "https://packs.ppy.sh/S1667%20-%20osu%21%20Beatmap%20Pack%20%231667.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-20T12:41:09.000000Z",
+      "name": "osu! Beatmap Pack #1666",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1666",
+      "url": "https://packs.ppy.sh/S1666%20-%20osu%21%20Beatmap%20Pack%20%231666.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-19T13:20:10.000000Z",
+      "name": "osu! Beatmap Pack #1665",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1665",
+      "url": "https://packs.ppy.sh/S1665%20-%20osu%21%20Beatmap%20Pack%20%231665.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-19T13:18:13.000000Z",
+      "name": "osu!mania Beatmap Pack #300",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM300",
+      "url": "https://packs.ppy.sh/SM300%20-%20osu%21mania%20Beatmap%20Pack%20%23300.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-18T14:20:58.000000Z",
+      "name": "osu! Beatmap Pack #1664",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1664",
+      "url": "https://packs.ppy.sh/S1664%20-%20osu%21%20Beatmap%20Pack%20%231664.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-18T14:20:17.000000Z",
+      "name": "osu!taiko Beatmap Pack #348",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST348",
+      "url": "https://packs.ppy.sh/ST348%20-%20osu%21taiko%20Beatmap%20Pack%20%23348.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-16T02:13:59.000000Z",
+      "name": "osu! Beatmap Pack #1663",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1663",
+      "url": "https://packs.ppy.sh/S1663%20-%20osu%21%20Beatmap%20Pack%20%231663.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-15T06:41:34.000000Z",
+      "name": "osu!mania Beatmap Pack #299",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM299",
+      "url": "https://packs.ppy.sh/SM299%20-%20osu%21mania%20Beatmap%20Pack%20%23299.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-13T23:07:29.000000Z",
+      "name": "osu! Beatmap Pack #1662",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1662",
+      "url": "https://packs.ppy.sh/S1662%20-%20osu%21%20Beatmap%20Pack%20%231662.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-12T14:04:59.000000Z",
+      "name": "osu! Beatmap Pack #1661",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1661",
+      "url": "https://packs.ppy.sh/S1661%20-%20osu%21%20Beatmap%20Pack%20%231661.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-10T13:31:29.000000Z",
+      "name": "osu!taiko Beatmap Pack #347",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST347",
+      "url": "https://packs.ppy.sh/ST347%20-%20osu%21taiko%20Beatmap%20Pack%20%23347.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-07T11:55:35.000000Z",
+      "name": "osu! Beatmap Pack #1660",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1660",
+      "url": "https://packs.ppy.sh/S1660%20-%20osu%21%20Beatmap%20Pack%20%231660.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-06T01:41:36.000000Z",
+      "name": "osu! Beatmap Pack #1659",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1659",
+      "url": "https://packs.ppy.sh/S1659%20-%20osu%21%20Beatmap%20Pack%20%231659.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-05T14:26:57.000000Z",
+      "name": "osu!mania Beatmap Pack #298",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM298",
+      "url": "https://packs.ppy.sh/SM298%20-%20osu%21mania%20Beatmap%20Pack%20%23298.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-05T14:25:19.000000Z",
+      "name": "osu!catch Beatmap Pack #131",
+      "no_diff_reduction": false,
+      "ruleset_id": 2,
+      "tag": "SC131",
+      "url": "https://packs.ppy.sh/SC131%20-%20osu%21catch%20Beatmap%20Pack%20%23131.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-05T14:24:41.000000Z",
+      "name": "osu! Beatmap Pack #1658",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1658",
+      "url": "https://packs.ppy.sh/S1658%20-%20osu%21%20Beatmap%20Pack%20%231658.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-05T14:04:45.000000Z",
+      "name": "osu! Beatmap Pack #1657",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1657",
+      "url": "https://packs.ppy.sh/S1657%20-%20osu%21%20Beatmap%20Pack%20%231657.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-02T02:55:14.000000Z",
+      "name": "osu! Beatmap Pack #1656",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1656",
+      "url": "https://packs.ppy.sh/S1656%20-%20osu%21%20Beatmap%20Pack%20%231656.zip?1751446184"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-01T02:15:43.000000Z",
+      "name": "osu! Beatmap Pack #1655",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1655",
+      "url": "https://packs.ppy.sh/S1655%20-%20osu%21%20Beatmap%20Pack%20%231655.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-07-01T02:14:34.000000Z",
+      "name": "osu!mania Beatmap Pack #297",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM297",
+      "url": "https://packs.ppy.sh/SM297%20-%20osu%21mania%20Beatmap%20Pack%20%23297.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-06-30T15:03:46.000000Z",
+      "name": "osu!taiko Beatmap Pack #346",
+      "no_diff_reduction": false,
+      "ruleset_id": 1,
+      "tag": "ST346",
+      "url": "https://packs.ppy.sh/ST346%20-%20osu%21taiko%20Beatmap%20Pack%20%23346.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-06-28T14:10:10.000000Z",
+      "name": "osu! Beatmap Pack #1654",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1654",
+      "url": "https://packs.ppy.sh/S1654%20-%20osu%21%20Beatmap%20Pack%20%231654.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-06-26T13:17:11.000000Z",
+      "name": "osu! Beatmap Pack #1653",
+      "no_diff_reduction": false,
+      "ruleset_id": null,
+      "tag": "S1653",
+      "url": "https://packs.ppy.sh/S1653%20-%20osu%21%20Beatmap%20Pack%20%231653.zip"
+    },
+    {
+      "author": "Shige-Tori[a]",
+      "date": "2025-06-25T03:40:43.000000Z",
+      "name": "osu!mania Beatmap Pack #296",
+      "no_diff_reduction": false,
+      "ruleset_id": 3,
+      "tag": "SM296",
+      "url": "https://packs.ppy.sh/SM296%20-%20osu%21mania%20Beatmap%20Pack%20%23296.zip"
+    }
+  ],
+  "cursor": {
+    "pack_id": 3804
+  },
+  "cursor_string": "eyJwYWNrX2lkIjozODA0fQ"
+}
