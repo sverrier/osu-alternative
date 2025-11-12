@@ -44,7 +44,7 @@ class db:
 
         except Exception as e:
             self.conn.rollback()  # ✅ Rollback transaction to recover
-            self.logger.info(query)
+            self.logger.info(query) 
             raise
 
     def executeQuery(self, query):

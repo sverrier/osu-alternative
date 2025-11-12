@@ -1,3 +1,5 @@
 config.txt
 botconfig.txt
 api/build/
+.venv/
+logs/

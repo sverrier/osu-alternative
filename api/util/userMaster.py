@@ -1,5 +1,5 @@
 import json
-from util.jsonDataObject import jsonDataObject
+from .jsonDataObject import jsonDataObject
 
 
 class UserMaster(jsonDataObject):
@@ -11,7 +11,7 @@ class UserMaster(jsonDataObject):
                        "taiko_level", "taiko_grade_counts",
                        "fruits_level", "fruits_grade_counts",
                        "mania_level", "mania_grade_counts"}
-    included_columns = {"id","avatar_url","cover_custom_url","cover_id","cover_url","country_code","country_name",
+    column_list = {"id","avatar_url","cover_custom_url","cover_id","cover_url","country_code","country_name",
                         "default_group","groups","is_active","is_bot","is_deleted","is_online","is_supporter",
                         "last_visit","osu_count_100","osu_count_300","osu_count_50","osu_count_miss",
                         "osu_global_rank","osu_global_rank_exp","osu_grade_counts_a","osu_grade_counts_s",
@@ -57,7 +57,7 @@ class UserMaster(jsonDataObject):
                 user[f"mania_{key}"] = value
 
         super().__init__(user, self.table, self.key_columns, self.flatten_columns,
-                         self.json_columns)
+                         self.json_columns, self.column_list)
     def generate_insert_query(self):
-        self.final_json = {key: value for key, value in self.final_json.items() if key in self.included_columns}
+        self.final_json = {key: value for key, value in self.final_json.items() if key in self.column_list}
         return super().generate_insert_query()

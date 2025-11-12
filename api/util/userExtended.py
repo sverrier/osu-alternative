@@ -1,5 +1,5 @@
 import json
-from util.jsonDataObject import jsonDataObject
+from .jsonDataObject import jsonDataObject
 
 
 class UserExtended(jsonDataObject):

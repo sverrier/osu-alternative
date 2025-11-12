@@ -1,8 +1,7 @@
 import csv
 import asyncpg
 import asyncio
-import os
-
+import time
 
 class Database:
     def __init__(self, port, database, user, password):
@@ -29,15 +28,20 @@ class Database:
         return self.pool
 
     async def execute_query(self, query, *params):
+        """Execute a query and return both the result and elapsed time (in seconds)."""
         pool = await self.get_pool()
 
+        start_time = time.perf_counter()  # precise start
         try:
             async with pool.acquire() as connection:
                 async with connection.transaction():
                     result = await connection.fetch(query, *params)
-                    return result
         except asyncio.TimeoutError:
             raise asyncio.TimeoutError("Query timed out")
+        finally:
+            elapsed = time.perf_counter() - start_time
+
+        return result, elapsed
 
     async def export_to_csv(self, query, filename, *params):
         pool = await self.get_pool()

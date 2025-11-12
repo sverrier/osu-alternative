@@ -1,14 +1,8 @@
 import psycopg
 from psycopg import cursor
-from util.scoreFruits import ScoreFruits
-from util.scoreMania import ScoreMania
-from util.scoreTaiko import ScoreTaiko
 import requests
 import time
 import json
-from .userExtended import UserExtended
-from .beatmap import Beatmap
-from .scoreOsu import ScoreOsu
 
 class util_api:
     def __init__(self, config):
@@ -100,7 +94,7 @@ class util_api:
                 response = requests.get(url, headers=headers)
                 status = response.status_code
 
-                time.sleep(self.delay)
+                time.sleep(1)
                 if status == 200:
                     json_response = response.json()
                     if not json_response:
@@ -173,7 +167,6 @@ class util_api:
                     json_response = response.json()
                     if not json_response:
                         return None
-                    b = Beatmap(json_response)
                 else:
                     raise Exception(f"Unexpected response code: {status}")
                 
@@ -186,7 +179,7 @@ class util_api:
                 magnitude += 5
                 self.refresh_token()
         
-        return b
+        return json_response
 
     def get_beatmaps(self, ids):
         complete = False
@@ -205,7 +198,7 @@ class util_api:
                 response = requests.get(url, headers=headers)
                 status = response.status_code
 
-                time.sleep(self.delay)
+                time.sleep(1)
                 if status == 200:
                     json_response = response.json()
                     if not json_response:
@@ -381,7 +374,7 @@ class util_api:
                 response = requests.get(url, headers=headers)
                 status = response.status_code
 
-                time.sleep(self.delay)
+                time.sleep(1)
                 if status == 200:
                     json_response = response.json()
                     if not json_response:
