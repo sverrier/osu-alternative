@@ -3,3 +3,4 @@ botconfig.txt
 api/build/
 .venv/
 logs/
+**/__pycache__/

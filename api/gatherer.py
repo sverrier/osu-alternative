@@ -13,7 +13,7 @@ from api.util.scoreFruits import ScoreFruits
 from api.util.scoreMania import ScoreMania
 from api.util.scoreTaiko import ScoreTaiko
 from api.util.api import util_api
-from util.db import db  # Using shared async database
+from util.db import db
 
 
 class OsuDataFetcher:
@@ -129,6 +129,8 @@ class OsuDataFetcher:
         result, elapsed = await self.db.executeQuery("select coalesce(max(id), 1) from beatmap;")
         maxid = result[0]['coalesce'] if isinstance(result[0], dict) else result[0][0]
         
+        consecutive_empty = 0  # stop only after 5 empty batches in a row
+        
         for batch in self._generate_id_batches(maxid, maxid+10000, 50):
             beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
             queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
@@ -136,7 +138,11 @@ class OsuDataFetcher:
                 await self.db.executeSQL(queries)
             self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(beatmaps)} beatmaps.")
             if len(beatmaps) == 0:
-                break
+                consecutive_empty += 1
+                if consecutive_empty >= 5:
+                    break
+            else:
+                consecutive_empty = 0
 
     async def fetch_beatmaps_packs(self):
         self.logger.info("Fetching beatmap packs...")
@@ -202,6 +208,79 @@ class OsuDataFetcher:
             await self.db.executeSQL(queries)
             self.logger.info(f"Processed {len(scores)} scores for beatmap {beatmap_id}.")
 
+    async def fetch_modded_scores(self):
+        self.logger.info("Fetching modded leaderboard scores...")
+        
+        # Get starting point from logger
+        query = """
+            SELECT beatmap_id
+            FROM beatmapLive
+            WHERE beatmap_id > (
+                SELECT COALESCE(MAX(beatmap_id), 0)
+                FROM logger
+                WHERE logType = 'BEATMAPS' AND user_id = -1
+            )
+            ORDER BY beatmap_id
+        """
+        rs, elapsed = await self.db.executeQuery(query)
+
+        mods_list = [["NM"], ["HD"], ["DT"], ["FL"], ["HR"], ["HD", "HR"], ["HD", "FL"], ["HD", "DT"], ["HR", "DT"], ["HR", "DT", "HD"], ["HR", "DT", "HD", "FL"]]
+        total_beatmaps = len(rs)
+        
+        self.logger.info(f"Found {total_beatmaps} beatmaps to process with {len(mods_list)} mod combinations each")
+        
+        for idx, row in enumerate(rs, start=1):
+            beatmap_id = row['beatmap_id'] if isinstance(row, dict) else row[0]
+            self.logger.info(f"[{idx}/{total_beatmaps}] Processing beatmap {beatmap_id}...")
+            
+            total_scores_for_beatmap = 0
+            
+            # Accumulate scores across all mod combinations
+            all_score_groups = {0: [], 1: [], 2: [], 3: []}
+            
+            # Process each mod combination
+            for mod_combo in mods_list:
+                mod_str = "+".join(mod_combo) if mod_combo != ["NM"] else "NM"
+                self.logger.debug(f"[{idx}/{total_beatmaps}] Beatmap {beatmap_id}: Fetching {mod_str} scores...")
+                
+                scores = self.apiv2.get_beatmap_modded_scores(beatmap_id, mod_combo)
+                
+                if not scores:
+                    self.logger.debug(f"[{idx}/{total_beatmaps}] Beatmap {beatmap_id}: No scores for {mod_str}")
+                    continue
+                
+                # Group scores by ruleset
+                for score_data in scores:
+                    ruleset_id = score_data['ruleset_id']
+                    all_score_groups[ruleset_id].append(score_data)
+                
+                total_scores_for_beatmap += len(scores)
+                self.logger.debug(f"[{idx}/{total_beatmaps}] Beatmap {beatmap_id}: Found {len(scores)} {mod_str} scores")
+            
+            # Batch insert all scores for this beatmap
+            for ruleset_id, ruleset_scores in all_score_groups.items():
+                if not ruleset_scores:
+                    continue
+                    
+                score_cls = [ScoreOsu, ScoreTaiko, ScoreFruits, ScoreMania][ruleset_id]
+                query = score_cls.get_insert_query_template()
+                params_list = [score_cls(s).get_insert_params() for s in ruleset_scores]
+                await self.db.executemany(query, params_list)
+            
+            # Update logger after each beatmap
+            await self.db.executeParametrized(
+                """INSERT INTO logger (logtype, user_id, beatmap_id) 
+                VALUES ($1, $2, $3) 
+                ON CONFLICT (logtype, user_id) 
+                DO UPDATE SET beatmap_id = EXCLUDED.beatmap_id""",
+                'BEATMAPS', -1, beatmap_id
+            )
+            
+            self.logger.info(f"[{idx}/{total_beatmaps}] Completed beatmap {beatmap_id}: {total_scores_for_beatmap} total scores across all mod combinations")
+        
+        self.logger.info(f"Modded leaderboard sync complete: {total_beatmaps} beatmaps processed")
+
+
     async def sync_registered_user_scores(self):
         query = "SELECT user_id FROM registrations WHERE is_synced = false ORDER BY registrationdate LIMIT 1"
         rs, elapsed = await self.db.executeQuery(query)
@@ -229,7 +308,6 @@ class OsuDataFetcher:
         beatmap_ids = [b["beatmap_id"] for b in all_beatmaps]
         self.logger.info(f"Fetched {len(beatmap_ids)} total beatmaps for user {user_id}")
 
-        # Use fetchParametrized for SELECT with parameters
         query = """
             SELECT beatmap_id
             FROM beatmapLive
@@ -429,14 +507,16 @@ class OsuDataFetcher:
             '6': self.sync_newly_ranked_maps,
             '7': self.update_registered_users,
             '8': self.update_ranked_maps,
-            '9': self.fetch_beatmaps_packs
+            '9': self.fetch_beatmaps_packs,
+            '10': self.fetch_modded_scores
         }
 
         while True:
             print(
                 "\n0: Standard Loop\n1: Fetch beatmaps\n2: Fetch users\n3: Fetch leaderboard scores"
                 "\n4: Fetch user beatmap scores\n5: Fetch recent scores\n6: Sync newly ranked maps"
-                "\n7: Update registered users\n8: Update ranked maps\n9: Fetch beatmap packs\nQ: Quit"
+                "\n7: Update registered users\n8: Update ranked maps\n9: Fetch beatmap packs" \
+                "\n10: Fetch modded leaderboard scores\nQ: Quit"
             )
             choice = input("Choose an option: ").strip().lower()
 

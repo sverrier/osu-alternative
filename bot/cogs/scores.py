@@ -8,7 +8,7 @@ class Scores(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=["s"])
     async def scores(self, ctx, *args):
         di = get_args(args)
         columns = "count(*)"
@@ -31,7 +31,7 @@ class Scores(commands.Cog):
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
 
-    @commands.command()
+    @commands.command(aliases=["sl"])
     async def scorelist(self, ctx, *args):
         di = get_args(args)
         table = "scoreLive"

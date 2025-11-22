@@ -2,19 +2,31 @@ from discord.ext import commands
 from bot.util.helpers import get_args
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
+from bot.util.presets import BEATMAP_PRESETS
 
 class Beatmaps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=["b"])
     async def beatmaps(self, ctx, *args):
         di = get_args(args)
-        sql = QueryBuilder(di, "count(*)", "beatmapLive").getQuery()
+
+        preset_key = di.get("-o")
+        if preset_key in BEATMAP_PRESETS:
+            preset = BEATMAP_PRESETS[preset_key]
+            columns = preset["columns"]
+            title = preset["title"]
+            for k, v in preset.items():
+                if k.startswith("-"):
+                    di[k] = v
+        else:
+            columns = "count(*)"
+        sql = QueryBuilder(di, columns, "beatmapLive").getQuery()
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
 
-    @commands.command()
+    @commands.command(aliases=["bl"])
     async def beatmaplist(self, ctx, *args):
         di = get_args(args)
         query = QueryBuilder(di, "stars, artist, title, version, beatmap_id, beatmapset_id, mode", "beatmapLive")

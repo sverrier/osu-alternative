@@ -25,11 +25,25 @@ class Collections(commands.Cog):
         with open(filename, "rb") as file:
             await ctx.reply("Your file is:", file=discord.File(file, filename))
 
-    @commands.command()
-    async def generateosdbs(self, ctx):
+    @commands.command(aliases=["gen"])
+    async def generateosdbs(self, ctx, *args):
+        # If no file attached, behave like generateosdb
         if not ctx.message.attachments:
-            await ctx.reply("Please attach a .txt file with commands.")
+            di = get_args(args)
+            columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
+            sql = QueryBuilder(di, columns).getQuery()
+            result, _ = await self.bot.db.executeQuery(sql)
+            beatmaps = {CollectionBeatmap(**row) for row in result}
+
+            filename = f"{di.get('-name', 'collection')}.osdb"
+            collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
+            collections.encode_collections_osdb(open(filename, "wb"))
+
+            with open(filename, "rb") as file:
+                await ctx.reply("Your file is:", file=discord.File(file, filename))
             return
+
+        # Original file-based logic
         attachment = ctx.message.attachments[0]
         if not attachment.filename.endswith(".txt"):
             await ctx.reply("The attached file must be a .txt file.")
@@ -47,8 +61,8 @@ class Collections(commands.Cog):
         collections = []
 
         for command in commands_list:
-            args = command.split()
-            di = get_args(args)
+            args_list = command.split()
+            di = get_args(args_list)
             columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
             sql = QueryBuilder(di, columns).getQuery()
             result, _ = await self.bot.db.executeQuery(sql)

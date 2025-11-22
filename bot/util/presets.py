@@ -33,8 +33,16 @@ PRESETS = {
         "title": "Total playcount",
     },
     "playtime": {
-        "columns": "username, total_play_time/3600",
+        "columns": "username, format_time_from_seconds(total_play_time)",
         "-order": "total_play_time",
         "title": "Total playtime",
     },
+}
+
+# bot/utils/presets.py
+BEATMAP_PRESETS = {
+    "length": {
+        "columns": "format_time_from_seconds(sum(length))",
+        "title": "Total length of beatmaps",
+    }
 }

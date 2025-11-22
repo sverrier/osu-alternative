@@ -7,17 +7,37 @@ def escape_string(s):
 def get_args(arg=None):
     args = list(arg or [])
     di = {}
-    for i in range(0, len(args) - 1):
+    
+    VALUELESS_PARAMS = {"-is_fa", "-not_fa", "-has_replay", "-no_replay"}
+    
+    i = 0
+    while i < len(args):
         if args[i].startswith("-"):
             key = args[i].lower()
-            value = args[i + 1].lower()
-            if key == "-u":
-                di[key] = escape_string(value)
-            elif " " in value:
-                raise ValueError(f"Spaces not allowed for argument {key}")
+            
+            # Fix valueless parameter
+            if key in VALUELESS_PARAMS:
+                di[key] = True 
+                i += 1
+                continue
+            
+            if i + 1 < len(args) and not args[i + 1].startswith("-"):
+                value = args[i + 1].lower()
+                if key == "-u":
+                    di[key] = escape_string(value)
+                elif " " in value:
+                    raise ValueError(f"Spaces not allowed for argument {key}")
+                else:
+                    di[key] = value
+                i += 2  # Skip both key and value
             else:
-                di[key] = value
+                raise ValueError(f"Parameter {key} requires a value")
+        else:
+            i += 1
+    
     for k, v in di.items():
-        if v.isdigit() or (v.replace("_", "").isdigit() and "." not in v):
-            di[k] = v.replace("_", "")
+        if isinstance(v, str):
+            if v.isdigit() or (v.replace("_", "").isdigit() and "." not in v):
+                di[k] = v.replace("_", "")
+    
     return di

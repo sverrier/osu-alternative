@@ -6,30 +6,37 @@ BEGIN
     ------------------------------------------------------------------------
     -- Step 1: Update beatmap stats
     ------------------------------------------------------------------------
-    IF NOT EXISTS (
-        SELECT 1
-        FROM jsonb_array_elements(NEW.mods) AS elem
-        WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+    IF NEW.ruleset_id = (
+        SELECT mode
+        FROM beatmapLive
+        WHERE beatmap_id = NEW.beatmap_id
     )
     THEN
-        IF NEW.rank = 'X' or NEW.rank = 'XH' THEN
-            UPDATE beatmapLive
-            SET ss_count = ss_count + 1
-            WHERE beatmap_id = NEW.beatmap_id;
-        END IF;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(NEW.mods) AS elem
+            WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+        )
+        THEN
+            IF NEW.rank = 'X' or NEW.rank = 'XH' THEN
+                UPDATE beatmapLive
+                SET ss_count = ss_count + 1
+                WHERE beatmap_id = NEW.beatmap_id;
+            END IF;
 
-        IF (
-            COALESCE(NEW.statistics_miss, 0) = 0
-            AND EXISTS (
-                SELECT 1
-                FROM beatmapLive b
-                WHERE b.beatmap_id = NEW.beatmap_id
-                  AND (2 *(COALESCE(NEW.statistics_good, 0) + COALESCE(NEW.statistics_ok, 0))) >= (b.max_combo - NEW.max_combo)
-            )
-        ) THEN
-            UPDATE beatmapLive
-            SET fc_count = fc_count + 1
-            WHERE beatmap_id = NEW.beatmap_id;
+            IF (
+                COALESCE(NEW.statistics_miss, 0) = 0
+                AND EXISTS (
+                    SELECT 1
+                    FROM beatmapLive b
+                    WHERE b.beatmap_id = NEW.beatmap_id
+                    AND (2 *(COALESCE(NEW.statistics_good, 0) + COALESCE(NEW.statistics_ok, 0))) >= (b.max_combo - NEW.max_combo)
+                )
+            ) THEN
+                UPDATE beatmapLive
+                SET fc_count = fc_count + 1
+                WHERE beatmap_id = NEW.beatmap_id;
+            END IF;
         END IF;
     END IF;
 

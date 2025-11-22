@@ -223,9 +223,10 @@ class util_api:
         
         while not complete:
             try:
-                url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/solo-scores"
+                url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/scores?limit=100"
                 headers = {
-                    "Authorization": f"Bearer {self.token}"  
+                    "Authorization": f"Bearer {self.token}",
+                    "x-api-version": "20240529"
                 }
                 
                 response = requests.get(url, headers=headers)
@@ -251,6 +252,61 @@ class util_api:
                 self.refresh_token()
         
         return scores
+    
+    def get_beatmap_modded_scores(self, beatmap_id, mods):
+        """
+        Get beatmap scores filtered by mods.
+        
+        Args:
+            beatmap_id: The beatmap ID
+            mods: List of mod acronyms (e.g., ['HD', 'DT', 'HR'])
+        
+        Returns:
+            List of scores matching the mod combination
+        """
+        complete = False
+        magnitude = 1
+        
+        while not complete:
+            try:
+                base_url = f"https://osu.ppy.sh/api/v2/beatmaps/{beatmap_id}/scores?legacy_only=0&limit=100"
+                
+                # Add each mod as a separate query parameter
+                if mods:
+                    mod_params = "&".join([f"mods[]={mod}" for mod in mods])
+                    url = f"{base_url}&{mod_params}"
+                else:
+                    url = base_url
+                
+                headers = {
+                    "Authorization": f"Bearer {self.token}",
+                    "x-api-version": "20240529"
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(self.delay)
+                
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                    
+                    scores = json_response.get("scores", [])
+                    complete = True
+                    magnitude = 1
+                    return scores
+                else:
+                    raise Exception(f"Unexpected response code: {status}")
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return []
     
     def get_beatmap_packs(self, cursor_string = None):
         complete = False

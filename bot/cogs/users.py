@@ -8,7 +8,7 @@ class Users(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=["u"])
     async def users(self, ctx, *args):
         """Count of users"""
         di = get_args(args)
@@ -17,7 +17,7 @@ class Users(commands.Cog):
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
 
-    @commands.command()
+    @commands.command(aliases=["ul"])
     async def userlist(self, ctx, *args):
         di = get_args(args)
         table = "userLive"
@@ -33,7 +33,6 @@ class Users(commands.Cog):
             columns = di.get("-columns", "username,total_ranked_score")
             title = "Leaderboard"
             di.setdefault("-order", "total_ranked_score")
-        di.setdefault("-limit", "10")
         if di.get("-include") == "d":
             di.pop("-grade-not", None)
         sql = QueryBuilder(di, columns, table).getQuery()
@@ -46,7 +45,7 @@ class Users(commands.Cog):
         beatmaps, elapsed = await self.bot.db.executeQuery(sql)
         count = len(beatmaps)
         formatter = Formatter(title=title, footer=f"Based on Scores • took {elapsed:.2f}s")
-        embed = formatter.as_leaderboard(result, count)
+        embed = formatter.as_leaderboard(result, count, page=int(di.get("-p", 1)), page_size=int(di.get("-l", 10)), elapsed=elapsed)
         await ctx.reply(embed=embed)
 
 async def setup(bot):

@@ -6,22 +6,29 @@ BEGIN
     ------------------------------------------------------------------------
     -- Step 1: Update beatmap stats
     ------------------------------------------------------------------------
-    IF NOT EXISTS (
-        SELECT 1
-        FROM jsonb_array_elements(NEW.mods) AS elem
-        WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+    IF NEW.ruleset_id = (
+        SELECT mode
+        FROM beatmapLive
+        WHERE beatmap_id = NEW.beatmap_id
     )
     THEN
-        IF NEW.accuracy = 1.0 THEN
-            UPDATE beatmapLive
-            SET ss_count = ss_count + 1
-            WHERE beatmap_id = NEW.beatmap_id;
-        END IF;
+        IF NOT EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(NEW.mods) AS elem
+            WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+        )
+        THEN
+            IF NEW.accuracy = 1.0 THEN
+                UPDATE beatmapLive
+                SET ss_count = ss_count + 1
+                WHERE beatmap_id = NEW.beatmap_id;
+            END IF;
 
-        IF COALESCE(NEW.statistics_miss, 0) = 0 THEN
-            UPDATE beatmapLive
-            SET fc_count = fc_count + 1
-            WHERE beatmap_id = NEW.beatmap_id;
+            IF COALESCE(NEW.statistics_miss, 0) = 0 THEN
+                UPDATE beatmapLive
+                SET fc_count = fc_count + 1
+                WHERE beatmap_id = NEW.beatmap_id;
+            END IF;
         END IF;
     END IF;
 

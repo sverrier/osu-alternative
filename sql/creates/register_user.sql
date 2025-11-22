@@ -198,5 +198,42 @@ BEGIN
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
 
+    -- After all score INSERTs, update the computed mod columns
+    UPDATE scoreLive
+    SET 
+        mod_acronyms = (
+            SELECT array_agg(elem->>'acronym')
+            FROM jsonb_array_elements(mods) elem
+        ),
+        mod_speed_change = COALESCE(
+            (
+                SELECT (elem->'settings'->>'speed_change')::numeric
+                FROM jsonb_array_elements(mods) elem
+                WHERE elem->>'acronym' IN ('DT','NC','HT','DC')
+                AND elem->'settings' ? 'speed_change'
+                LIMIT 1
+            ),
+            (
+                SELECT CASE
+                    WHEN elem->>'acronym' IN ('DT','NC') THEN 1.5
+                    WHEN elem->>'acronym' IN ('HT','DC') THEN 0.75
+                END
+                FROM jsonb_array_elements(mods) elem
+                WHERE elem->>'acronym' IN ('DT','NC','HT','DC')
+                LIMIT 1
+            )
+        ),
+        difficulty_reducing = EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(mods) elem
+            WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+        ),
+        difficulty_removing = EXISTS (
+            SELECT 1 
+            FROM jsonb_array_elements(mods) elem
+            WHERE elem->>'acronym' IN ('NF','AT','CN','RX','AP')
+        )
+    WHERE user_id = p_user_id;
+
 END;
 $$;

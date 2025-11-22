@@ -50,14 +50,22 @@ class Formatter:
 
         return embed
 
-    def as_leaderboard(self, result, total):
-        """Render leaderboard from DB query result into a Discord embed with aligned columns."""
+    def as_leaderboard(self, result, total, page=1, page_size=10, elapsed=None):
+        """
+        Render leaderboard from DB query result into a Discord embed with aligned columns.
+        Now supports pagination with -page and -limit flags.
+        """
+        # Apply pagination
+        start = (page - 1) * page_size
+        end = start + page_size
+        subset = result[start:end]
 
         leaderboard = []
-        for row in result:
+        for row in subset:
             username, count = row
             leaderboard.append({"username": username, "count": int(count)})
 
+        # Calculate differences within the current page
         for i in range(1, len(leaderboard)):
             diff = leaderboard[i]["count"] - leaderboard[i - 1]["count"]
             leaderboard[i]["difference"] = diff
@@ -70,11 +78,11 @@ class Formatter:
         )
 
         # Determine consistent column widths
-        width_name = max(len(d["username"]) for d in leaderboard)
-        width_count = max(len(f"{d['count']:,}") for d in leaderboard)
+        width_name = max(len(d["username"]) for d in leaderboard) if leaderboard else 10
+        width_count = max(len(f"{d['count']:,}") for d in leaderboard) if leaderboard else 5
 
         lines = []
-        for i, d in enumerate(leaderboard, start=1):
+        for i, d in enumerate(leaderboard, start=start+1):  # Use actual rank number
             diff = d.get("difference")
             diff_str = f"{diff:+,}" if diff is not None else ""
             lines.append(
@@ -83,19 +91,38 @@ class Formatter:
 
         embed.description = f"```\n" + "\n".join(lines) + "\n```"
 
+        # Update footer with pagination info
+        total_results = len(result)
+        page_count = (total_results + page_size - 1) // page_size
+        footer_text = f"Page {page} of {page_count} • Amount: {total_results:,}"
+        if elapsed is not None:
+            footer_text += f" • took {elapsed:.2f}s"
         if self.footer:
-            embed.set_footer(text=self.footer)
+            footer_text = f"{self.footer} • {footer_text}"
+        
+        embed.set_footer(text=footer_text)
 
         return embed
     
     def as_score_list(self, result, page=1, page_size=10, elapsed=None):
         """
-        Format beatmap list into a Discord embed.
-        Expects rows with: stars, artist, title, version, beatmap_id, beatmapset_id
+        Format score list into a Discord embed with pagination.
+        Groups scores by beatmap and supports -page and -limit flags.
         """
+        # Group all scores by beatmap first
+        from collections import defaultdict
+        beatmap_groups = defaultdict(list)
+        
+        for row in result:
+            beatmap_groups[row['beatmap_id']].append(row)
+        
+        # Convert to list of beatmap groups for pagination
+        beatmap_list = list(beatmap_groups.items())
+        
+        # Apply pagination to beatmap groups
         start = (page - 1) * page_size
         end = start + page_size
-        subset = result[start:end]
+        subset = beatmap_list[start:end]
 
         embed = discord.Embed(
             title=f"{self.title}",
@@ -103,16 +130,9 @@ class Formatter:
             color=self.color
         )
 
-        # Group scores by beatmap
-        from collections import defaultdict
-        beatmap_groups = defaultdict(list)
-        
-        for row in subset:
-            beatmap_groups[row['beatmap_id']].append(row)
-
         # Build formatted lines
         lines = []
-        for beatmap_id, scores in beatmap_groups.items():
+        for beatmap_id, scores in subset:
             # Use first score for beatmap info (all scores share same beatmap)
             first = scores[0]
             artist = first['artist']
@@ -132,29 +152,31 @@ class Formatter:
             # Add each score as indented item
             for row in scores:
                 grade = row['grade']
-                mods = ",".join(str(x) for x in row["mod_acronyms"]) if row["mod_acronyms"] else ""
+                mods = row.get("mod_acronyms", [])
                 accuracy_val = row.get("accuracy")
                 accuracy = float(accuracy_val or 0.0) * 100
                 pp_val = row.get("pp")
                 pp = float(pp_val or 0.0)
                 
                 # Format mods as +HDHRFL
-                mods_str = (
-                    f"+{''.join(mods)}" if isinstance(mods, (list, tuple)) and mods else ""
-                )
+                if mods and isinstance(mods, (list, tuple)):
+                    mods_str = f"+{''.join(str(m) for m in mods)}"
+                else:
+                    mods_str = ""
                 
                 # Indented score line
                 score_line = f"  ↳ {mods_str} {accuracy:.2f}% | {pp:.2f}pp | {grade}"
                 lines.append(score_line)
 
-        embed.description = "\n".join(lines)
+        embed.description = "\n".join(lines) if lines else "No scores found"
 
-        total = len(result)
-        page_count = (total + page_size - 1) // page_size
+        # Calculate pagination info based on beatmap groups
+        total_beatmaps = len(beatmap_list)
+        page_count = (total_beatmaps + page_size - 1) // page_size
         embed.set_footer(
-            text=f"Page {page} of {page_count} • Amount: {total:,} • took {elapsed:.2f}s"
+            text=f"Page {page} of {page_count} • Beatmaps: {total_beatmaps:,} • took {elapsed:.2f}s"
             if elapsed is not None
-            else f"Page {page} of {page_count} • Amount: {total:,}"
+            else f"Page {page} of {page_count} • Beatmaps: {total_beatmaps:,}"
         )
 
         return embed
