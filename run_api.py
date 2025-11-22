@@ -1,4 +1,3 @@
-import sys
 import asyncio
 from api.gatherer import OsuDataFetcher
 

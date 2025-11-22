@@ -4,8 +4,6 @@ import asyncio
 from datetime import datetime
 from cryptography.fernet import Fernet
 
-from api.util.jsonDataObject import jsonDataObject
-from api.util.userExtended import UserExtended
 from api.util.userMaster import UserMaster
 from api.util.beatmap import Beatmap
 from api.util.scoreOsu import ScoreOsu

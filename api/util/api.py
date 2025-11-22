@@ -1,5 +1,3 @@
-import psycopg
-from psycopg import cursor
 import requests
 import time
 import json
