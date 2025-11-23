@@ -12,7 +12,7 @@ from api.util.scoreMania import ScoreMania
 from api.util.scoreTaiko import ScoreTaiko
 from api.util.api import util_api
 from util.db import db
-
+from util.crypto import get_fernet
 
 class OsuDataFetcher:
     def __init__(self, config_file="config.txt"):
@@ -53,11 +53,8 @@ class OsuDataFetcher:
         config["PORT"] = input("Enter the PORT value: ").strip()
         config["HOST"] = input("Enter the HOST value (default: localhost): ").strip() or "localhost"
 
-        key = Fernet.generate_key()
-        self.logger.info(f"Generated encryption key: {key}")
-        print("SAVE THIS KEY:", key)
+        f = get_fernet()
 
-        f = Fernet(key)
         config["KEY"] = f.encrypt(config["KEY"].encode()).decode()
         config["PASSWORD"] = f.encrypt(config["PASSWORD"].encode()).decode()
 
@@ -73,13 +70,14 @@ class OsuDataFetcher:
     def _read_config_file(self):
         self.logger.info("Reading configuration file...")
         config = {}
-        config["ENCRYPTION_KEY"] = input("Enter your encryption key: ").encode()
-        f = Fernet(config["ENCRYPTION_KEY"])
+        f = get_fernet()
+
         with open(self.config_file, "r") as file:
             for line in file:
                 if "=" in line:
                     k, v = line.strip().split("=", 1)
                     config[k.strip("[]")] = v
+
         config["KEY"] = f.decrypt(config["KEY"].encode()).decode()
         config["PASSWORD"] = f.decrypt(config["PASSWORD"].encode()).decode()
         return config
