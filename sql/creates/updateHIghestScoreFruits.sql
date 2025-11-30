@@ -55,7 +55,7 @@ BEGIN
     INSERT INTO scoreLive (
         id, beatmap_id, user_id, accuracy, best_id, build_id, classic_total_score,
         ended_at, has_replay, is_perfect_combo, legacy_perfect, legacy_score_id,
-        legacy_total_score, max_combo, maximum_statistics_great,
+        legacy_total_score, combo, maximum_statistics_great,
         maximum_statistics_ignore_hit, maximum_statistics_ignore_miss,
         maximum_statistics_large_bonus, maximum_statistics_large_tick_hit,
         maximum_statistics_small_tick_hit, mods, passed, pp, preserve, processed,

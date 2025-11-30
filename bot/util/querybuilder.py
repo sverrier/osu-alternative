@@ -22,6 +22,14 @@ VALUED_PARAMS = {
     "-is_fa-true": ("track_id IS NOT NULL", ["track_id"]),
     "-is_fa-false": ("track_id IS NULL", ["track_id"]),
     "-year": ("EXTRACT(YEAR FROM ranked_date) = {value}", ["ranked_date"]),
+    "-year-min": ("EXTRACT(YEAR FROM ranked_date) >= {value}", ["ranked_date"]),
+    "-year-max": ("EXTRACT(YEAR FROM ranked_date) < {value}", ["ranked_date"]),
+    "-objects": ("(count_circles + count_sliders + count_spinners) = {value}", ["count_circles", "count_sliders", "count_spinners"]),
+    "-objects-min": ("(count_circles + count_sliders + count_spinners) >= {value}", ["count_circles", "count_sliders", "count_spinners"]),
+    "-objects-max": ("(count_circles + count_sliders + count_spinners) < {value}", ["count_circles", "count_sliders", "count_spinners"]),
+    "-combo": ("beatmaplive.max_combo = {value}", ["beatmap_id"]),
+    "-combo-min": ("beatmaplive.max_combo >= {value}", ["beatmap_id"]),
+    "-combo-max": ("beatmaplive.max_combo < {value}", ["beatmap_id"]),
 }
 
 VALUELESS_PARAMS = {
@@ -34,6 +42,7 @@ VALUELESS_PARAMS = {
 
 PARAM_SYNONYM_MAP = {
     "-u": "-username",
+    "-drain": "-drain_time",
 }
 
 class QueryBuilder:
@@ -50,6 +59,73 @@ class QueryBuilder:
         self.setGroupByClause(group)
         self.setOrderByClause(order)
         self.setLimitClause(limit)
+
+    def _get_table_for_column(self, column):
+        """
+        Find which table a column belongs to.
+        Returns the table name, or None if not found.
+        Prioritizes scoreLive if column exists in multiple tables.
+        """
+        found_tables = []
+        for table, columns in TableColumns.items():
+            if column in columns:
+                found_tables.append(table)
+        
+        if not found_tables:
+            return None
+        
+        # If column exists in multiple tables, prioritize scoreLive
+        if "scoreLive" in found_tables:
+            return "scoreLive"
+        
+        return found_tables[0]
+
+    def _qualify_column(self, column):
+        """
+        Add table prefix to column name.
+        Returns 'tableName.columnName' or just 'columnName' if table not found.
+        """
+        # Skip if already qualified
+        if '.' in column:
+            return column
+            
+        table = self._get_table_for_column(column)
+        if table:
+            return f"{table}.{column}"
+        return column
+
+    def _qualify_columns_in_string(self, clause_string):
+        """
+        Parse a clause string and qualify all column references.
+        Handles comma-separated lists like "column1, column2, column3"
+        """
+        if not clause_string or clause_string.strip() == "":
+            return clause_string
+            
+        # Split by comma and process each part
+        parts = [part.strip() for part in clause_string.split(',')]
+        qualified_parts = []
+        
+        for part in parts:
+            # Check if it's a simple column name or expression
+            if validate_column(part):
+                qualified_parts.append(self._qualify_column(part))
+            else:
+                # It might be an expression like "COUNT(*)" or "MAX(score)"
+                # Try to find column names within it
+                qualified_part = part
+                for table, columns in TableColumns.items():
+                    for col in columns:
+                        # Replace standalone column references
+                        # Use word boundaries to avoid partial matches
+                        import re
+                        pattern = r'\b' + re.escape(col) + r'\b'
+                        if re.search(pattern, qualified_part) and '.' not in qualified_part:
+                            qualified_col = self._qualify_column(col)
+                            qualified_part = re.sub(pattern, qualified_col, qualified_part)
+                qualified_parts.append(qualified_part)
+        
+        return ', '.join(qualified_parts)
 
     def _format_value(self, column, value, operator=None):
         """
@@ -94,14 +170,17 @@ class QueryBuilder:
         Only applies to string columns.
         
         Args:
-            column: Column name
+            column: Column name (may be qualified with table name)
             formatted_value: Already formatted value with quotes
             operator: SQL operator (=, !=, IN, NOT IN, LIKE, etc.)
         
         Returns:
             Tuple of (column_expr, value_expr)
         """
-        meta = get_column_info(column)
+        # Extract the actual column name from qualified name
+        actual_col = column.split('.')[-1] if '.' in column else column
+        
+        meta = get_column_info(actual_col)
         if meta and meta.get("type") == "str":
             # Strip quotes, uppercase, re-quote
             if formatted_value.startswith("'") and formatted_value.endswith("'"):
@@ -120,9 +199,13 @@ class QueryBuilder:
         return [value]
     
     def setSelectClause(self, columns):
+        # Parse columns and add to fields
         for column in columns.split(", "):
             self.fields.append(column)
-        self.selectclause = "SELECT " + columns
+        
+        # Qualify columns in SELECT clause
+        qualified_columns = self._qualify_columns_in_string(columns)
+        self.selectclause = "SELECT " + qualified_columns
         print(self.selectclause)
 
     def setFromClause(self, table):
@@ -130,8 +213,10 @@ class QueryBuilder:
         print(self.fields)
         print(self.tables)
         for field in self.fields:
+            # Handle qualified column names
+            actual_field = field.split('.')[-1] if '.' in field else field
             for table, columns in TableColumns.items():
-                if field in columns:
+                if actual_field in columns:
                     self.tables.add(table)
 
         print(self.tables)
@@ -205,36 +290,40 @@ class QueryBuilder:
             if raw_key.endswith("-min"):
                 column = raw_key[:-4]
                 if validate_column(column):
+                    qualified_col = self._qualify_column(column)
                     formatted_value = self._format_value(column, value)
-                    col_expr, val_expr = self._make_case_insensitive(column, formatted_value, ">=")
+                    col_expr, val_expr = self._make_case_insensitive(qualified_col, formatted_value, ">=")
                     where_clauses.append(f"{col_expr} >= {val_expr}")
                     self.fields.append(column)
                     
             elif raw_key.endswith("-max"):
                 column = raw_key[:-4]
                 if validate_column(column):
+                    qualified_col = self._qualify_column(column)
                     formatted_value = self._format_value(column, value)
-                    col_expr, val_expr = self._make_case_insensitive(column, formatted_value, "<")
+                    col_expr, val_expr = self._make_case_insensitive(qualified_col, formatted_value, "<")
                     where_clauses.append(f"{col_expr} < {val_expr}")
                     self.fields.append(column)
                     
             elif raw_key.endswith("-not"):
                 column = raw_key[:-4]
                 if validate_column(column):
+                    qualified_col = self._qualify_column(column)
                     formatted_value = self._format_value(column, value)
-                    col_expr, val_expr = self._make_case_insensitive(column, formatted_value, "!=")
+                    col_expr, val_expr = self._make_case_insensitive(qualified_col, formatted_value, "!=")
                     where_clauses.append(f"{col_expr} != {val_expr}")
                     self.fields.append(column)
                     
             elif raw_key.endswith("-in"):
                 column = raw_key[:-3]
                 if validate_column(column):
+                    qualified_col = self._qualify_column(column)
                     values = self._parse_list_value(value)
                     formatted_values = [self._format_value(column, v) for v in values]
                     # Apply case insensitivity to each value
                     meta = get_column_info(column)
                     if meta and meta.get("type") == "str":
-                        col_expr = f"UPPER({column})"
+                        col_expr = f"UPPER({qualified_col})"
                         upper_values = []
                         for fv in formatted_values:
                             if fv.startswith("'") and fv.endswith("'"):
@@ -244,7 +333,7 @@ class QueryBuilder:
                                 upper_values.append(f"UPPER({fv})")
                         values_str = ", ".join(upper_values)
                     else:
-                        col_expr = column
+                        col_expr = qualified_col
                         values_str = ", ".join(formatted_values)
                     where_clauses.append(f"{col_expr} IN ({values_str})")
                     self.fields.append(column)
@@ -252,12 +341,13 @@ class QueryBuilder:
             elif raw_key.endswith("-notin"):
                 column = raw_key[:-6]
                 if validate_column(column):
+                    qualified_col = self._qualify_column(column)
                     values = self._parse_list_value(value)
                     formatted_values = [self._format_value(column, v) for v in values]
                     # Apply case insensitivity to each value
                     meta = get_column_info(column)
                     if meta and meta.get("type") == "str":
-                        col_expr = f"UPPER({column})"
+                        col_expr = f"UPPER({qualified_col})"
                         upper_values = []
                         for fv in formatted_values:
                             if fv.startswith("'") and fv.endswith("'"):
@@ -267,7 +357,7 @@ class QueryBuilder:
                                 upper_values.append(f"UPPER({fv})")
                         values_str = ", ".join(upper_values)
                     else:
-                        col_expr = column
+                        col_expr = qualified_col
                         values_str = ", ".join(formatted_values)
                     where_clauses.append(f"{col_expr} NOT IN ({values_str})")
                     self.fields.append(column)
@@ -275,15 +365,25 @@ class QueryBuilder:
             elif raw_key.endswith("-like"):
                 column = raw_key[:-5]
                 if validate_column(column):
+                    qualified_col = self._qualify_column(column)
                     formatted_value = self._format_value(column, value, operator="like")
-                    col_expr, val_expr = self._make_case_insensitive(column, formatted_value, "LIKE")
+                    col_expr, val_expr = self._make_case_insensitive(qualified_col, formatted_value, "LIKE")
                     where_clauses.append(f"{col_expr} LIKE {val_expr}")
+                    self.fields.append(column)
+
+            elif raw_key.endswith("-regex"):
+                column = raw_key[:-6]
+                if validate_column(column):
+                    qualified_col = self._qualify_column(column)
+                    formatted_value = self._format_value(column, value)
+                    where_clauses.append(f"{qualified_col} ~* {formatted_value}")
                     self.fields.append(column)
                     
             elif validate_column(raw_key):
                 # Exact match
+                qualified_col = self._qualify_column(raw_key)
                 formatted_value = self._format_value(raw_key, value)
-                col_expr, val_expr = self._make_case_insensitive(raw_key, formatted_value, "=")
+                col_expr, val_expr = self._make_case_insensitive(qualified_col, formatted_value, "=")
                 where_clauses.append(f"{col_expr} = {val_expr}")
                 self.fields.append(raw_key)
 
@@ -300,7 +400,9 @@ class QueryBuilder:
                 self.groupbyclause = value
         
         if self.groupbyclause != "":
-            self.groupbyclause = " GROUP BY " + self.groupbyclause
+            # Qualify columns in GROUP BY clause
+            qualified_group = self._qualify_columns_in_string(self.groupbyclause)
+            self.groupbyclause = " GROUP BY " + qualified_group
 
     def setOrderByClause(self, order):
         self.orderbyclause = ""
@@ -316,7 +418,9 @@ class QueryBuilder:
                 self.orderbyclause = value
         
         if self.orderbyclause != "":
-            self.orderbyclause = (f" ORDER BY {self.orderbyclause} {direction}")
+            # Qualify columns in ORDER BY clause
+            qualified_order = self._qualify_columns_in_string(self.orderbyclause)
+            self.orderbyclause = f" ORDER BY {qualified_order} {direction}"
 
     def setLimitClause(self, limit):
         self.limitclause = ""

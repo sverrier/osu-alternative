@@ -104,6 +104,51 @@ class Formatter:
 
         return embed
     
+    def as_completion(self, data, elapsed=None):
+        """
+        Format completion statistics into a Discord embed.
+        
+        Args:
+            data: List of dicts with keys: range, percentage, played, total, missing
+            elapsed: Optional query execution time
+        
+        Returns:
+            discord.Embed with formatted completion table
+        """
+        embed = discord.Embed(
+            title=self.title,
+            color=self.color
+        )
+        
+        # Calculate column widths
+        width_range = max(len(d["range"]) for d in data) if data else 10
+        width_percentage = 8
+        width_fraction = max(len(f"{d['played']:,}/{d['total']:,}") for d in data) if data else 10
+        width_missing = max(len(f"{d['missing']:,}") for d in data) if data else 5
+        
+        # Build table lines
+        lines = []
+        for d in data:
+            range_str = d["range"].ljust(width_range)
+            percentage_str = f"{d['percentage']:06.3f}%".rjust(width_percentage)
+            fraction_str = f"{d['played']:,}/{d['total']:,}".rjust(width_fraction)
+            missing_str = f"-{d['missing']:,}".replace("-0", "✓").rjust(width_missing + 1)
+            
+            lines.append(f"{range_str} | {percentage_str} | {fraction_str} | {missing_str}")
+        
+        embed.description = "```\n" + "\n".join(lines) + "\n```"
+        
+        # Set footer
+        footer_text = "Based on Scores in the database"
+        if elapsed is not None:
+            footer_text += f" • took {elapsed:.2f}s"
+        if self.footer:
+            footer_text = f"{self.footer} • {footer_text}"
+        
+        embed.set_footer(text=footer_text)
+        
+        return embed
+    
     def as_score_list(self, result, page=1, page_size=10, elapsed=None):
         """
         Format score list into a Discord embed with pagination.

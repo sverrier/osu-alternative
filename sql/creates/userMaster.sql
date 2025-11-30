@@ -121,3 +121,5 @@ CREATE TABLE IF NOT EXISTS public.userMaster (
 	is_synced bool DEFAULT false NULL,
 	CONSTRAINT user_pkey PRIMARY KEY (id)
 );
+
+CREATE INDEX IF NOT EXISTS usermaster_country_code_idx  ON public.usermaster(country_code);

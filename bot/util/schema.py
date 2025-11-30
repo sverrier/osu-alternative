@@ -237,7 +237,7 @@ SCORE_LIVE_METADATA = {
         "range": (0, None),
         "description": "Score without mod multipliers"
     },
-    "max_combo": {
+    "combo": {
         "type": "int",
         "nullable": False,
         "range": (0, None),
