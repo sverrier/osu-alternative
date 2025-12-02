@@ -82,7 +82,7 @@ BEGIN
         statistics_large_tick_miss, statistics_small_bonus, total_score,
         total_score_without_mods, type, statistics_small_tick_hit,
         statistics_small_tick_miss, maximum_statistics_small_tick_hit,
-        highest_score, highest_pp, rank
+        highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         id, beatmap_id, so.user_id, accuracy, best_id, build_id, classic_total_score,
@@ -99,7 +99,7 @@ BEGIN
         statistics_large_tick_miss, statistics_small_bonus, total_score,
         total_score_without_mods, type, statistics_small_tick_hit,
         statistics_small_tick_miss, maximum_statistics_small_tick_hit,
-        highest_score, highest_pp, leaderboard_rank
+        highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     FROM scoreosu so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
@@ -117,7 +117,7 @@ BEGIN
         statistics_ok, statistics_miss, statistics_large_bonus,
         statistics_ignore_hit, statistics_ignore_miss, statistics_small_bonus,
         total_score, total_score_without_mods, type, user_id,
-        maximum_statistics_legacy_combo_increase, highest_score, highest_pp
+        maximum_statistics_legacy_combo_increase, highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         accuracy, beatmap_id, best_id, build_id, classic_total_score, ended_at,
@@ -129,7 +129,7 @@ BEGIN
         statistics_ok, statistics_miss, statistics_large_bonus,
         statistics_ignore_hit, statistics_ignore_miss, statistics_small_bonus,
         total_score, total_score_without_mods, type, so.user_id,
-        maximum_statistics_legacy_combo_increase, highest_score, highest_pp
+        maximum_statistics_legacy_combo_increase, highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     FROM scoretaiko so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
@@ -146,7 +146,7 @@ BEGIN
         statistics_combo_break, statistics_perfect, statistics_great,
         statistics_good, statistics_ok, statistics_meh, statistics_miss,
         statistics_ignore_hit, statistics_ignore_miss, total_score,
-        total_score_without_mods, type, user_id, highest_score, highest_pp
+        total_score_without_mods, type, user_id, highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         accuracy, beatmap_id, best_id, build_id, classic_total_score, ended_at,
@@ -157,7 +157,7 @@ BEGIN
         statistics_combo_break, statistics_perfect, statistics_great,
         statistics_good, statistics_ok, statistics_meh, statistics_miss,
         statistics_ignore_hit, statistics_ignore_miss, total_score,
-        total_score_without_mods, type, so.user_id, highest_score, highest_pp
+        total_score_without_mods, type, so.user_id, highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     FROM scoremania so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
@@ -178,7 +178,7 @@ BEGIN
         statistics_large_tick_miss, statistics_small_tick_hit,
         statistics_small_tick_miss, total_score, total_score_without_mods, type,
         user_id, maximum_statistics_legacy_combo_increase,
-        maximum_statistics_miss, highest_score, highest_pp
+        maximum_statistics_miss, highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         accuracy, beatmap_id, best_id, build_id, classic_total_score, ended_at,
@@ -193,47 +193,10 @@ BEGIN
         statistics_large_tick_miss, statistics_small_tick_hit,
         statistics_small_tick_miss, total_score, total_score_without_mods, type,
         so.user_id, maximum_statistics_legacy_combo_increase,
-        maximum_statistics_miss, highest_score, highest_pp
+        maximum_statistics_miss, highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
     FROM scorefruits so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
-
-    -- After all score INSERTs, update the computed mod columns
-    UPDATE scoreLive
-    SET 
-        mod_acronyms = (
-            SELECT array_agg(elem->>'acronym')
-            FROM jsonb_array_elements(mods) elem
-        ),
-        mod_speed_change = COALESCE(
-            (
-                SELECT (elem->'settings'->>'speed_change')::numeric
-                FROM jsonb_array_elements(mods) elem
-                WHERE elem->>'acronym' IN ('DT','NC','HT','DC')
-                AND elem->'settings' ? 'speed_change'
-                LIMIT 1
-            ),
-            (
-                SELECT CASE
-                    WHEN elem->>'acronym' IN ('DT','NC') THEN 1.5
-                    WHEN elem->>'acronym' IN ('HT','DC') THEN 0.75
-                END
-                FROM jsonb_array_elements(mods) elem
-                WHERE elem->>'acronym' IN ('DT','NC','HT','DC')
-                LIMIT 1
-            )
-        ),
-        difficulty_reducing = EXISTS (
-            SELECT 1
-            FROM jsonb_array_elements(mods) elem
-            WHERE elem->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
-        ),
-        difficulty_removing = EXISTS (
-            SELECT 1 
-            FROM jsonb_array_elements(mods) elem
-            WHERE elem->>'acronym' IN ('NF','AT','CN','RX','AP')
-        )
-    WHERE user_id = p_user_id;
 
 END;
 $$;

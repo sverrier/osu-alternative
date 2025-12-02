@@ -9,6 +9,22 @@ class Formatter:
         self.total = total
         self.footer = footer
         self.color = color
+
+    def calculate_user_page(self, result, user, page_size):
+        """
+        Calculate which page the user appears on.
+        Returns the page number, or None if user not found.
+        """
+        if user is None:
+            return None
+        
+        for idx, row in enumerate(result, start=1):
+            username, _ = row
+            if username == user:
+                # Calculate page number from rank
+                return (idx + page_size - 1) // page_size
+        
+        return None
     
     def as_beatmap_list(self, result, page=1, page_size=10, elapsed=None):
         """
@@ -35,8 +51,9 @@ class Formatter:
             bset_id = row['beatmapset_id']
             bid = row['beatmap_id'] 
             mode  = row['mode']
+            mode_name = ['osu', 'taiko', 'fruits', 'mania'][mode]
 
-            url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode}/{bid}"
+            url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode_name}/{bid}"
             lines.append(f"{stars} | [{artist} - {title} [{version}]]({url})")
 
         embed.description = "\n".join(lines)
@@ -49,21 +66,124 @@ class Formatter:
         )
 
         return embed
+    
+    def as_beatmapset_list(self, result, page=1, page_size=10, elapsed=None):
+        """
+        Format beatmapset list into a Discord embed.
 
-    def as_leaderboard(self, result, total, page=1, page_size=10, elapsed=None):
+        Expected row keys (at minimum):
+        - beatmapset_id
+        - artist
+        - title
+        - beatmap_count      (COUNT(*))
+        - min_sr             (MIN(stars))
+        - max_sr             (MAX(stars))
         """
-        Render leaderboard from DB query result into a Discord embed with aligned columns.
-        Now supports pagination with -page and -limit flags.
-        """
-        # Apply pagination
+        # Pagination
+        page = max(int(page), 1)
+        page_size = max(int(page_size), 1)
+
         start = (page - 1) * page_size
         end = start + page_size
         subset = result[start:end]
 
-        leaderboard = []
+        embed = discord.Embed(
+            title=f"{self.title}",
+            description="",
+            color=self.color
+        )
+
+        lines = []
         for row in subset:
+            bset_id = row["beatmapset_id"]
+
+            # Basic metadata with safe fallbacks
+            artist = row.get("artist") or "Unknown artist"
+            title = row.get("title") or "Unknown title"
+
+            # Beatmap count (number of diffs)
+            beatmap_count = (
+                row.get("beatmap_count")
+                or row.get("count")
+                or 0
+            )
+
+            # Star range with flexible key names
+            min_sr = (
+                row.get("min_sr")
+                or row.get("min_stars")
+                or row.get("min_star_rating")
+            )
+            max_sr = (
+                row.get("max_sr")
+                or row.get("max_stars")
+                or row.get("max_star_rating")
+            )
+
+            sr_str = ""
+            try:
+                if min_sr is not None and max_sr is not None:
+                    min_f = float(min_sr)
+                    max_f = float(max_sr)
+                    if abs(min_f - max_f) < 1e-6:
+                        # Single diff or all same SR
+                        sr_str = f"{min_f:.2f}★"
+                    else:
+                        sr_str = f"{min_f:.2f}–{max_f:.2f}★"
+            except (TypeError, ValueError):
+                # If something weird sneaks in, just leave SR blank
+                sr_str = ""
+
+            # osu! set URL (no specific mode/beatmap)
+            url = f"https://osu.ppy.sh/beatmapsets/{bset_id}"
+
+            # Example line:
+            # 4.12–6.37★ | [Artist - Title](https://osu.ppy.sh/beatmapsets/123456) • 5 diffs
+            count_str = f"{int(beatmap_count):,}" if beatmap_count is not None else "0"
+            if sr_str:
+                lines.append(f"{sr_str} | [{artist} - {title}]({url}) • {count_str} diffs")
+            else:
+                lines.append(f"[{artist} - {title}]({url}) • {count_str} diffs")
+
+        embed.description = "\n".join(lines) if lines else "No beatmapsets found."
+
+        total = len(result)
+        page_count = max((total + page_size - 1) // page_size, 1)
+        footer_text = f"Page {page} of {page_count} • Sets: {total:,}"
+        if elapsed is not None:
+            footer_text += f" • took {elapsed:.2f}s"
+        if self.footer:
+            footer_text = f"{self.footer} • {footer_text}"
+
+        embed.set_footer(text=footer_text)
+
+        return embed
+
+    def as_leaderboard(self, result, total, page=1, page_size=10, elapsed=None, user=None):
+        """
+        Render leaderboard from DB query result into a Discord embed with aligned columns.
+        Now supports pagination with -page and -limit flags.
+        If user is provided and not in the current page, adds them at the bottom.
+        """
+        # Apply pagination
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        leaderboard = []
+        user_found = False
+        user_data = None
+        
+        # Build leaderboard and check if user is present
+        for idx, row in enumerate(result, start=1):
             username, count = row
-            leaderboard.append({"username": username, "count": int(count)})
+            if idx >= start + 1 and idx <= end:
+                leaderboard.append({"username": username, "count": int(count), "rank": idx})
+            
+            # Check if this is the user we're looking for
+            if user is not None and username == user:
+                user_data = {"username": username, "count": int(count), "rank": idx}
+                if idx >= start + 1 and idx <= end:
+                    user_found = True
 
         # Calculate differences within the current page
         for i in range(1, len(leaderboard)):
@@ -77,16 +197,24 @@ class Formatter:
             color=self.color
         )
 
-        # Determine consistent column widths
-        width_name = max(len(d["username"]) for d in leaderboard) if leaderboard else 10
-        width_count = max(len(f"{d['count']:,}") for d in leaderboard) if leaderboard else 5
+        # Determine consistent column widths (include user_data if adding them)
+        all_data = leaderboard if user_found or user_data is None else leaderboard + [user_data]
+        width_name = max(len(d["username"]) for d in all_data) if all_data else 10
+        width_count = max(len(f"{d['count']:,}") for d in all_data) if all_data else 5
 
         lines = []
-        for i, d in enumerate(leaderboard, start=start+1):  # Use actual rank number
+        for d in leaderboard:
             diff = d.get("difference")
             diff_str = f"{diff:+,}" if diff is not None else ""
             lines.append(
-                f"#{i:<2} | {d['username']:<{width_name}} | {d['count']:<{width_count},} | {diff_str:<6}"
+                f"#{d['rank']:<2} | {d['username']:<{width_name}} | {d['count']:<{width_count},} | {diff_str:<6}"
+            )
+        
+        # Add user at the bottom if not found in current page
+        if user_data is not None and not user_found:
+            lines.append("..." + "-" * (width_name + width_count + 20))
+            lines.append(
+                f"#{user_data['rank']:<2} | {user_data['username']:<{width_name}} | {user_data['count']:<{width_count},} | {'':6}"
             )
 
         embed.description = f"```\n" + "\n".join(lines) + "\n```"
@@ -185,11 +313,12 @@ class Formatter:
             version = first['version']
             bset_id = first['beatmapset_id']
             mode = first['mode']
+            mode_name = ['osu', 'taiko', 'fruits', 'mania'][mode]
             stars_val = first.get('stars')
             stars = f"{float(stars_val or 0):.2f}★"
             
             # Build beatmap link
-            url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode}/{beatmap_id}"
+            url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode_name}/{beatmap_id}"
             
             # Add beatmap header
             lines.append(f"[{artist} - {title} [{version}]]({url}) ({stars})")

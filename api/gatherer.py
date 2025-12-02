@@ -481,8 +481,8 @@ class OsuDataFetcher:
     async def standard_loop(self):
         await self.fetch_beatmaps()
         await self.fetch_users()
-        await self.fetch_recent_scores()
         await self.sync_newly_ranked_maps()
+        await self.fetch_recent_scores()
         await self.update_registered_users()
         await self.sync_registered_user_scores()
 

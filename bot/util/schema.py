@@ -319,6 +319,16 @@ SCORE_LIVE_METADATA = {
         "nullable": True,
         "description": "Uses difficulty removing mods"
     },
+    "is_fc": {
+        "type": "bool",
+        "nullable": True,
+        "description": "Is an FC"
+    },
+    "is_ss": {
+        "type": "bool",
+        "nullable": True,
+        "description": "Is an SS"
+    },
     
     # Dates
     "ended_at": {

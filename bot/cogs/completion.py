@@ -4,7 +4,7 @@ from bot.util.helpers import get_args
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 import time
-from bot.util.schema import TABLE_METADATA
+from bot.util.helpers import separate_beatmap_filters
 
 class Completion(commands.Cog):
     def __init__(self, bot):
@@ -75,27 +75,7 @@ class Completion(commands.Cog):
                 else:
                     return f"{display_field} {range_min:.2f}-{range_max:.2f}"
 
-    def _separate_beatmap_filters(self, di):
-        """Separate beatmap-only filters from all filters."""
-        beatmap_columns = set(TABLE_METADATA["beatmapLive"].keys())
-        beatmap_args = {}
-        
-        for key, value in di.items():
-            if key.startswith("-"):
-                raw_key = key.lstrip("-")
-                base_key = raw_key
-                
-                # Remove suffixes to get base column name
-                for suffix in ["-min", "-max", "-not", "-in", "-notin", "-like", "-regex"]:
-                    if raw_key.endswith(suffix):
-                        base_key = raw_key[:-len(suffix)]
-                        break
-                
-                # Check if this is a beatmap column or special parameter
-                if base_key in beatmap_columns or key in ["-field", "-precision", "-val-min", "-val-max", "-search", "-is_fa", "-not_fa", "-year"]:
-                    beatmap_args[key] = value
-        
-        return beatmap_args
+    
 
     async def _query_completion_counts(self, beatmap_args, score_args):
         """
@@ -244,7 +224,7 @@ class Completion(commands.Cog):
             return
         
         display_field = field.upper()
-        beatmap_args = self._separate_beatmap_filters(di)
+        beatmap_args = separate_beatmap_filters(di)
         
         # Handle string vs numeric fields
         if is_string:

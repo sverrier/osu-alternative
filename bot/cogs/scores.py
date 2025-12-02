@@ -37,7 +37,7 @@ class Scores(commands.Cog):
         table = "scoreLive"
         columns = "stars, artist, title, version, beatmapLive.beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms"
         discordid = ctx.author.id
-        if "-user_id" not in di and "-username" not in di:
+        if "-user_id" not in di and "-username" not in di and di.get("-show") != "all":
             query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
             result, _ = await self.bot.db.executeQuery(query)
             if result and result[0]:

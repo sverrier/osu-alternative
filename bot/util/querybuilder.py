@@ -1,49 +1,6 @@
-from bot.util.schema import TABLE_METADATA, validate_column, get_all_columns, get_column_info
-
-TableColumns = {
-    "beatmapLive": list(TABLE_METADATA["beatmapLive"].keys()),
-    "scoreLive": list(TABLE_METADATA["scoreLive"].keys()),
-    "userLive": list(TABLE_METADATA["userLive"].keys())
-}
-
-JoinClauses = {
-    "scoreLive,beatmapLive": " inner join beatmapLive on scoreLive.beatmap_id = beatmapLive.beatmap_id",
-    "beatmapLive,scoreLive": " inner join scoreLive on beatmapLive.beatmap_id = scoreLive.beatmap_id",
-    "scoreLive,userLive": " inner join userLive on scoreLive.user_id = userLive.user_id",
-    "userLive,scoreLive": " inner join scoreLive on userLive.user_id = scoreLive.user_id",
-}
-
-# Special cases that don't follow standard patterns
-VALUED_PARAMS = {
-    "-username": ("UPPER(username) = UPPER({value})", ["username"]),
-    "-user_id": ("userLive.user_id = {value}", ["user_id"]),
-    "-unplayed": ("NOT EXISTS (SELECT 1 FROM scoreLive WHERE scoreLive.beatmap_id = beatmapLive.beatmap_id and scoreLive.ruleset_id = beatmapLive.mode and user_id = {value})", ["beatmap_id"]),
-    "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})", ["artist", "title", "source", "version", "tags"]),
-    "-is_fa-true": ("track_id IS NOT NULL", ["track_id"]),
-    "-is_fa-false": ("track_id IS NULL", ["track_id"]),
-    "-year": ("EXTRACT(YEAR FROM ranked_date) = {value}", ["ranked_date"]),
-    "-year-min": ("EXTRACT(YEAR FROM ranked_date) >= {value}", ["ranked_date"]),
-    "-year-max": ("EXTRACT(YEAR FROM ranked_date) < {value}", ["ranked_date"]),
-    "-objects": ("(count_circles + count_sliders + count_spinners) = {value}", ["count_circles", "count_sliders", "count_spinners"]),
-    "-objects-min": ("(count_circles + count_sliders + count_spinners) >= {value}", ["count_circles", "count_sliders", "count_spinners"]),
-    "-objects-max": ("(count_circles + count_sliders + count_spinners) < {value}", ["count_circles", "count_sliders", "count_spinners"]),
-    "-combo": ("beatmaplive.max_combo = {value}", ["beatmap_id"]),
-    "-combo-min": ("beatmaplive.max_combo >= {value}", ["beatmap_id"]),
-    "-combo-max": ("beatmaplive.max_combo < {value}", ["beatmap_id"]),
-}
-
-VALUELESS_PARAMS = {
-    "-is_fa": ("track_id IS NOT NULL", ["track_id"]),
-    "-not_fa": ("track_id IS NULL", ["track_id"]),
-    "-has_replay": ("has_replay = true", ["has_replay"]),
-    "-no_replay": ("has_replay = false", ["has_replay"]),
-    "-convertless": ("scoreLive.ruleset_id = beatmapLive.mode", ["mode", "ruleset_id"]),
-}
-
-PARAM_SYNONYM_MAP = {
-    "-u": "-username",
-    "-drain": "-drain_time",
-}
+from bot.util.schema import validate_column, get_column_info
+from bot.util.helpers import *
+import re
 
 class QueryBuilder:
     def __init__(self, args, columns=None, table=None, group=None, order=None, limit=None):
@@ -67,7 +24,7 @@ class QueryBuilder:
         Prioritizes scoreLive if column exists in multiple tables.
         """
         found_tables = []
-        for table, columns in TableColumns.items():
+        for table, columns in TABLE_COLUMNS.items():
             if column in columns:
                 found_tables.append(table)
         
@@ -91,41 +48,50 @@ class QueryBuilder:
             
         table = self._get_table_for_column(column)
         if table:
+            self.fields.append(column)
             return f"{table}.{column}"
         return column
 
     def _qualify_columns_in_string(self, clause_string):
         """
         Parse a clause string and qualify all column references.
-        Handles comma-separated lists like "column1, column2, column3"
+        Handles comma-separated lists.
+        Prevents qualification of aliases (anything after AS).
         """
         if not clause_string or clause_string.strip() == "":
             return clause_string
-            
-        # Split by comma and process each part
+
         parts = [part.strip() for part in clause_string.split(',')]
         qualified_parts = []
-        
+
         for part in parts:
-            # Check if it's a simple column name or expression
-            if validate_column(part):
-                qualified_parts.append(self._qualify_column(part))
+            # Split around AS
+            m = re.split(r'\s+AS\s+|\s+as\s+', part)
+            
+            expr = m[0].strip()      # expression to qualify
+            alias = m[1].strip() if len(m) > 1 else None  # alias stays untouched
+
+            # Qualify the expression (left side only)
+            if validate_column(expr):
+                qualified_expr = self._qualify_column(expr)
             else:
-                # It might be an expression like "COUNT(*)" or "MAX(score)"
-                # Try to find column names within it
-                qualified_part = part
-                for table, columns in TableColumns.items():
+                qualified_expr = expr
+                for table, columns in TABLE_COLUMNS.items():
                     for col in columns:
-                        # Replace standalone column references
-                        # Use word boundaries to avoid partial matches
-                        import re
                         pattern = r'\b' + re.escape(col) + r'\b'
-                        if re.search(pattern, qualified_part) and '.' not in qualified_part:
-                            qualified_col = self._qualify_column(col)
-                            qualified_part = re.sub(pattern, qualified_col, qualified_part)
-                qualified_parts.append(qualified_part)
-        
-        return ', '.join(qualified_parts)
+                        # only replace if NOT already qualified
+                        if re.search(pattern, qualified_expr):
+                            # ensure we aren't accidentally qualifying inside function aliases
+                            if '.' not in qualified_expr:
+                                qualified_expr = re.sub(pattern, self._qualify_column(col), qualified_expr)
+
+            # Rebuild the expression
+            if alias:
+                qualified_parts.append(f"{qualified_expr} AS {alias}")
+            else:
+                qualified_parts.append(qualified_expr)
+
+        return ", ".join(qualified_parts)
 
     def _format_value(self, column, value, operator=None):
         """
@@ -215,7 +181,7 @@ class QueryBuilder:
         for field in self.fields:
             # Handle qualified column names
             actual_field = field.split('.')[-1] if '.' in field else field
-            for table, columns in TableColumns.items():
+            for table, columns in TABLE_COLUMNS.items():
                 if actual_field in columns:
                     self.tables.add(table)
 
@@ -238,8 +204,8 @@ class QueryBuilder:
 
             for prev_table in joined_tables:  # Find first valid join
                 key = f"{prev_table},{current_table}"
-                if key in JoinClauses:
-                    self.fromclause += JoinClauses[key]
+                if key in JOIN_CLAUSES:
+                    self.fromclause += JOIN_CLAUSES[key]
                     joined_tables.add(current_table)
                     found_join = True
                     break  # Stop once we find the first valid join
