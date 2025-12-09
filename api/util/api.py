@@ -214,6 +214,43 @@ class util_api:
                 self.refresh_token()
         
         return json_response
+    
+    
+    def get_beatmapsets(self, cursor_string=None):
+        complete = False
+        magnitude = 1
+
+        while not complete:
+            try:
+                url = "https://osu.ppy.sh/api/v2/beatmapsets/search"
+                if cursor_string is not None:
+                    url = url + "?cursor_string=" + cursor_string
+                
+                headers = {
+                    "Authorization": f"Bearer {self.token}"  
+                }
+                
+                response = requests.get(url, headers=headers)
+                status = response.status_code
+
+                time.sleep(1)
+                if status == 200:
+                    json_response = response.json()
+                    if not json_response:
+                        return None
+                else:
+                    raise Exception(f"Unexpected response code: {status}") 
+                
+                complete = True
+                magnitude = 1
+
+            except Exception as e:
+                print(e)
+                time.sleep(self.delay * magnitude)
+                magnitude += 5
+                self.refresh_token()
+        
+        return json_response
 
     def get_beatmap_scores(self, beatmap_id):
         complete = False
@@ -389,7 +426,7 @@ class util_api:
                 response = requests.get(url, headers=headers)
                 status = response.status_code
 
-                time.sleep(self.delay)
+                time.sleep(0.7)
                 if status == 200:
                     json_response = response.json()
                     if not json_response:

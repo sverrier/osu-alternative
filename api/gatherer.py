@@ -101,6 +101,74 @@ class OsuDataFetcher:
         for i in range(0, len(ids), batch_size):
             batches.append(ids[i:i + batch_size])
         return batches
+    
+    def _flatten_beatmapsets_to_beatmaps(self, beatmapsets):
+        """
+        Flatten beatmapsets to individual beatmaps with beatmapset fields prefixed.
+        
+        Args:
+            beatmapsets: List of beatmapset objects from API
+            
+        Returns:
+            List of flattened beatmap objects ready for Beatmap class
+        """
+        flattened_beatmaps = []
+        for beatmapset in beatmapsets:
+            # Extract beatmapset-level fields
+            beatmaps = beatmapset.pop('beatmaps', [])
+            
+            # For each beatmap in this beatmapset
+            for beatmap in beatmaps:
+                # Create flattened entry by merging beatmap with beatmapset fields
+                flattened = beatmap.copy()
+                
+                # Add beatmapset fields with 'beatmapset_' prefix
+                flattened['beatmapset_artist'] = beatmapset.get('artist')
+                flattened['beatmapset_artist_unicode'] = beatmapset.get('artist_unicode')
+                flattened['beatmapset_creator'] = beatmapset.get('creator')
+                flattened['beatmapset_favourite_count'] = beatmapset.get('favourite_count')
+                flattened['beatmapset_hype'] = beatmapset.get('hype')
+                flattened['beatmapset_nsfw'] = beatmapset.get('nsfw')
+                flattened['beatmapset_offset'] = beatmapset.get('offset')
+                flattened['beatmapset_play_count'] = beatmapset.get('play_count')
+                flattened['beatmapset_preview_url'] = beatmapset.get('preview_url')
+                flattened['beatmapset_rating'] = beatmapset.get('rating')
+                flattened['beatmapset_source'] = beatmapset.get('source')
+                flattened['beatmapset_spotlight'] = beatmapset.get('spotlight')
+                flattened['beatmapset_status'] = beatmapset.get('status')
+                flattened['beatmapset_title'] = beatmapset.get('title')
+                flattened['beatmapset_title_unicode'] = beatmapset.get('title_unicode')
+                flattened['beatmapset_track_id'] = beatmapset.get('track_id')
+                flattened['beatmapset_genre_id'] = beatmapset.get('genre_id')
+                flattened['beatmapset_language_id'] = beatmapset.get('language_id')
+                flattened['beatmapset_user_id'] = beatmapset.get('user_id')
+                flattened['beatmapset_video'] = beatmapset.get('video')
+                flattened['beatmapset_bpm'] = beatmapset.get('bpm')
+                flattened['beatmapset_can_be_hyped'] = beatmapset.get('can_be_hyped')
+                flattened['beatmapset_deleted_at'] = beatmapset.get('deleted_at')
+                flattened['beatmapset_discussion_enabled'] = beatmapset.get('discussion_enabled')
+                flattened['beatmapset_discussion_locked'] = beatmapset.get('discussion_locked')
+                flattened['beatmapset_is_scoreable'] = beatmapset.get('is_scoreable')
+                flattened['beatmapset_last_updated'] = beatmapset.get('last_updated')
+                flattened['beatmapset_legacy_thread_url'] = beatmapset.get('legacy_thread_url')
+                flattened['beatmapset_ranked'] = beatmapset.get('ranked')
+                flattened['beatmapset_ranked_date'] = beatmapset.get('ranked_date')
+                flattened['beatmapset_storyboard'] = beatmapset.get('storyboard')
+                flattened['beatmapset_submitted_date'] = beatmapset.get('submitted_date')
+                flattened['beatmapset_tags'] = beatmapset.get('tags')
+                
+                # Store complex objects as JSONB
+                flattened['beatmapset_availability'] = beatmapset.get('availability')
+                flattened['beatmapset_nominations_summary'] = beatmapset.get('nominations_summary')
+                flattened['beatmapset_covers'] = beatmapset.get('covers')
+                
+                # Handle anime_cover (boolean to text)
+                anime_cover = beatmapset.get('anime_cover')
+                flattened['beatmapset_anime_cover'] = str(anime_cover) if anime_cover is not None else None
+                
+                flattened_beatmaps.append(flattened)
+        
+        return flattened_beatmaps
 
     async def _execute_sql_file(self, filename: str, subdir: str = "sql/inserts"):
         """Executes a .sql script file and logs the result."""
@@ -419,39 +487,11 @@ class OsuDataFetcher:
             if len(scores) < 100:
                 break
 
-    async def sync_newly_ranked_maps(self):
-        self.logger.info("Syncing newly ranked maps...")
-        
-        queries = [
-            ("SELECT DISTINCT beatmap_id FROM scoreosu s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b", "Standard"),
-            ("SELECT DISTINCT beatmap_id FROM scoretaiko s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b", "Taiko"),
-            ("SELECT DISTINCT beatmap_id FROM scorefruits s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b", "Fruits"),
-            ("SELECT DISTINCT beatmap_id FROM scoremania s WHERE ended_at >= (NOW() - INTERVAL '1 day') EXCEPT SELECT beatmap_id FROM beatmaplive b", "Mania")
-        ]
-        
-        for query, mode in queries:
-            batches = await self._generate_id_batches_from_query(query, 50)
-            for batch in batches:
-                beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
-                queries_str = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
-                await self.db.executeSQL(queries_str)
-            self.logger.info(f"{mode} maps synced")
-
-        await self._execute_sql_file("update_beatmapLive.sql")
+    async def update_history(self):
         await self._execute_sql_file("insert_beatmapHistory.sql")
+        await self._execute_sql_file("insert_userHistory.sql")
 
     async def update_registered_users(self):
-        self.logger.info("Adding new registered users...")
-
-        query = "SELECT user_id from registrations EXCEPT SELECT user_id from userLive"
-        rs, elapsed = await self.db.executeQuery(query)
-
-        for row in rs:
-            user_id = row['user_id'] if isinstance(row, dict) else row[0]
-            self.logger.info(f"Registering user {user_id}")
-            query = (f"CALL register_user({user_id})")
-            await self.db.executeSQL(query)
-
         self.logger.info("Updating registered users...")
         query = "SELECT user_id FROM userLive"
         batches = await self._generate_id_batches_from_query(query, 50)
@@ -464,7 +504,7 @@ class OsuDataFetcher:
             self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(users)} users.")
 
         await self._execute_sql_file("update_userLive.sql")
-        await self._execute_sql_file("insert_userHistory.sql")
+        
 
     async def update_ranked_maps(self):
         self.logger.info("Updating ranked beatmaps...")
@@ -478,15 +518,78 @@ class OsuDataFetcher:
                 await self.db.executeSQL(queries)
             self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(beatmaps)} beatmaps.")
 
-    async def standard_loop(self):
-        await self.fetch_beatmaps()
-        await self.fetch_users()
-        await self.sync_newly_ranked_maps()
-        await self.fetch_recent_scores()
-        await self.update_registered_users()
-        await self.sync_registered_user_scores()
+    async def get_new_beatmapsets(self):
+        self.logger.info("Fetching new ranked beatmapsets...")
+        query = "SELECT beatmapset_id FROM beatmapLive WHERE ranked_date = (SELECT MAX(ranked_date) FROM beatmapLive)"
+        rs, elapsed = await self.db.executeQuery(query)
+        
+        latest_id = rs[0][0]
+        found = False
+        cursor_string = None
+        
+        while not found:
+            json = self.apiv2.get_beatmapsets(cursor_string)
+            beatmapsets = json.get("beatmapsets", [])
+            cursor_string = json.get("cursor_string")
+            
+            # Flatten beatmapsets to individual beatmaps
+            flattened_beatmaps = self._flatten_beatmapsets_to_beatmaps(beatmapsets)
+            
+            # Check if we found the latest_id
+            beatmapset_ids = [bs.get('id') for bs in beatmapsets]
+            if latest_id in beatmapset_ids:
+                found = True
+                self.logger.info(f"Found latest beatmapset ID {latest_id}, stopping.")
+            
+            # Generate and execute insert queries
+            queries = ''.join(Beatmap(b).generate_insert_query() for b in flattened_beatmaps)
+            if queries:
+                await self.db.executeSQL(queries)
+                self.logger.info(f"Inserted {len(flattened_beatmaps)} beatmaps from {len(beatmapsets)} beatmapsets.")
+            else:
+                self.logger.info("No beatmaps to insert in this batch.")
+            
+            if found:
+                break
 
-    # ---------------- ENTRYPOINT ----------------
+    async def standard_loop(self):
+        """
+        Run routines in parallel with staggered execution and individual intervals.
+        Useful if different routines should run at different frequencies.
+        """
+        async def run_routine_loop(routine_func, interval_seconds, name):
+            """Helper to run a routine repeatedly with a specific interval"""
+            while True:
+                try:
+                    self.logger.info(f"Starting {name}...")
+                    await routine_func()
+                    self.logger.info(f"{name} completed. Sleeping {interval_seconds}s...")
+                    await asyncio.sleep(interval_seconds)
+                except Exception as e:
+                    self.logger.error(f"{name} failed: {e}")
+                    await asyncio.sleep(interval_seconds)  # Still sleep on error
+        
+        # Define routines with their intervals (in seconds)
+        routine_configs = [
+            (self.fetch_beatmaps, 3600, "fetch_beatmaps"),  # Hourly
+            (self.get_new_beatmapsets, 15, "get_new_beatmapsets"),  # Every 15 seconds
+            (self.update_history, 10000, "update_history"),  # Daily
+            (self.fetch_users, 600, "fetch_users"),  # Every 10 min
+            (self.update_registered_users, 600, "update_registered_users"),  # Every 10 min
+            (self.fetch_recent_scores, 30, "fetch_recent_scores"),  # Every 30 seconds
+        ]
+        
+        # Create tasks for each routine
+        tasks = [
+            asyncio.create_task(run_routine_loop(func, interval, name))
+            for func, interval, name in routine_configs
+        ]
+        
+        # Run all tasks concurrently (this will run indefinitely)
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
+    # Updated run() method to handle the parallel loop
     async def run(self):
         # Connect to database on startup
         await self.db.get_pool()
@@ -500,19 +603,20 @@ class OsuDataFetcher:
             '3': self.fetch_leaderboard_scores,
             '4': self.sync_registered_user_scores,
             '5': self.fetch_recent_scores,
-            '6': self.sync_newly_ranked_maps,
+            '6': self.update_history,
             '7': self.update_registered_users,
             '8': self.update_ranked_maps,
             '9': self.fetch_beatmaps_packs,
-            '10': self.fetch_modded_scores
+            '10': self.fetch_modded_scores,
+            '11': self.get_new_beatmapsets
         }
 
         while True:
             print(
-                "\n0: Standard Loop\n1: Fetch beatmaps\n2: Fetch users\n3: Fetch leaderboard scores"
+                "\n0: Standard Loop (Parallel)\n1: Fetch beatmaps\n2: Fetch users\n3: Fetch leaderboard scores"
                 "\n4: Fetch user beatmap scores\n5: Fetch recent scores\n6: Sync newly ranked maps"
-                "\n7: Update registered users\n8: Update ranked maps\n9: Fetch beatmap packs" \
-                "\n10: Fetch modded leaderboard scores\nQ: Quit"
+                "\n7: Update registered users\n8: Update ranked maps\n9: Fetch beatmap packs"
+                "\n10: Fetch modded leaderboard scores\n11: Get new beatmapsets\nQ: Quit"
             )
             choice = input("Choose an option: ").strip().lower()
 
@@ -548,7 +652,3 @@ class OsuDataFetcher:
             except Exception as e:
                 self.logger.exception(f"Error during routine {choice}: {e}")
                 print(f"Error: {e}")
-
-
-if __name__ == "__main__":
-    asyncio.run(OsuDataFetcher().run())
