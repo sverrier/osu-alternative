@@ -545,12 +545,8 @@ class OsuDataFetcher:
             for mode in modes:
                 user_json = self.apiv2.get_user(user_id, mode)
 
-                self.logger.info(self._describe_json(user_json))
-
                 ue = UserExtended(user_json.copy(), mode)
                 query = ue.generate_insert_query()
-
-                self.logger.info(query)
 
                 if query:
                     await self.db.executeSQL(query)
