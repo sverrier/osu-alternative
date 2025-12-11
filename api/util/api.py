@@ -42,13 +42,13 @@ class util_api:
         except Exception as e:
             print(e)
 
-    def get_user(self, user_id):
+    def get_user(self, user_id, mode):
         complete = False
         magnitude = 1
         
         while not complete:
             try:
-                url = f"https://osu.ppy.sh/api/v2/users/{user_id}/osu"
+                url = f"https://osu.ppy.sh/api/v2/users/{user_id}/{mode}"
                 headers = {
                     "Authorization": f"Bearer {self.token}"  
                 }

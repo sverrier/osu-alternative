@@ -5,6 +5,7 @@ from datetime import datetime
 from cryptography.fernet import Fernet
 
 from api.util.userMaster import UserMaster
+from api.util.userExtended import UserExtended
 from api.util.beatmap import Beatmap
 from api.util.scoreOsu import ScoreOsu
 from api.util.scoreFruits import ScoreFruits
@@ -169,6 +170,31 @@ class OsuDataFetcher:
                 flattened_beatmaps.append(flattened)
         
         return flattened_beatmaps
+    
+    def _describe_json(self, obj, indent=0, max_depth=4, max_list_items=5):
+        pad = "  " * indent
+
+        if indent >= max_depth:
+            print(f"{pad}... (max depth reached)")
+            return
+
+        if isinstance(obj, dict):
+            print(f"{pad}Object with {len(obj)} keys:")
+            for k, v in obj.items():
+                print(f"{pad}- {k}: {type(v).__name__}")
+                self._describe_json(v, indent + 1, max_depth, max_list_items)
+
+        elif isinstance(obj, list):
+            print(f"{pad}List with {len(obj)} items:")
+            for i, item in enumerate(obj[:max_list_items]):
+                print(f"{pad}- [{i}] {type(item).__name__}")
+                self._describe_json(item, indent + 1, max_depth, max_list_items)
+
+            if len(obj) > max_list_items:
+                print(f"{pad}... {len(obj) - max_list_items} more items")
+
+        else:
+            print(f"{pad}{repr(obj)} ({type(obj).__name__})")
 
     async def _execute_sql_file(self, filename: str, subdir: str = "sql/inserts"):
         """Executes a .sql script file and logs the result."""
@@ -203,10 +229,13 @@ class OsuDataFetcher:
             self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(beatmaps)} beatmaps.")
             if len(beatmaps) == 0:
                 consecutive_empty += 1
-                if consecutive_empty >= 5:
+                if consecutive_empty >= 10:
                     break
             else:
                 consecutive_empty = 0
+
+        await self._execute_sql_file("insert_beatmapHistory.sql")
+
 
     async def fetch_beatmaps_packs(self):
         self.logger.info("Fetching beatmap packs...")
@@ -442,6 +471,8 @@ class OsuDataFetcher:
         self.logger.info(f"Sync complete for user {user_id} ({total} beatmaps processed).")
 
     async def fetch_recent_scores(self):
+        await self.get_new_beatmapsets()
+
         self.logger.info("Fetching recent scores...")
         counter = 0
         while True:
@@ -487,10 +518,6 @@ class OsuDataFetcher:
             if len(scores) < 100:
                 break
 
-    async def update_history(self):
-        await self._execute_sql_file("insert_beatmapHistory.sql")
-        await self._execute_sql_file("insert_userHistory.sql")
-
     async def update_registered_users(self):
         self.logger.info("Updating registered users...")
         query = "SELECT user_id FROM userLive"
@@ -504,7 +531,35 @@ class OsuDataFetcher:
             self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(users)} users.")
 
         await self._execute_sql_file("update_userLive.sql")
-        
+
+    async def update_registered_users_extended(self):
+        self.logger.info("Updating registered users...")
+        query = "SELECT user_id FROM userLive order by user_id"
+        rs, elapsed = await self.db.executeQuery(query)
+
+        modes = ["osu", "taiko", "fruits", "mania"]
+
+        for row in rs:
+            user_id = row[0]
+
+            for mode in modes:
+                user_json = self.apiv2.get_user(user_id, mode)
+
+                self.logger.info(self._describe_json(user_json))
+
+                ue = UserExtended(user_json.copy(), mode)
+                query = ue.generate_insert_query()
+
+                self.logger.info(query)
+
+                if query:
+                    await self.db.executeSQL(query)
+
+            self.logger.info(f"Processed user_id {user_id}")  
+
+        self.logger.info("Updating user history...")
+        await self._execute_sql_file("insert_userHistory.sql")
+
 
     async def update_ranked_maps(self):
         self.logger.info("Updating ranked beatmaps...")
@@ -571,12 +626,10 @@ class OsuDataFetcher:
         
         # Define routines with their intervals (in seconds)
         routine_configs = [
+            (self.fetch_recent_scores, 30, "fetch_recent_scores"),  # Every 30 seconds
             (self.fetch_beatmaps, 3600, "fetch_beatmaps"),  # Hourly
-            (self.get_new_beatmapsets, 15, "get_new_beatmapsets"),  # Every 15 seconds
-            (self.update_history, 10000, "update_history"),  # Daily
             (self.fetch_users, 600, "fetch_users"),  # Every 10 min
             (self.update_registered_users, 600, "update_registered_users"),  # Every 10 min
-            (self.fetch_recent_scores, 30, "fetch_recent_scores"),  # Every 30 seconds
         ]
         
         # Create tasks for each routine
@@ -603,19 +656,19 @@ class OsuDataFetcher:
             '3': self.fetch_leaderboard_scores,
             '4': self.sync_registered_user_scores,
             '5': self.fetch_recent_scores,
-            '6': self.update_history,
-            '7': self.update_registered_users,
+            '6': self.update_registered_users,
+            '7': self.update_registered_users_extended,
             '8': self.update_ranked_maps,
             '9': self.fetch_beatmaps_packs,
             '10': self.fetch_modded_scores,
-            '11': self.get_new_beatmapsets
+            '11': self.get_new_beatmapsets,
         }
 
         while True:
             print(
                 "\n0: Standard Loop (Parallel)\n1: Fetch beatmaps\n2: Fetch users\n3: Fetch leaderboard scores"
-                "\n4: Fetch user beatmap scores\n5: Fetch recent scores\n6: Sync newly ranked maps"
-                "\n7: Update registered users\n8: Update ranked maps\n9: Fetch beatmap packs"
+                "\n4: Fetch user beatmap scores\n5: Fetch recent scores"
+                "\n6: Update registered users\n7: Update registered users extended\n8: Update ranked maps\n9: Fetch beatmap packs"
                 "\n10: Fetch modded leaderboard scores\n11: Get new beatmapsets\nQ: Quit"
             )
             choice = input("Choose an option: ").strip().lower()
