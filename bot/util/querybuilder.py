@@ -217,7 +217,6 @@ class QueryBuilder:
         where_clauses = []
 
         for key, value in self.args.items():
-            key = PARAM_SYNONYM_MAP.get(key, key)
             
             # Handle valueless parameters
             if key in VALUELESS_PARAMS:
@@ -394,7 +393,7 @@ class QueryBuilder:
             self.limitclause = limit 
 
         for key, value in self.args.items():
-            if key == "-limit":
+            if key == "-hardlimit":
                 self.limitclause = value
         
         if self.limitclause != "":

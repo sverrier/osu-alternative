@@ -57,7 +57,27 @@ PARAM_SYNONYM_MAP = {
     "-start": "-ranked_date-min",
     "-end": "-ranked_date-max",
     "-dir": "-direction",
+    "-l": "-limit",
+    "-p": "-page",
 }
+
+# Maps column names → formatting strings for display in beatmaplist extra stat
+ORDER_COLUMN_FORMATS = {
+    "bpm": "{value} BPM",
+    "length": "{value}s",
+    "drain_time": "{value}s",
+    "play_count": "{value:,} plays",
+    "pass_count": "{value:,} passes",
+    "favourite_count": "{value:,} favs",
+    "max_combo": "{value}x",
+    # add others as needed
+}
+
+def get_order_formatter(column: str) -> str:
+    """
+    Returns a format string for the given column, or a fallback "{value}".
+    """
+    return ORDER_COLUMN_FORMATS.get(column, "{value}")
 
 
 def escape_string(s):
@@ -69,39 +89,49 @@ def escape_string(s):
 def get_args(arg=None):
     args = list(arg or [])
     di = {}
-    
+
     VALUELESS_PARAMS = {"-is_fa", "-not_fa", "-has_replay", "-no_replay"}
-    
+
     i = 0
     while i < len(args):
         if args[i].startswith("-"):
-            key = args[i].lower()
-            
-            # Fix valueless parameter
+            raw_key = args[i].lower()
+
+            # Resolve synonyms immediately
+            key = PARAM_SYNONYM_MAP.get(raw_key, raw_key)
+
+            # Handle valueless params
             if key in VALUELESS_PARAMS:
-                di[key] = True 
+                di[key] = True
                 i += 1
                 continue
-            
+
+            # Parameter expects a value
             if i + 1 < len(args) and not args[i + 1].startswith("-"):
                 value = args[i + 1].lower()
-                if key == "-u":
+
+                if key == "-username" or key == "-u":
+                    # "-u" becomes "-username" through synonym map
                     di[key] = escape_string(value)
+
                 elif " " in value:
-                    raise ValueError(f"Spaces not allowed for argument {key}")
+                    raise ValueError(f"Spaces not allowed for argument {raw_key}")
+
                 else:
                     di[key] = value
-                i += 2  # Skip both key and value
+
+                i += 2
             else:
-                raise ValueError(f"Parameter {key} requires a value")
+                raise ValueError(f"Parameter {raw_key} requires a value")
         else:
             i += 1
-    
-    for k, v in di.items():
+
+    # Clean numeric strings ("100_000" → "100000")
+    for k, v in list(di.items()):
         if isinstance(v, str):
             if v.isdigit() or (v.replace("_", "").isdigit() and "." not in v):
                 di[k] = v.replace("_", "")
-    
+
     return di
 
 def separate_beatmap_filters(di):

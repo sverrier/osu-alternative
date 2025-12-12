@@ -1,5 +1,5 @@
 from discord.ext import commands
-from bot.util.helpers import get_args
+from bot.util.helpers import get_args, get_order_formatter
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 from bot.util.presets import BEATMAP_PRESETS
@@ -28,10 +28,36 @@ class Beatmaps(commands.Cog):
     @commands.command(aliases=["bl"])
     async def beatmaplist(self, ctx, *args):
         di = get_args(args)
-        query = QueryBuilder(di, "stars, artist, title, version, beatmap_id, beatmapset_id, mode", "beatmapLive")
+
+        order_col = di.get("-order")
+        columns = "stars, artist, title, version, beatmap_id, beatmapset_id, mode"
+        table = "beatmapLive"
+
+        # Select the column if ordering by it
+        if order_col:
+            columns = f"{columns}, {order_col}"
+
+        query = QueryBuilder(di, columns, table)
         result, elapsed = await self.bot.db.executeQuery(query.getQuery())
+
         formatter = Formatter(title=f"Total beatmaps: {len(result)}")
-        embed = formatter.as_beatmap_list(result, page=int(di.get("-p", 1)), page_size=int(di.get("-l", 10)), elapsed=elapsed)
+
+        extra_key = None
+        extra_fmt = "{value}"
+
+        if order_col:
+            extra_key = order_col                # which column to display
+            extra_fmt = get_order_formatter(order_col)  # how to display it
+
+        embed = formatter.as_beatmap_list(
+            result,
+            page=int(di.get("-page", 1)),
+            page_size=int(di.get("-limit", 10)),
+            elapsed=elapsed,
+            extra_key=extra_key,
+            extra_fmt=extra_fmt,
+        )
+
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=["bsl"])
@@ -59,8 +85,8 @@ class Beatmaps(commands.Cog):
         formatter = Formatter(title=f"Total beatmapsets: {len(result)}")
         embed = formatter.as_beatmapset_list(
             result,
-            page=int(di.get("-p", 1)),
-            page_size=int(di.get("-l", 10)),
+            page=int(di.get("-page", 1)),
+            page_size=int(di.get("-limit", 10)),
             elapsed=elapsed,
         )
         await ctx.reply(embed=embed)

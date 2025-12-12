@@ -26,43 +26,65 @@ class Formatter:
         
         return None
     
-    def as_beatmap_list(self, result, page=1, page_size=10, elapsed=None):
+    def as_beatmap_list(
+        self,
+        result,
+        page: int = 1,
+        page_size: int = 10,
+        elapsed: float | None = None,
+        extra_key: str | None = None,
+        extra_fmt: str = "{value}",
+    ):
         """
         Format beatmap list into a Discord embed.
-        Expects rows with: stars, artist, title, version, beatmap_id, beatmapset_id
+
+        Expects rows with:
+            stars, artist, title, version, beatmap_id, beatmapset_id, mode
+        Optionally:
+            extra_key: name of a column in row to display between stars and link.
+            extra_fmt: formatting string, e.g. "{value} BPM" or "{value:.1f}x".
         """
+
         start = (page - 1) * page_size
         end = start + page_size
         subset = result[start:end]
 
         embed = discord.Embed(
-            title=f"{self.title}",
+            title=str(self.title),
             description="",
-            color=self.color
+            color=self.color,
         )
 
-        # Build formatted lines
         lines = []
         for row in subset:
             stars = f"{row['stars']:.2f}★"
-            artist = row['artist']
-            title = row['title']
-            version = row['version']
-            bset_id = row['beatmapset_id']
-            bid = row['beatmap_id'] 
-            mode  = row['mode']
-            mode_name = ['osu', 'taiko', 'fruits', 'mania'][mode]
 
-            url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode_name}/{bid}"
-            lines.append(f"{stars} | [{artist} - {title} [{version}]]({url})")
+            # Optional extra stat from the same row
+            extra_part = ""
+            if extra_key is not None:
+                value = row.get(extra_key)
+                if value is not None:
+                    extra_str = extra_fmt.format(value=value, row=row)
+                    extra_part = f" • {extra_str}"
+
+            mode_name = ['osu', 'taiko', 'fruits', 'mania'][row['mode']]
+            url = (
+                f"https://osu.ppy.sh/beatmapsets/{row['beatmapset_id']}"
+                f"#{mode_name}/{row['beatmap_id']}"
+            )
+
+            lines.append(
+                f"{stars}{extra_part} | "
+                f"[{row['artist']} - {row['title']} [{row['version']}]]({url})"
+            )
 
         embed.description = "\n".join(lines)
+
         total = len(result)
         page_count = (total + page_size - 1) // page_size
+        time_part = f" • took {elapsed:.2f}s" if elapsed is not None else ""
         embed.set_footer(
-            text=f"Page {page} of {page_count} • Amount: {total:,} • took {elapsed:.2f}s"
-            if elapsed is not None
-            else f"Page {page} of {page_count} • Amount: {total:,}"
+            text=f"Page {page} of {page_count} • Amount: {total:,}{time_part}"
         )
 
         return embed

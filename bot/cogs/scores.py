@@ -45,7 +45,7 @@ class Scores(commands.Cog):
         query = QueryBuilder(di, columns, table)
         result, elapsed = await self.bot.db.executeQuery(query.getQuery())
         formatter = Formatter(title=f"Total scores: {len(result)}")
-        embed = formatter.as_score_list(result, page=int(di.get("-p", 1)), page_size=int(di.get("-l", 10)), elapsed=elapsed)
+        embed = formatter.as_score_list(result, page=int(di.get("-page", 1)), page_size=int(di.get("-limit", 10)), elapsed=elapsed)
         await ctx.reply(embed=embed)
 
 async def setup(bot):

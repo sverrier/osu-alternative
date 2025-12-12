@@ -57,8 +57,8 @@ class Users(commands.Cog):
 
         formatter = Formatter(title=title, footer=f"Based on Scores • took {elapsed:.2f}s")
 
-        page_size = int(di.get("-l", 10))
-        page_arg = di.get("-p", "1")
+        page_size = int(di.get("-limit", 10))
+        page_arg = di.get("-page", "1")
         
         if page_arg.lower() == "me" and username is not None:
             user_page = formatter.calculate_user_page(result, username, page_size)
