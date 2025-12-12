@@ -16,9 +16,7 @@ class Misc(commands.Cog):
         await ctx.reply(file=attach, content="Here is your response:")
 
     @commands.command()
-    async def register(self, ctx, *args):
-        di = get_args(args)
-        user = di["-u"]
+    async def register(self, ctx, user):
         discord_name = ctx.author.name
         discord_id = str(ctx.author.id)
         query = "SELECT user_id FROM registrations WHERE discordid = $1"
@@ -41,11 +39,7 @@ class Misc(commands.Cog):
         await ctx.reply("Registered and linked your Discord account!")
 
     @commands.command()
-    async def link(self, ctx, *args):
-        di = get_args(args)
-
-        user = di["-u"]
-
+    async def link(self, ctx, user):
         discordname = ctx.author.name
         discordid = ctx.author.id
 
