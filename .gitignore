@@ -4,4 +4,5 @@ fetcher.,txt
 api/build/
 .venv/
 logs/
+*.osdb
 **/__pycache__/
