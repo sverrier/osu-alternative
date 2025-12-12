@@ -529,6 +529,7 @@ class Gatherer:
             (self.fetch_beatmaps, 3600, "fetch_beatmaps"),  # Hourly
             (self.fetch_users, 600, "fetch_users"),  # Every 10 min
             (self.update_registered_users, 600, "update_registered_users"),  # Every 10 min
+            (self.update_registered_users_extended, 10000, "update_registered_users"),  # Daily
         ]
         
         # Create tasks for each routine
