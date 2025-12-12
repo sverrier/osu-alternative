@@ -1,6 +1,5 @@
 config.txt
 botconfig.txt
-fetcher.txt
 api/build/
 .venv/
 logs/
