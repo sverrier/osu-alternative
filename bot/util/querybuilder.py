@@ -233,7 +233,7 @@ class QueryBuilder:
                 else:
                     formatted_value = str(value)
 
-                if key == "-tags":
+                if key == "-search":
                     formatted_value = f"'%{value}%'"
 
                 clause = template.format(value=formatted_value)

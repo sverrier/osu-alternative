@@ -16,7 +16,7 @@ JOIN_CLAUSES = {
 # Special cases that don't follow standard patterns
 VALUED_PARAMS = {
     "-unplayed": ("NOT EXISTS (SELECT 1 FROM scoreLive s WHERE s.beatmap_id_fk = beatmapLive.beatmap_id and s.ruleset_id = beatmapLive.mode and s.user_id_fk = {value})", ["beatmap_id"]),
-    "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER(%{value}%)", ["artist", "title", "source", "version", "tags"]),
+    "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})", ["artist", "title", "source", "version", "tags"]),
     "-is_fa-true": ("track_id IS NOT NULL", ["track_id"]),
     "-is_fa-false": ("track_id IS NULL", ["track_id"]),
 }
