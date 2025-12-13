@@ -8,9 +8,28 @@ class Beatmaps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def _set_defaults(self, ctx, di):
+        discordid = ctx.author.id
+
+        query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
+
+        rows, _ = await self.bot.db.executeQuery(query)
+
+        if not rows:
+            return
+        
+        di["-mode-in"] = rows[0]["mode"]
+
+        if di.get("-include") != "loved":
+            di.setdefault("status-not", "loved")
+        
+
+
     @commands.command(aliases=["b"])
     async def beatmaps(self, ctx, *args):
         di = get_args(args)
+
+        await self._set_defaults(ctx, di)
 
         preset_key = di.get("-o")
         if preset_key in BEATMAP_PRESETS:
@@ -28,6 +47,8 @@ class Beatmaps(commands.Cog):
     @commands.command(aliases=["bl"])
     async def beatmaplist(self, ctx, *args):
         di = get_args(args)
+
+        await self._set_defaults(ctx, di)
 
         order_col = di.get("-order")
         columns = "stars, artist, title, version, beatmap_id, beatmapset_id, mode"
@@ -64,6 +85,8 @@ class Beatmaps(commands.Cog):
     async def beatmapsetlist(self, ctx, *args):
         di = get_args(args)
 
+        await self._set_defaults(ctx, di)
+
         columns = (
             "beatmapset_id, "
             "MIN(artist) AS artist, "
@@ -94,8 +117,26 @@ class Beatmaps(commands.Cog):
     @commands.command(aliases=["nbss"])
     async def neverbeenssed(self, ctx, *args):
         di = get_args(args)
+
+        await self._set_defaults(ctx, di)
+
         di["-ss_count"] = 0
         di.setdefault("-order", "stars")
+        di.setdefault("-direction", "asc")
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.beatmaplist(ctx, *args)
+
+    @commands.command()
+    async def leastssed(self, ctx, *args):
+        di = get_args(args)
+
+        await self._set_defaults(ctx, di)
+
+        di.setdefault("-order", "ss_count")
         di.setdefault("-direction", "asc")
 
         args = []
@@ -107,8 +148,26 @@ class Beatmaps(commands.Cog):
     @commands.command(aliases=["nbfc"])
     async def neverbeenfced(self, ctx, *args):
         di = get_args(args)
+
+        await self._set_defaults(ctx, di)
+
         di["-fc_count"] = 0
         di.setdefault("-order", "stars")
+        di.setdefault("-direction", "asc")
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.beatmaplist(ctx, *args)
+
+    @commands.command()
+    async def leastfced(self, ctx, *args):
+        di = get_args(args)
+
+        await self._set_defaults(ctx, di)
+
+        di.setdefault("-order", "fc_count")
         di.setdefault("-direction", "asc")
 
         args = []

@@ -48,6 +48,74 @@ class Misc(commands.Cog):
 
         await ctx.reply(content="Updated!")
 
+    @commands.command()
+    async def setmode(self, ctx, *, mode_arg):
+        discordid = ctx.author.id
+
+        # Mapping names → numeric modes
+        mode_map = {
+            "osu": 0,
+            "0": 0,
+
+            "taiko": 1,
+            "1": 1,
+
+            "fruits": 2,
+            "catch": 2,
+            "ctb": 2,
+            "2": 2,
+
+            "mania": 3,
+            "3": 3,
+        }
+
+        # Split on commas, strip spaces
+        parts = [p.strip().lower() for p in mode_arg.split(",")]
+
+        mode_vals = []
+        for p in parts:
+            if p not in mode_map:
+                await ctx.reply(
+                    "Invalid mode detected. Valid values: 0,1,2,3 or osu, taiko, fruits, mania.\n"
+                    f"Bad value: `{p}`"
+                )
+                return
+            mode_vals.append(mode_map[p])
+
+        # Remove duplicates and sort for cleanliness
+        mode_vals = sorted(set(mode_vals))
+
+        # Convert into Postgres tuple form: (0,1,3)
+        mode_tuple = f"{','.join(str(v) for v in mode_vals)}"
+
+        # 1) Find user_id for this Discord account
+        query_find = f"""
+            SELECT user_id
+            FROM registrations
+            WHERE discordid = '{discordid}'
+        """
+
+        rows, _ = await self.bot.db.executeQuery(query_find)
+
+        if not rows:
+            await ctx.reply("You are not registered. Use !link first.")
+            return
+
+        user_id = rows[0]["user_id"]
+
+        # 2) Update mode column with numeric tuple
+        query_update = f"""
+            UPDATE registrations
+            SET mode = '{mode_tuple}'
+            WHERE user_id = {user_id}
+        """
+
+        await self.bot.db.executeQuery(query_update)
+
+        await ctx.reply(f"Updated modes to **{mode_tuple}**!")
+
+
+
     @commands.command(aliases=["h"])
     async def help(self, ctx, *args):
         """Display help for available columns and parameters"""

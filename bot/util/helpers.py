@@ -15,10 +15,8 @@ JOIN_CLAUSES = {
 
 # Special cases that don't follow standard patterns
 VALUED_PARAMS = {
-    "-username": ("UPPER(username) = UPPER({value})", ["username"]),
-    "-user_id": ("user_id = {value}", ["user_id"]),
     "-unplayed": ("NOT EXISTS (SELECT 1 FROM scoreLive s WHERE s.beatmap_id_fk = beatmapLive.beatmap_id and s.ruleset_id = beatmapLive.mode and s.user_id_fk = {value})", ["beatmap_id"]),
-    "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})", ["artist", "title", "source", "version", "tags"]),
+    "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER(%{value}%)", ["artist", "title", "source", "version", "tags"]),
     "-is_fa-true": ("track_id IS NOT NULL", ["track_id"]),
     "-is_fa-false": ("track_id IS NULL", ["track_id"]),
 }
@@ -75,8 +73,6 @@ def get_args(arg=None):
     args = list(arg or [])
     di = {}
 
-    VALUELESS_PARAMS = {"-is_fa", "-not_fa", "-has_replay", "-no_replay"}
-
     i = 0
     while i < len(args):
         if args[i].startswith("-"):
@@ -95,13 +91,8 @@ def get_args(arg=None):
             if i + 1 < len(args) and not args[i + 1].startswith("-"):
                 value = args[i + 1].lower()
 
-                if key == "-username" or key == "-u":
-                    # "-u" becomes "-username" through synonym map
-                    di[key] = escape_string(value)
-
-                elif " " in value:
+                if " " in value:
                     raise ValueError(f"Spaces not allowed for argument {raw_key}")
-
                 else:
                     di[key] = value
 
