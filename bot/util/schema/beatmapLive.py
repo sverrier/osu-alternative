@@ -1,0 +1,272 @@
+BEATMAP_LIVE_METADATA = {
+    "beatmap_id": {
+        "type": "int",
+        "nullable": False,
+        "description": "Unique beatmap ID (primary key).",
+    },
+    "mapper_id": {
+        "type": "int",
+        "nullable": True,
+        "description": "Owner/creator user ID; nullable in case of legacy rows.",
+    },
+    "beatmapset_id": {
+        "type": "int",
+        "nullable": True,
+        "description": "Associated beatmapset ID.",
+    },
+    "mode": {
+        "type": "int",
+        "nullable": False,
+        "range": (0, 3),
+        "description": "Ruleset: 0 = osu!, 1 = Taiko, 2 = Catch, 3 = Mania.",
+    },
+    "status": {
+        "type": "str",
+        "nullable": False,
+        "description": "Beatmap status (ranked, approved, loved, qualified, pending, etc.).",
+    },
+    "stars": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, None),
+        "description": "Star rating (difficulty).",
+    },
+    "od": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, 11.0),
+        "description": "Overall difficulty.",
+    },
+    "ar": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, 11.0),
+        "description": "Approach rate.",
+    },
+    "bpm": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, None),
+        "description": "Beats per minute.",
+    },
+    "cs": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, 10.0),
+        "description": "Circle size.",
+    },
+    "hp": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, 11.0),
+        "description": "HP drain rate.",
+    },
+    "length": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Total length in seconds.",
+    },
+    "drain_time": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Drain (play) time in seconds.",
+    },
+    "count_circles": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Number of hit circles.",
+    },
+    "count_sliders": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Number of sliders.",
+    },
+    "count_spinners": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Number of spinners.",
+    },
+    "max_combo": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Maximum achievable combo.",
+    },
+    "pass_count": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Total number of passes on this beatmap.",
+    },
+    "play_count": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Total number of plays on this beatmap.",
+    },
+    "fc_count": {
+        "type": "int",
+        "nullable": False,
+        "range": (0, None),
+        "description": "Number of full combo scores (according to osu!alt rules).",
+    },
+    "ss_count": {
+        "type": "int",
+        "nullable": False,
+        "range": (0, None),
+        "description": "Number of SS scores (according to osu!alt rules).",
+    },
+    "favourite_count": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Number of favourites/stars on the beatmapset.",
+    },
+    "ranked_date": {
+        "type": "timestamp",
+        "nullable": True,
+        "description": "Date/time the map was ranked/approved/loved.",
+    },
+    "submitted_date": {
+        "type": "timestamp",
+        "nullable": True,
+        "description": "Date/time the beatmapset was originally submitted.",
+    },
+    "last_updated": {
+        "type": "timestamp",
+        "nullable": True,
+        "description": "Last update time for the beatmapset.",
+    },
+    "version": {
+        "type": "str",
+        "nullable": True,
+        "description": "Difficulty name/version (e.g. 'Insane').",
+    },
+    "title": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmapset title.",
+    },
+    "artist": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmapset artist.",
+    },
+    "source": {
+        "type": "str",
+        "nullable": True,
+        "description": "Original media source (anime/game/etc.).",
+    },
+    "tags": {
+        "type": "str",
+        "nullable": True,
+        "description": "Space-separated tags.",
+    },
+    "checksum": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmap checksum/hash.",
+    },
+    "track_id": {
+        "type": "str",
+        "nullable": True,
+        "description": "Optional track identifier (for internal use or osu!lazer).",
+    },
+    "pack": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmap pack name or identifier if applicable.",
+    },
+    "lchg_time": {
+        "type": "timestamp",
+        "nullable": True,
+        "description": "Last change time in osu!alt (sync/update timestamp).",
+    },
+    "mapper": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmap creator/mapper username at time of sync.",
+    },
+    "is_nsfw": {
+        "type": "bool",
+        "nullable": True,
+        "description": "True if the beatmapset is flagged as NSFW.",
+    },
+    "beatmap_offset": {
+        "type": "int",
+        "nullable": True,
+        "description": "Audio offset applied to the beatmap (milliseconds).",
+    },
+    "rating": {
+        "type": "float",
+        "nullable": True,
+        "range": (0.0, 10.0),
+        "description": "Community rating for the beatmapset.",
+    },
+    "is_spotlight": {
+        "type": "bool",
+        "nullable": True,
+        "description": "True if the beatmapset is part of a spotlight season.",
+    },
+    "genre": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmapset genre text.",
+    },
+    "language": {
+        "type": "str",
+        "nullable": True,
+        "description": "Beatmapset language text.",
+    },
+    "has_video": {
+        "type": "bool",
+        "nullable": True,
+        "description": "True if the beatmapset includes a background video.",
+    },
+    "has_storyboard": {
+        "type": "bool",
+        "nullable": True,
+        "description": "True if the beatmapset includes a storyboard.",
+    },
+    "download_disabled": {
+        "type": "bool",
+        "nullable": True,
+        "description": "True if downloads are disabled for this beatmapset.",
+    },
+
+
+    #GENERATED FIELDS
+    "year": {
+        "type": "int",
+        "nullable": False,
+        "range": (2007, None),
+        "description": "The year the beatmap was ranked.",
+        "expression": "EXTRACT(YEAR FROM ranked_date)",
+    },
+    "month": {
+        "type": "int",
+        "nullable": False,
+        "range": (1, 12),
+        "description": "The month the beatmap was ranked.",
+        "expression": "EXTRACT(MONTH FROM ranked_date)",
+    },
+    "day": {
+        "type": "int",
+        "nullable": False,
+        "range": (1, 31),
+        "description": "The day of the month the beatmap was ranked.",
+        "expression": "EXTRACT(DAY FROM ranked_date)",
+    },
+    "objects": {
+        "type": "int",
+        "nullable": False,
+        "range": (0, None),
+        "description": "True if downloads are disabled for this beatmapset.",
+        "expression": "(count_circles + count_sliders + count_spinners)",
+    },
+}

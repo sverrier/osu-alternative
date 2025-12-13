@@ -35,7 +35,7 @@ class Scores(commands.Cog):
     async def scorelist(self, ctx, *args):
         di = get_args(args)
         table = "scoreLive"
-        columns = "stars, artist, title, version, beatmapLive.beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms"
+        columns = "stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms"
         discordid = ctx.author.id
         if "-user_id" not in di and "-username" not in di and di.get("-show") != "all":
             query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"

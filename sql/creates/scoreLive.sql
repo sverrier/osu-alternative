@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.scorelive (
 	id int8 NOT NULL,
-	beatmap_id int4 NOT NULL,
-	user_id int4 NOT NULL,
+	beatmap_id_fk int4 NOT NULL,
+	user_id_fk int4 NOT NULL,
 	accuracy numeric NOT NULL,
 	best_id int4 NULL,
 	build_id int4 NULL,
@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS public.scorelive (
 	CONSTRAINT scorelive_pkey PRIMARY KEY (id)
 );
 CREATE INDEX IF NOT EXISTS idx_scorelive_ended_at ON public.scorelive USING brin (ended_at);
-CREATE INDEX IF NOT EXISTS idx_scorelive_highest_only ON public.scorelive USING btree (beatmap_id, user_id) WHERE (highest_score = true);
+CREATE INDEX IF NOT EXISTS idx_scorelive_highest_only ON public.scorelive USING btree (beatmap_id_fk, user_id_fk) WHERE (highest_score = true);
 CREATE INDEX IF NOT EXISTS idx_scorelive_mods_path ON public.scorelive USING gin (mods jsonb_path_ops);
-CREATE INDEX IF NOT EXISTS scorelive_beatmap ON public.scorelive USING btree (beatmap_id);
-CREATE INDEX IF NOT EXISTS scorelive_score ON public.scorelive USING btree (beatmap_id, user_id, classic_total_score DESC);
-CREATE INDEX IF NOT EXISTS scorelive_user ON public.scorelive USING btree (user_id);
+CREATE INDEX IF NOT EXISTS scorelive_beatmap ON public.scorelive USING btree (beatmap_id_fk);
+CREATE INDEX IF NOT EXISTS scorelive_score ON public.scorelive USING btree (beatmap_id_fk, user_id_fk, classic_total_score DESC);
+CREATE INDEX IF NOT EXISTS scorelive_user ON public.scorelive USING btree (user_id_fk);

@@ -7,35 +7,20 @@ TABLE_COLUMNS = {
 }
 
 JOIN_CLAUSES = {
-    "scoreLive,beatmapLive": " inner join beatmapLive on scoreLive.beatmap_id = beatmapLive.beatmap_id",
-    "beatmapLive,scoreLive": " inner join scoreLive on beatmapLive.beatmap_id = scoreLive.beatmap_id",
-    "scoreLive,userLive": " inner join userLive on scoreLive.user_id = userLive.user_id",
-    "userLive,scoreLive": " inner join scoreLive on userLive.user_id = scoreLive.user_id",
+    "scoreLive,beatmapLive": " inner join beatmapLive on scoreLive.beatmap_id_fk = beatmapLive.beatmap_id",
+    "beatmapLive,scoreLive": " inner join scoreLive on beatmapLive.beatmap_id = scoreLive.beatmap_id_fk",
+    "scoreLive,userLive": " inner join userLive on scoreLive.user_id_fk = userLive.user_id",
+    "userLive,scoreLive": " inner join scoreLive on userLive.user_id = scoreLive.user_id_fk",
 }
 
 # Special cases that don't follow standard patterns
 VALUED_PARAMS = {
     "-username": ("UPPER(username) = UPPER({value})", ["username"]),
-    "-user_id": ("userLive.user_id = {value}", ["user_id"]),
-    "-unplayed": ("NOT EXISTS (SELECT 1 FROM scoreLive WHERE scoreLive.beatmap_id = beatmapLive.beatmap_id and scoreLive.ruleset_id = beatmapLive.mode and user_id = {value})", ["beatmap_id"]),
+    "-user_id": ("user_id = {value}", ["user_id"]),
+    "-unplayed": ("NOT EXISTS (SELECT 1 FROM scoreLive s WHERE s.beatmap_id_fk = beatmapLive.beatmap_id and s.ruleset_id = beatmapLive.mode and s.user_id_fk = {value})", ["beatmap_id"]),
     "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})", ["artist", "title", "source", "version", "tags"]),
     "-is_fa-true": ("track_id IS NOT NULL", ["track_id"]),
     "-is_fa-false": ("track_id IS NULL", ["track_id"]),
-    "-year": ("EXTRACT(YEAR FROM ranked_date) = {value}", ["ranked_date"]),
-    "-year-min": ("EXTRACT(YEAR FROM ranked_date) >= {value}", ["ranked_date"]),
-    "-year-max": ("EXTRACT(YEAR FROM ranked_date) < {value}", ["ranked_date"]),
-    "-month": ("EXTRACT(MONTH FROM ranked_date) = {value}", ["ranked_date"]),
-    "-month-min": ("EXTRACT(MONTH FROM ranked_date) >= {value}", ["ranked_date"]),
-    "-month-max": ("EXTRACT(MONTH FROM ranked_date) < {value}", ["ranked_date"]), 
-    "-day": ("EXTRACT(DAY FROM ranked_date) = {value}", ["ranked_date"]),
-    "-day-min": ("EXTRACT(DAY FROM ranked_date) >= {value}", ["ranked_date"]),
-    "-day-max": ("EXTRACT(DAY FROM ranked_date) < {value}", ["ranked_date"]),
-    "-objects": ("(count_circles + count_sliders + count_spinners) = {value}", ["count_circles", "count_sliders", "count_spinners"]),
-    "-objects-min": ("(count_circles + count_sliders + count_spinners) >= {value}", ["count_circles", "count_sliders", "count_spinners"]),
-    "-objects-max": ("(count_circles + count_sliders + count_spinners) < {value}", ["count_circles", "count_sliders", "count_spinners"]),
-    "-combo": ("beatmaplive.max_combo = {value}", ["beatmap_id"]),
-    "-combo-min": ("beatmaplive.max_combo >= {value}", ["beatmap_id"]),
-    "-combo-max": ("beatmaplive.max_combo < {value}", ["beatmap_id"]),
 }
 
 VALUELESS_PARAMS = {

@@ -85,7 +85,7 @@ class Completion(commands.Cog):
         # Query 1: Count played beatmaps
         played_query = QueryBuilder(
             score_args,
-            columns="count(DISTINCT scoreLive.beatmap_id)",
+            columns="count(DISTINCT beatmap_id)",
             table="scoreLive"
         )
         played_result, _ = await self.bot.db.executeQuery(played_query.getQuery())
@@ -94,7 +94,7 @@ class Completion(commands.Cog):
         # Query 2: Count total beatmaps
         total_query = QueryBuilder(
             beatmap_args,
-            columns="count(DISTINCT beatmapLive.beatmap_id)",
+            columns="count(DISTINCT beatmap_id)",
             table="beatmapLive"
         )
         total_result, _ = await self.bot.db.executeQuery(total_query.getQuery())

@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW public.beatmapFull AS
 SELECT
     -- Canonical query surface: all the stuff you already denormalised
     bl.beatmap_id,
-    bl.user_id,
+    bl.mapper_id,
     bl.beatmapset_id,
     bl."mode",
     bl.status,

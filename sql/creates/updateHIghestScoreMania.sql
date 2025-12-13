@@ -103,8 +103,8 @@ BEGIN
 
     INSERT INTO scoreLive (
         id,
-        beatmap_id,
-        user_id,
+        beatmap_id_fk,
+        user_id_fk,
         accuracy,
         best_id,
         build_id,
@@ -272,8 +272,8 @@ BEGIN
              (sl.id = top_score_id) AS new_highest_score,
              (sl.id = top_pp_id)    AS new_highest_pp
       FROM scoreLive sl
-      WHERE sl.beatmap_id = NEW.beatmap_id
-        AND sl.user_id    = NEW.user_id
+      WHERE sl.beatmap_id_fk = NEW.beatmap_id
+        AND sl.user_id_fk    = NEW.user_id
     )
     UPDATE scoreLive sl
        SET highest_score = d.new_highest_score,

@@ -7,7 +7,7 @@ BEGIN
 
         INSERT INTO public.beatmaplive (
             beatmap_id,
-            user_id,
+            mapper_id,
             beatmapset_id,
             "mode",
             status,
@@ -96,7 +96,7 @@ BEGIN
         )
         ON CONFLICT (beatmap_id)
         DO UPDATE SET
-            user_id        = EXCLUDED.user_id,
+            mapper_id        = EXCLUDED.mapper_id,
             beatmapset_id  = EXCLUDED.beatmapset_id,
             "mode"         = EXCLUDED."mode",
             status         = EXCLUDED.status,
