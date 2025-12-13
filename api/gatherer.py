@@ -436,7 +436,7 @@ class Gatherer:
         await self._execute_sql_file("update_userLive.sql")
 
     async def update_registered_users_extended(self):
-        self.logger.info("Updating registered users...")
+        self.logger.info("Updating registered users extended data...")
         query = "SELECT user_id FROM userLive order by user_id"
         rs, elapsed = await self.db.executeQuery(query)
 
@@ -461,16 +461,32 @@ class Gatherer:
 
 
     async def update_ranked_maps(self):
-        self.logger.info("Updating ranked beatmaps...")
-        query = "SELECT beatmap_id FROM beatmapLive"
-        batches = await self._generate_id_batches_from_query(query, 50)
+        self.logger.info("Updating all ranked maps...")
         
-        for batch in batches:
-            beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
-            queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
+        first_id = 75
+        found = False
+        cursor_string = None
+        
+        while not found:
+            json = self.apiv2.get_beatmapsets(cursor_string)
+            beatmapsets = json.get("beatmapsets", [])
+            cursor_string = json.get("cursor_string")
+            
+            flattened_beatmaps = self._flatten_beatmapsets_to_beatmaps(beatmapsets)
+            
+            beatmapset_ids = [bs.get('id') for bs in beatmapsets]
+            if first_id in beatmapset_ids:
+                found = True
+            
+            queries = ''.join(Beatmap(b).generate_insert_query() for b in flattened_beatmaps)
             if queries:
                 await self.db.executeSQL(queries)
-            self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(beatmaps)} beatmaps.")
+                self.logger.info(f"Inserted {len(flattened_beatmaps)} beatmaps from {len(beatmapsets)} beatmapsets.")
+            else:
+                self.logger.info("No beatmaps to insert in this batch.")
+            
+            if found:
+                break
 
     async def get_new_beatmapsets(self):
         self.logger.info("Fetching new ranked beatmapsets...")
@@ -486,16 +502,13 @@ class Gatherer:
             beatmapsets = json.get("beatmapsets", [])
             cursor_string = json.get("cursor_string")
             
-            # Flatten beatmapsets to individual beatmaps
             flattened_beatmaps = self._flatten_beatmapsets_to_beatmaps(beatmapsets)
             
-            # Check if we found the latest_id
             beatmapset_ids = [bs.get('id') for bs in beatmapsets]
             if latest_id in beatmapset_ids:
                 found = True
                 self.logger.info(f"Found latest beatmapset ID {latest_id}, stopping.")
             
-            # Generate and execute insert queries
             queries = ''.join(Beatmap(b).generate_insert_query() for b in flattened_beatmaps)
             if queries:
                 await self.db.executeSQL(queries)

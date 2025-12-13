@@ -222,9 +222,9 @@ class util_api:
 
         while not complete:
             try:
-                url = "https://osu.ppy.sh/api/v2/beatmapsets/search"
+                url = "https://osu.ppy.sh/api/v2/beatmapsets/search?nsfw=true"
                 if cursor_string is not None:
-                    url = url + "?cursor_string=" + cursor_string
+                    url = url + "&cursor_string=" + cursor_string
                 
                 headers = {
                     "Authorization": f"Bearer {self.token}"  

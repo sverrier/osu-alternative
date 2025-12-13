@@ -37,7 +37,17 @@ BEGIN
             "source",
             tags,
             checksum,
-            track_id
+            track_id,
+            mapper,
+            genre,
+            language,
+            is_spotlight,
+            is_nsfw,
+            rating,
+            download_disabled,
+            has_video,
+            has_storyboard,
+            beatmap_offset
         )
         VALUES (
             NEW.id,
@@ -71,7 +81,18 @@ BEGIN
             NEW.beatmapset_source,
             NEW.beatmapset_tags,
             NEW.checksum,
-            NEW.beatmapset_track_id
+            NEW.beatmapset_track_id,
+            NEW.beatmapset_creator,
+            NEW.beatmapset_genre_id,
+            NEW.beatmapset_language_id,
+            NEW.beatmapset_spotlight,
+            NEW.beatmapset_nsfw,
+            NEW.beatmapset_rating,
+            (NEW.beatmapset_availability::jsonb ->> 'download_disabled')::boolean,
+            NEW.beatmapset_storyboard,
+            NEW.beatmapset_video,
+            NEW.beatmapset_offset
+
         )
         ON CONFLICT (beatmap_id)
         DO UPDATE SET
@@ -103,7 +124,17 @@ BEGIN
             "source"        = EXCLUDED."source",
             tags            = EXCLUDED.tags,
             checksum        = EXCLUDED.checksum,
-            track_id        = EXCLUDED.track_id;
+            track_id        = EXCLUDED.track_id,
+            mapper        = EXCLUDED.mapper,
+            genre        = EXCLUDED.genre,
+            language        = EXCLUDED.language,
+            is_spotlight        = EXCLUDED.is_spotlight,
+            is_nsfw        = EXCLUDED.is_nsfw,
+            rating        = EXCLUDED.rating,
+            download_disabled        = EXCLUDED.download_disabled,
+            has_video        = EXCLUDED.has_video,
+            has_storyboard        = EXCLUDED.has_storyboard,
+            beatmap_offset        = EXCLUDED.beatmap_offset;
     END IF;
 
     RETURN NEW;
