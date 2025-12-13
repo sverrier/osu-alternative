@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS beatmap (
     total_length INTEGER,
     user_id INTEGER,
     version TEXT,
-    accuracy INTEGER,
+    accuracy NUMERIC,
     ar NUMERIC,
     bpm NUMERIC,
     convert BOOLEAN,
