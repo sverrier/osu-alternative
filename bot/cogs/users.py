@@ -9,6 +9,22 @@ class Users(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    
+    async def _set_defaults(self, ctx, di):
+        discordid = ctx.author.id
+
+        query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
+
+        rows, _ = await self.bot.db.executeQuery(query)
+
+        if not rows:
+            return
+        
+        di["-mode-in"] = rows[0]["mode"]
+
+        if di.get("-include") != "loved":
+            di.setdefault("-status-not", "loved")
+
     @commands.command(aliases=["u"])
     async def users(self, ctx, *args):
         """Count of users"""
@@ -39,12 +55,16 @@ class Users(commands.Cog):
             for k, v in preset.items():
                 if k.startswith("-"):
                     di[k] = v
+
+            await self._set_defaults(ctx, di)
+
+            if di.get("-include") == "d":
+                di.pop("-grade-not", None)
         else:
-            columns = di.get("-columns", "username,total_ranked_score")
+            columns = di.get("-columns", f"username,{di.get("-o", "total_ranked_score")}")
             title = "Leaderboard"
-            di.setdefault("-order", "total_ranked_score")
-        if di.get("-include") == "d":
-            di.pop("-grade-not", None)
+            di.setdefault("-order", di.get("-o", "total_ranked_score"))
+        
         sql = QueryBuilder(di, columns, table).getQuery()
         result, elapsed = await self.bot.db.executeQuery(sql)
         if di.get("-o") == "sets":

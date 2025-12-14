@@ -21,7 +21,7 @@ class Beatmaps(commands.Cog):
         di["-mode-in"] = rows[0]["mode"]
 
         if di.get("-include") != "loved":
-            di.setdefault("status-not", "loved")
+            di.setdefault("-status-not", "loved")
         
 
 

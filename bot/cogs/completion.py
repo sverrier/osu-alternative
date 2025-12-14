@@ -10,6 +10,21 @@ class Completion(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def _set_defaults(self, ctx, di):
+        discordid = ctx.author.id
+
+        query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
+
+        rows, _ = await self.bot.db.executeQuery(query)
+
+        if not rows:
+            return
+        
+        di["-mode-in"] = rows[0]["mode"]
+
+        if di.get("-include") != "loved":
+            di.setdefault("-status-not", "loved")
+
     # bot/cogs/scores.py - Add these helper methods to your Scores class
 
     def _get_completion_field_config(self, field):
@@ -198,6 +213,8 @@ class Completion(commands.Cog):
         """
         start_time = time.time()
         di = get_args(args)
+
+        await self._set_defaults(ctx, di)
         
         # Get user_id if not specified
         discordid = ctx.author.id
