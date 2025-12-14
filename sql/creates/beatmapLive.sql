@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS public.beatmaplive (
 	beatmap_id int4 NOT NULL,
-	user_id_fk int4 NULL,
+	user_id int4 NULL,
 	beatmapset_id int4 NULL,
 	"mode" int4 NULL,
 	status text NULL,
