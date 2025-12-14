@@ -3,7 +3,8 @@ from bot.util.helpers import get_args
 from bot.util.presets import USER_PRESETS, SCORE_PRESETS
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
-from bot.util.helpers import separate_beatmap_filters
+from bot.util.helpers import separate_beatmap_filters, separate_user_filters
+from bot.util.schema import TABLE_METADATA
 
 class Users(commands.Cog):
     def __init__(self, bot):
@@ -58,23 +59,36 @@ class Users(commands.Cog):
             if result and result[0]:
                 username = result[0][1] if len(result[0]) > 1 else None
         
-        preset_key = di.get("-o")
-        if preset_key in SCORE_PRESETS:
-            preset = SCORE_PRESETS[preset_key]
-            columns = preset["columns"]
-            title = preset["title"]
-            for k, v in preset.items():
-                if k.startswith("-"):
-                    di[k] = v
+        preset_key = di.get("-o", "clears")
 
-            await self._set_defaults(ctx, di)
+        user_columns = set(TABLE_METADATA["userLive"].keys())
 
-            if di.get("-include") == "d":
-                di.pop("-grade-not", None)
-        else:
-            columns = di.get("-columns", f"username,{di.get("-o", "total_ranked_score")}")
+        if preset_key in user_columns:
+            columns = di.get("-columns", f"username,{preset_key}")
             title = "Leaderboard"
-            di.setdefault("-order", di.get("-o", "total_ranked_score"))
+            di.setdefault("-order", preset_key)
+        else:
+            if preset_key in SCORE_PRESETS:
+                preset = SCORE_PRESETS[preset_key]
+                columns = preset["columns"]
+                title = preset["title"]
+                for k, v in preset.items():
+                    if k.startswith("-"):
+                        di[k] = v
+
+                await self._set_defaults(ctx, di)
+
+                if di.get("-include") == "d":
+                    di.pop("-grade-not", None)
+            elif preset_key in USER_PRESETS:
+                preset = USER_PRESETS[preset_key]
+                columns = preset["columns"]
+                title = preset["title"]
+                for k, v in preset.items():
+                    if k.startswith("-"):
+                        di[k] = v
+
+                di = separate_user_filters(di)            
         
         sql = QueryBuilder(di, columns, table).getQuery()
         result, elapsed = await self.bot.db.executeQuery(sql)

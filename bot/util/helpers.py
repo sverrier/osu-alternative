@@ -110,6 +110,59 @@ def get_args(arg=None):
 
     return di
 
+def separate_user_filters(di):
+    """Separate user-only filters from all filters."""
+    user_columns = set(TABLE_METADATA["userLive"].keys())
+    user_args = {}
+
+    suffixes = ["-min", "-max", "-not", "-in", "-notin", "-like", "-regex"]
+
+    special_params = {
+        "-order",
+        "-direction"
+    }
+
+    for key, value in di.items():
+        if not key.startswith("-"):
+            continue
+
+        # Resolve synonyms first, e.g. -y -> -year, -drain -> -drain_time, etc.
+        canonical = PARAM_SYNONYM_MAP.get(key, key)
+
+        # 1) Meta/special options that are always considered beatmap-side
+        if canonical in special_params:
+            user_args[key] = value
+            continue
+
+        # 1) Explicit VALUED_PARAMS definitions
+        if canonical in VALUED_PARAMS:
+            _, cols = VALUED_PARAMS[canonical]
+            # Only treat as beatmap-only if *all* referenced columns are beatmap columns
+            if all(col in user_columns for col in cols):
+                user_args[key] = value
+            continue
+
+        # 2) Explicit VALUELESS_PARAMS definitions
+        if canonical in VALUELESS_PARAMS:
+            _, cols = VALUELESS_PARAMS[canonical]
+            if all(col in user_columns for col in cols):
+                user_args[key] = value
+            continue
+
+        # 3) Generic "-column[-suffix]" style parameters
+        raw_key = canonical.lstrip("-")
+        base_key = raw_key
+
+        for suffix in suffixes:
+            if raw_key.endswith(suffix):
+                base_key = raw_key[:-len(suffix)]
+                break
+
+        if base_key in user_columns:
+            user_args[key] = value
+
+    return user_args
+
 def separate_beatmap_filters(di):
     """Separate beatmap-only filters from all filters."""
     beatmap_columns = set(TABLE_METADATA["beatmapLive"].keys())
