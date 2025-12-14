@@ -15,7 +15,7 @@ class db:
         self.pool = None
         self.logger = logger
 
-    async def get_pool(self):
+    async def get_pool(self, timeout=120):
         """Ensure asyncpg pool exists."""
         if self.pool is None:
             self.pool = await asyncpg.create_pool(
@@ -28,7 +28,7 @@ class db:
                 max_size=10,
                 max_queries=50000,
                 max_inactive_connection_lifetime=300,
-                command_timeout=120,
+                command_timeout=timeout,
             )
             self.logger.info("Database pool created")
         return self.pool
@@ -90,7 +90,7 @@ class db:
 
     async def executeParametrized(self, query, *params):
         """Execute parameterized INSERT/UPDATE/DELETE."""
-        pool = await self.get_pool()
+        pool = await self.get_pool(timeout=240)
         try:
             async with pool.acquire() as conn:
                 async with conn.transaction():

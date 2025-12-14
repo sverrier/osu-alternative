@@ -488,6 +488,18 @@ class Gatherer:
             if found:
                 break
 
+    async def force_update_all_ranked_maps(self):
+        self.logger.info("Updating ALL ranked beatmaps...")
+        query = "SELECT beatmap_id FROM beatmapLive"
+        batches = await self._generate_id_batches_from_query(query, 50)
+        
+        for batch in batches:
+            beatmaps = self.apiv2.get_beatmaps(batch).get("beatmaps", [])
+            queries = ''.join(Beatmap(l).generate_insert_query() for l in beatmaps)
+            if queries:
+                await self.db.executeSQL(queries)
+            self.logger.info(f"Processed batch {batch[0]}-{batch[-1]} with {len(beatmaps)} beatmaps.")
+
     async def get_new_beatmapsets(self):
         self.logger.info("Fetching new ranked beatmapsets...")
         query = "SELECT beatmapset_id FROM beatmapLive WHERE ranked_date = (SELECT MAX(ranked_date) FROM beatmapLive)"
@@ -574,7 +586,7 @@ class Gatherer:
             '8': self.update_ranked_maps,
             '9': self.fetch_beatmaps_packs,
             '10': self.fetch_modded_scores,
-            
+            '11': self.force_update_all_ranked_maps,
         }
 
         while True:

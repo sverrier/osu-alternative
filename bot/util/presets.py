@@ -1,5 +1,5 @@
 # bot/utils/presets.py
-PRESETS = {
+SCORE_PRESETS = {
     "plays": {
         "columns": "username, COUNT(*)",
         "-group": "username",
@@ -112,6 +112,9 @@ PRESETS = {
         "-grade-not": "d",
         "title": "Total plays",
     },
+}
+
+USER_PRESETS = {
     "playcount": {
         "columns": "username, total_play_count",
         "-order": "total_play_count",

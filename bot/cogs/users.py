@@ -1,6 +1,6 @@
 from discord.ext import commands
 from bot.util.helpers import get_args
-from bot.util.presets import PRESETS
+from bot.util.presets import USER_PRESETS, SCORE_PRESETS
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 from bot.util.helpers import separate_beatmap_filters
@@ -59,8 +59,8 @@ class Users(commands.Cog):
                 username = result[0][1] if len(result[0]) > 1 else None
         
         preset_key = di.get("-o")
-        if preset_key in PRESETS:
-            preset = PRESETS[preset_key]
+        if preset_key in SCORE_PRESETS:
+            preset = SCORE_PRESETS[preset_key]
             columns = preset["columns"]
             title = preset["title"]
             for k, v in preset.items():
