@@ -114,11 +114,9 @@ class Beatmaps(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
-    @commands.command(aliases=["nbss"])
-    async def neverbeenssed(self, ctx, *args):
+    @commands.command(aliases=["nbss", "neverbeenssed"])
+    async def never_been_ssed(self, ctx, *args):
         di = get_args(args)
-
-        await self._set_defaults(ctx, di)
 
         di["-ss_count"] = 0
         di.setdefault("-order", "stars")
@@ -130,11 +128,9 @@ class Beatmaps(commands.Cog):
                 args.extend([k, str(v)])
         await self.beatmaplist(ctx, *args)
 
-    @commands.command()
-    async def leastssed(self, ctx, *args):
+    @commands.command(aliases=["leastssed"])
+    async def least_ssed(self, ctx, *args):
         di = get_args(args)
-
-        await self._set_defaults(ctx, di)
 
         di.setdefault("-order", "ss_count")
         di.setdefault("-direction", "asc")
@@ -145,11 +141,9 @@ class Beatmaps(commands.Cog):
                 args.extend([k, str(v)])
         await self.beatmaplist(ctx, *args)
 
-    @commands.command(aliases=["nbfc"])
-    async def neverbeenfced(self, ctx, *args):
+    @commands.command(aliases=["nbfc", "neverbeenfced"])
+    async def never_been_fced(self, ctx, *args):
         di = get_args(args)
-
-        await self._set_defaults(ctx, di)
 
         di["-fc_count"] = 0
         di.setdefault("-order", "stars")
@@ -161,11 +155,9 @@ class Beatmaps(commands.Cog):
                 args.extend([k, str(v)])
         await self.beatmaplist(ctx, *args)
 
-    @commands.command()
-    async def leastfced(self, ctx, *args):
+    @commands.command(aliases=["leastfced"])
+    async def least_fced(self, ctx, *args):
         di = get_args(args)
-
-        await self._set_defaults(ctx, di)
 
         di.setdefault("-order", "fc_count")
         di.setdefault("-direction", "asc")

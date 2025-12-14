@@ -22,8 +22,19 @@ class Users(commands.Cog):
         
         di["-mode-in"] = rows[0]["mode"]
 
-        if di.get("-include") != "loved":
+        # Parse -include into a set of values
+        include_raw = di.get("-include", "")
+        include_set = {x.strip().lower() for x in include_raw.split(",") if x.strip()}
+
+        if "loved" not in include_set:
             di.setdefault("-status-not", "loved")
+
+        if "converts" not in include_set:
+            di.setdefault("-convertless", "true")
+
+        if "d" not in include_set:
+            di.setdefault("-grade-not", "d")
+
 
     @commands.command(aliases=["u"])
     async def users(self, ctx, *args):
@@ -34,7 +45,7 @@ class Users(commands.Cog):
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
 
-    @commands.command(aliases=["ul"])
+    @commands.command(aliases=["ul", "leaderboard", "l"])
     async def userlist(self, ctx, *args):
         di = get_args(args)
         table = "userLive"
@@ -99,6 +110,30 @@ class Users(commands.Cog):
             user=username
         )
         await ctx.reply(embed=embed)
+
+    @commands.command(aliases=["uniquess", "uss"])
+    async def unique_ss(self, ctx, *args):
+        di = get_args(args)
+
+        di["-o"] = "unique_ss"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.userlist(ctx, *args)
+
+    @commands.command()
+    async def clears(self, ctx, *args):
+        di = get_args(args)
+
+        di["-o"] = "clears"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.userlist(ctx, *args)
 
 async def setup(bot):
     await bot.add_cog(Users(bot))
