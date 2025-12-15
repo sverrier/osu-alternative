@@ -114,6 +114,50 @@ class Beatmaps(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
+    @commands.command()
+    async def queue(self, ctx, *args):
+        di = get_args(args)
+
+        await self._set_defaults(ctx, di)
+
+        # 2) Build beatmap query (same logic as beatmaplist)
+        columns = "beatmap_id"
+        table = "beatmapLive"
+
+        query = QueryBuilder(di, columns, table)
+        result, _ = await self.bot.db.executeQuery(query.getQuery())
+
+        if not result:
+            await ctx.reply("No beatmaps matched your query.")
+            return
+        
+        if len(result) > 1000:
+            await ctx.reply("Please limit your set to 1000 maps.")
+            return
+        
+        user_id = di.get("-user")
+
+        if not user_id:
+            await ctx.reply("Please specify a user with -user.")
+            return
+
+        # 3) Insert into queue
+        values = ",".join(
+            f"({user_id}, {row['beatmap_id']}, NOW())"
+            for row in result
+        )
+
+        insert_query = f"""
+            INSERT INTO public.queue (user_id, beatmap_id, insertionTime)
+            VALUES {values}
+            ON CONFLICT (user_id, beatmap_id) DO NOTHING
+        """
+
+        await self.bot.db.executeQuery(insert_query)
+
+        await ctx.reply(f"Queued **{len(result)}** beatmaps.")
+
+
     @commands.command(aliases=["nbss", "neverbeenssed"])
     async def never_been_ssed(self, ctx, *args):
         di = get_args(args)

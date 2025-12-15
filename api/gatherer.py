@@ -531,6 +531,95 @@ class Gatherer:
             if found:
                 break
 
+    async def sync_queued_user_beatmaps(self):
+        """
+        Sync scores for queued (user_id, beatmap_id) pairs from public.queue.
+
+        Flow:
+        1) Pull next N pairs from queue (FIFO by insertionTime)
+        2) Fetch scores for each pair via API
+        3) Group scores by ruleset and batch insert
+        4) Delete processed pairs from queue
+        """
+
+        # How many queue pairs to process per run
+        queue_batch_size = 500
+
+        # 1) Pull next queued pairs (FIFO)
+        rs, elapsed = await self.db.executeQuery(
+            f"""
+            SELECT user_id, beatmap_id
+            FROM public.queue
+            ORDER BY insertionTime
+            LIMIT {queue_batch_size}
+            """
+        )
+
+        if not rs:
+            self.logger.info("Queue is empty.")
+            return
+
+        # Normalize rows (dict or tuple)
+        pairs = [
+            (row["user_id"], row["beatmap_id"]) if isinstance(row, dict) else (row[0], row[1])
+            for row in rs
+        ]
+
+        self.logger.info(f"Pulled {len(pairs)} queued pairs to sync.")
+
+        # 2) Fetch + group scores
+        score_groups = {0: [], 1: [], 2: [], 3: []}
+        processed_pairs = []
+
+        total = len(pairs)
+        for idx, (user_id, beatmap_id) in enumerate(pairs, start=1):
+            self.logger.info(f"[{idx}/{total}] Fetching scores for beatmap {beatmap_id} (user {user_id})...")
+
+            try:
+                scores = self.apiv2.get_beatmap_user_scores(beatmap_id, user_id) or []
+            except Exception as e:
+                # Leave it in the queue so it can be retried later
+                self.logger.exception(f"Failed fetching scores for (user={user_id}, beatmap={beatmap_id}): {e}")
+                continue
+
+            for score_data in scores:
+                ruleset_id = score_data.get("ruleset_id")
+                if ruleset_id in score_groups:
+                    score_groups[ruleset_id].append(score_data)
+
+            # Mark this pair as processed (even if no scores returned)
+            processed_pairs.append((user_id, beatmap_id))
+
+        # 3) Batch insert all scores
+        total_scores = 0
+        for ruleset_id, ruleset_scores in score_groups.items():
+            if not ruleset_scores:
+                continue
+
+            score_cls = [ScoreOsu, ScoreTaiko, ScoreFruits, ScoreMania][ruleset_id]
+            insert_query = score_cls.get_insert_query_template()
+            params_list = [score_cls(s).get_insert_params() for s in ruleset_scores]
+
+            await self.db.executemany(insert_query, params_list)
+            total_scores += len(ruleset_scores)
+
+        self.logger.info(f"Inserted {total_scores} total scores from this queue batch.")
+
+        # 4) Dequeue processed pairs (only the ones that actually processed)
+        if processed_pairs:
+            # Prefer parametrized executemany to avoid huge SQL strings
+            await self.db.executemany(
+                """
+                DELETE FROM public.queue
+                WHERE user_id = $1 AND beatmap_id = $2
+                """,
+                processed_pairs,
+            )
+
+            self.logger.info(f"Dequeued {len(processed_pairs)} processed pairs.")
+
+        self.logger.info("Queue batch sync complete.")
+
     async def standard_loop(self):
         """
         Run routines in parallel with staggered execution and individual intervals.
@@ -587,6 +676,7 @@ class Gatherer:
             '9': self.fetch_beatmaps_packs,
             '10': self.fetch_modded_scores,
             '11': self.force_update_all_ranked_maps,
+            '12': self.sync_queued_user_beatmaps,
         }
 
         while True:
