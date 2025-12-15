@@ -1,14 +1,14 @@
 # bot/utils/presets.py
 SCORE_PRESETS = {
     "plays": {
-        "columns": "username, COUNT(*)",
+        "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
         "-order": "COUNT(*)",
         "-highest_score": "true",
         "title": "Total plays",
     },
     "easyclears": {
-        "columns": "username, COUNT(*)",
+        "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
         "-order": "COUNT(*)",
         "-highest_score": "true",
@@ -16,7 +16,7 @@ SCORE_PRESETS = {
         "title": "Total easy clears",
     },
     "clears": {
-        "columns": "username, COUNT(*)",
+        "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
         "-order": "COUNT(*)",
         "-highest_score": "true",
@@ -25,7 +25,7 @@ SCORE_PRESETS = {
         "title": "Total normal clears",
     },
     "extraclears": {
-        "columns": "username, COUNT(*)",
+        "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
         "-order": "COUNT(*)",
         "-highest_score": "true",
@@ -36,7 +36,7 @@ SCORE_PRESETS = {
         "title": "Total extra clears",
     },
     "ultraclears": {
-        "columns": "username, COUNT(*)",
+        "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
         "-order": "COUNT(*)",
         "-highest_score": "true",

@@ -64,9 +64,9 @@ class Users(commands.Cog):
         user_columns = set(TABLE_METADATA["userLive"].keys())
 
         if preset_key in user_columns:
-            columns = di.get("-columns", f"username,{preset_key}")
+            columns = di.get("-columns", f"username,COALESCE({preset_key}, 0)")
             title = "Leaderboard"
-            di.setdefault("-order", preset_key)
+            di.setdefault("-order", f"COALESCE({preset_key}, 0)")
         else:
             if preset_key in SCORE_PRESETS:
                 preset = SCORE_PRESETS[preset_key]
@@ -93,9 +93,9 @@ class Users(commands.Cog):
         sql = QueryBuilder(di, columns, table).getQuery()
         result, elapsed = await self.bot.db.executeQuery(sql)
         if di.get("-o") == "sets":
-            columns = "DISTINCT beatmapLive.beatmapset_id"
+            columns = "DISTINCT beatmapset_id"
         else:
-            columns = "DISTINCT beatmapLive.beatmap_id"
+            columns = "DISTINCT beatmap_id"
         beatmap_args = separate_beatmap_filters(di)
         sql = QueryBuilder(beatmap_args, columns, "beatmapLive").getQuery()
         beatmaps, elapsed = await self.bot.db.executeQuery(sql)
