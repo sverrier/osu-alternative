@@ -3,20 +3,20 @@ SCORE_PRESETS = {
     "plays": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
-        "-order": "COUNT(*)",
+        "-order": "COUNT(DISTINCT beatmap_id)",
         "title": "Total plays",
     },
     "easyclears": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
-        "-order": "COUNT(*)",
+        "-order": "COUNT(DISTINCT beatmap_id)",
         "-difficulty_removing": "false",
         "title": "Total easy clears",
     },
     "clears": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
-        "-order": "COUNT(*)",
+        "-order": "COUNT(DISTINCT beatmap_id)",
         "-difficulty_removing": "false",
         "-difficulty_reducing": "false",
         "title": "Total normal clears",
@@ -24,7 +24,7 @@ SCORE_PRESETS = {
     "extraclears": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
-        "-order": "COUNT(*)",
+        "-order": "COUNT(DISTINCT beatmap_id)",
         "-difficulty_removing": "false",
         "-difficulty_reducing": "false",
         "-grade-notin": "c,d",
@@ -34,7 +34,7 @@ SCORE_PRESETS = {
     "ultraclears": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
-        "-order": "COUNT(*)",
+        "-order": "COUNT(DISTINCT beatmap_id)",
         "-difficulty_removing": "false",
         "-difficulty_reducing": "false",
         "-accuracy-min": "0.95",

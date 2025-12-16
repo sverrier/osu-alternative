@@ -17,14 +17,14 @@ class Scores(commands.Cog):
             if result and result[0]:
                 di["-user_id"] = result[0][0]
 
-        query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
-
-        rows, _ = await self.bot.db.executeQuery(query)
-
-        if not rows:
-            return
+        if di.get("-mode") is None and di.get("-mode-in") is None:
+            #default to user set mode
+            query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
+            rows, _ = await self.bot.db.executeQuery(query)
+            if not rows:
+                return
         
-        di["-mode-in"] = rows[0]["mode"]
+            di["-mode-in"] = rows[0]["mode"]
 
         # Parse -include into a set of values
         include_raw = di.get("-include", "")

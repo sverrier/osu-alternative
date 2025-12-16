@@ -13,14 +13,14 @@ class Completion(commands.Cog):
     async def _set_defaults(self, ctx, di):
         discordid = ctx.author.id
 
-        query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
-
-        rows, _ = await self.bot.db.executeQuery(query)
-
-        if not rows:
-            return
+        if di.get("-mode") is None and di.get("-mode-in") is None:
+            #default to user set mode
+            query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
+            rows, _ = await self.bot.db.executeQuery(query)
+            if not rows:
+                return
         
-        di["-mode-in"] = rows[0]["mode"]
+            di["-mode-in"] = rows[0]["mode"]
 
         if di.get("-include") != "loved":
             di.setdefault("-status-not", "loved")
