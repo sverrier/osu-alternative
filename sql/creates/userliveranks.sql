@@ -1,4 +1,4 @@
-CREATE TABLE public.userliveranks (
+CREATE TABLE IF NOT EXISTS public.userliveranks (
     userliverank_id int8 NOT NULL,
     lchg_time timestamp DEFAULT now() NULL,
     osu_global_ss_rank int4 NULL,
