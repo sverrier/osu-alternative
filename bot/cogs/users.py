@@ -1,6 +1,6 @@
 from discord.ext import commands
 from bot.util.helpers import get_args
-from bot.util.presets import USER_PRESETS, SCORE_PRESETS
+from bot.util.presets import *
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 from bot.util.helpers import separate_beatmap_filters, separate_user_filters
@@ -33,10 +33,6 @@ class Users(commands.Cog):
         if "converts" not in include_set:
             di.setdefault("-convertless", "true")
 
-        if "d" not in include_set:
-            di.setdefault("-grade-not", "d")
-
-
     @commands.command(aliases=["u"])
     async def users(self, ctx, *args):
         """Count of users"""
@@ -46,7 +42,72 @@ class Users(commands.Cog):
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
 
-    @commands.command(aliases=["ul", "leaderboard", "l"])
+    @commands.command(aliases=["l"])
+    async def leaderboard(self, ctx, *args):
+        di = get_args(args)
+        table = "userLive"
+        # Get user_id if not specified
+        discordid = ctx.author.id
+        username = None
+        if "-user_id" not in di and "-username" not in di:
+            query = f"SELECT r.user_id, ul.username FROM registrations r inner join userLive ul on r.user_id = ul.user_id WHERE discordid = '{discordid}'"
+            result, _ = await self.bot.db.executeQuery(query)
+            if result and result[0]:
+                username = result[0][1] if len(result[0]) > 1 else None
+        
+        preset = get_leaderboard_preset(di.get("-o", "clears"))
+
+        if preset is not None:
+            columns = preset["columns"]
+            title = preset["title"]
+            for k, v in preset.items():
+                if k.startswith("-"):
+                    di[k] = v
+
+            await self._set_defaults(ctx, di)
+
+            if di.get("-include") == "d":
+                di.pop("-grade-not", None)
+        else:
+            await ctx.reply("Preset not allowed. See valid presets with !help presets")           
+            return
+        
+        sql = QueryBuilder(di, columns, table).getQuery()
+        result, elapsed = await self.bot.db.executeQuery(sql)
+        if di.get("-o") == "sets":
+            columns = "DISTINCT beatmapset_id"
+        else:
+            columns = "DISTINCT beatmap_id"
+        beatmap_args = separate_beatmap_filters(di)
+        sql = QueryBuilder(beatmap_args, columns, "beatmapLive").getQuery()
+        beatmaps, elapsed = await self.bot.db.executeQuery(sql)
+
+        formatter = Formatter(title=title, footer=f"Based on Scores • took {elapsed:.2f}s")
+
+        page_size = int(di.get("-limit", 10))
+        page_arg = di.get("-page", "1")
+        
+        if page_arg.lower() == "me" and username is not None:
+            user_page = formatter.calculate_user_page(result, username, page_size)
+            if user_page is not None:
+                page = user_page
+            else:
+                page = 1  # Default to page 1 if user not found
+        else:
+            page = int(page_arg)
+
+        count = len(beatmaps)
+        
+        embed = formatter.as_leaderboard(
+            result, count, 
+            page=page, 
+            page_size=page_size, 
+            elapsed=elapsed,
+            user=username
+        )
+        await ctx.reply(embed=embed)
+
+    @commands.command(aliases=["ul"])
     async def userlist(self, ctx, *args):
         di = get_args(args)
         table = "userLive"
@@ -59,7 +120,7 @@ class Users(commands.Cog):
             if result and result[0]:
                 username = result[0][1] if len(result[0]) > 1 else None
         
-        preset_key = di.get("-o", "clears")
+        preset_key = di.get("-o", "total_ranked_score")
 
         user_columns = set(TABLE_METADATA["userLive"].keys())
 
@@ -67,28 +128,20 @@ class Users(commands.Cog):
             columns = di.get("-columns", f"username,COALESCE({preset_key}, 0)")
             title = "Leaderboard"
             di.setdefault("-order", f"COALESCE({preset_key}, 0)")
-        else:
-            if preset_key in SCORE_PRESETS:
-                preset = SCORE_PRESETS[preset_key]
+        elif preset_key in USER_PRESETS:
+            preset = get_user_preset(di.get("-o"))
+
+            if preset is not None:
                 columns = preset["columns"]
                 title = preset["title"]
                 for k, v in preset.items():
                     if k.startswith("-"):
                         di[k] = v
 
-                await self._set_defaults(ctx, di)
-
-                if di.get("-include") == "d":
-                    di.pop("-grade-not", None)
-            elif preset_key in USER_PRESETS:
-                preset = USER_PRESETS[preset_key]
-                columns = preset["columns"]
-                title = preset["title"]
-                for k, v in preset.items():
-                    if k.startswith("-"):
-                        di[k] = v
-
-                di = separate_user_filters(di)            
+                di = separate_user_filters(di)           
+            else:
+                await ctx.reply("Preset not allowed. See valid presets with !help presets or !help user")
+                return
         
         sql = QueryBuilder(di, columns, table).getQuery()
         result, elapsed = await self.bot.db.executeQuery(sql)

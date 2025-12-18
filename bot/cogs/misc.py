@@ -3,6 +3,7 @@ from discord.ext import commands
 import discord
 from bot.util.helpers import get_args
 from bot.util.schema import TABLE_METADATA, get_column_info, generate_help_text
+from bot.util.presets import *
 
 class Misc(commands.Cog):
     def __init__(self, bot):
@@ -176,7 +177,10 @@ class Misc(commands.Cog):
         elif query in ["parameter", "parameters", "param", "params"]:
             await self._send_parameters_help(ctx)
         elif query in ["preset", "presets"]:
-            await self._send_presets_help(ctx)
+            if len(args) >= 2:
+                await self._send_single_preset_help(ctx, " ".join(args[1:]))
+            else:
+                await self._send_presets_help(ctx)
         elif query in ["example", "examples"]:
             await self._send_examples_help(ctx)
         # Help for specific tables
@@ -186,6 +190,9 @@ class Misc(commands.Cog):
             await self._send_table_help(ctx, "scoreLive", "Score Columns")
         elif query in ["user", "users", "userlive"]:
             await self._send_table_help(ctx, "userLive", "User Columns")
+        elif resolve_any_preset(query):
+            await self._send_single_preset_help(ctx, query)
+            return
         else:
             # Help for specific column
             column_info = get_column_info(query)
@@ -431,70 +438,126 @@ class Misc(commands.Cog):
         await ctx.reply(embed=embed)
     
     async def _send_presets_help(self, ctx):
-        """Send help for presets"""
+        """Send help for presets (auto-generated from bot.utils.presets)"""
+
+        def invert_synonyms(syn_map: dict) -> dict:
+            """
+            canonical -> sorted list of aliases (excluding the canonical key itself if present)
+            """
+            out = {}
+            for alias, canonical in syn_map.items():
+                out.setdefault(canonical, set()).add(alias)
+            # sort + remove canonical key if it appears in aliases
+            cleaned = {}
+            for canonical, aliases in out.items():
+                aliases = set(aliases)
+                aliases.discard(canonical)
+                cleaned[canonical] = sorted(aliases)
+            return cleaned
+
+        def preset_line(key: str, preset: dict, alias_map: dict) -> str:
+            title = preset.get("title", "").strip()
+            title_part = f" — {title}" if title else ""
+            aliases = alias_map.get(key, [])
+            alias_part = f"\n  Aliases: {', '.join(f'`{a}`' for a in aliases[:12])}" if aliases else ""
+            more = f" (+{len(aliases)-12} more)" if len(aliases) > 12 else ""
+            return f"• `-o {key}`{title_part}{alias_part}{more}"
+
+        lb_aliases = invert_synonyms(SCORE_PRESET_SYNONYMS)
+        user_aliases = invert_synonyms(USER_PRESET_SYNONYMS)
+        bm_aliases = invert_synonyms(BEATMAP_PRESET_SYNONYMS)
+
         embed = discord.Embed(
-            title="🎯 Query Presets",
-            description="Predefined configurations for userlist command",
+            title="🎯 Presets (`-o <preset>`)",
+            description=(
+                "Presets are predefined output configs.\n"
+                "Use them like: `!userlist -o plays` or `!userlist -o playtime`\n"
+                "For beatmaps/users/scores, the command decides which preset group is used."
+            ),
             color=discord.Color.green()
         )
-        
+
+        # LEADERBOARD presets (used by userlist / leaderboard-style commands)
+        if LEADERBOARD_PRESETS:
+            lines = [preset_line(k, LEADERBOARD_PRESETS[k], lb_aliases) for k in sorted(LEADERBOARD_PRESETS.keys())]
+            # Discord embed field limits: keep each field reasonably sized
+            chunk = "\n".join(lines[:20])
+            embed.add_field(name="🏆 Leaderboard presets", value=chunk, inline=False)
+            if len(lines) > 20:
+                embed.add_field(
+                    name="🏆 Leaderboard presets (more)",
+                    value="\n".join(lines[20:40]),
+                    inline=False
+                )
+
+        # USER presets
+        if USER_PRESETS:
+            lines = [preset_line(k, USER_PRESETS[k], user_aliases) for k in sorted(USER_PRESETS.keys())]
+            embed.add_field(name="👤 User presets", value="\n".join(lines), inline=False)
+
+        # BEATMAP presets
+        if BEATMAP_PRESETS:
+            lines = [preset_line(k, BEATMAP_PRESETS[k], bm_aliases) for k in sorted(BEATMAP_PRESETS.keys())]
+            embed.add_field(name="🎵 Beatmap presets", value="\n".join(lines), inline=False)
+
         embed.add_field(
-            name="`-o plays`",
+            name="Examples",
             value=(
-                "**Total plays** - Count of all plays\n"
-                "• Columns: username, COUNT(*)\n"
-                "• Filters: Highest scores, excludes D ranks by default"
+                "`!userlist -o plays -stars-min 6 -l 10`\n"
+                "`!userlist -o normalclears -mode 0 -l 25`\n"
+                "`!beatmaps -o count -mode 0 -status ranked`"
             ),
             inline=False
         )
-        
+
+        embed.set_footer(text="Tip: aliases like `clears` → `normalclears`, `ec` → `easyclears`, etc. work too.")
+        await ctx.reply(embed=embed)
+
+    async def _send_single_preset_help(self, ctx, preset_name: str):
+        resolved = resolve_any_preset(preset_name)
+        if not resolved:
+            await ctx.reply(f"❌ Unknown preset: `{preset_name}`\nTry `!help presets` to list them.")
+            return
+
+        category, canonical, preset, aliases = resolved
+
+        title = preset.get("title", canonical)
+        desc = preset.get("description", "No description available.")
+
+        embed = discord.Embed(
+            title=f"🎯 Preset: {canonical}",
+            description=f"**{title}**\n{desc}",
+            color=discord.Color.green()
+        )
+
+        embed.add_field(name="Category", value=category, inline=True)
+        if "columns" in preset:
+            embed.add_field(name="Columns", value=f"`{preset['columns']}`", inline=False)
+
+        # show default filters (everything starting with '-' except group/order)
+        filter_lines = []
+        for k, v in preset.items():
+            if not k.startswith("-"):
+                continue
+            if k in ("-group", "-order"):
+                continue
+            filter_lines.append(f"`{k}` = `{v}`")
+
+        if filter_lines:
+            embed.add_field(name="Default Filters", value="\n".join(filter_lines), inline=False)
+
+        if aliases:
+            # keep it readable
+            shown = aliases[:20]
+            extra = f" (+{len(aliases)-20} more)" if len(aliases) > 20 else ""
+            embed.add_field(name="Aliases", value=", ".join(f"`{a}`" for a in shown) + extra, inline=False)
+
         embed.add_field(
-            name="`-o clears`",
-            value=(
-                "**Total clears** - Passed plays only\n"
-                "• Columns: username, COUNT(*)\n"
-                "• Filters: No difficulty removing mods, excludes D ranks by default"
-            ),
+            name="Usage",
+            value=f"`!userlist -o {canonical}` (leaderboards)\n`!help preset {canonical}` (this page)",
             inline=False
         )
-        
-        embed.add_field(
-            name="`-o hardclears`",
-            value=(
-                "**Hard clears** - No difficulty affecting mods\n"
-                "• Columns: username, COUNT(*)\n"
-                "• Filters: No EZ/NF/HT, excludes D ranks by default"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="`-o playcount`",
-            value=(
-                "**Total playcount** - User playcount leaderboard\n"
-                "• Columns: username, total_play_count\n"
-                "• Ordered by total_play_count"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="`-o playtime`",
-            value=(
-                "**Total playtime** - Total hours played\n"
-                "• Columns: username, total_play_time/3600\n"
-                "• Ordered by total_play_time"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="Usage Example",
-            value="`!userlist -o plays -stars-min 6 -p 1 -l 10`",
-            inline=False
-        )
-        
-        embed.set_footer(text="You can combine presets with additional filters")
+
         await ctx.reply(embed=embed)
     
     async def _send_examples_help(self, ctx):

@@ -2,7 +2,7 @@ from discord.ext import commands
 from bot.util.helpers import get_args, get_order_formatter
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
-from bot.util.presets import BEATMAP_PRESETS
+from bot.util.presets import *
 
 class Beatmaps(commands.Cog):
     def __init__(self, bot):
@@ -31,15 +31,15 @@ class Beatmaps(commands.Cog):
 
         await self._set_defaults(ctx, di)
 
-        preset_key = di.get("-o")
-        if preset_key in BEATMAP_PRESETS:
+        preset_key = get_beatmap_preset(di.get("-o", "count"))
+        if preset_key is not None:
             preset = BEATMAP_PRESETS[preset_key]
             columns = preset["columns"]
             for k, v in preset.items():
                 if k.startswith("-"):
                     di[k] = v
         else:
-            columns = "count(*)"
+            await ctx.reply("Preset not allowed. See valid presets with !help presets")
         sql = QueryBuilder(di, columns, "beatmapLive").getQuery()
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
