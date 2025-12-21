@@ -1,5 +1,5 @@
 from discord.ext import commands
-from bot.util.helpers import get_args, get_order_formatter
+from bot.util.helpers import get_args
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 from bot.util.presets import *
@@ -64,11 +64,9 @@ class Beatmaps(commands.Cog):
         formatter = Formatter(title=f"Total beatmaps: {len(result)}")
 
         extra_key = None
-        extra_fmt = "{value}"
 
         if order_col:
             extra_key = order_col                # which column to display
-            extra_fmt = get_order_formatter(order_col)  # how to display it
 
         embed = formatter.as_beatmap_list(
             result,
@@ -76,7 +74,6 @@ class Beatmaps(commands.Cog):
             page_size=int(di.get("-limit", 10)),
             elapsed=elapsed,
             extra_key=extra_key,
-            extra_fmt=extra_fmt,
         )
 
         await ctx.reply(embed=embed)

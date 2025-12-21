@@ -2,6 +2,9 @@ import discord
 from io import StringIO
 import csv
 import textwrap
+from dataclasses import dataclass
+
+from bot.util.formatting import format_field
 
 class Formatter:
     def __init__(self, title, total=None, footer=None, color=0x5865F2):
@@ -32,8 +35,7 @@ class Formatter:
         page: int = 1,
         page_size: int = 10,
         elapsed: float | None = None,
-        extra_key: str | None = None,
-        extra_fmt: str = "{value}",
+        extra_key: str | None = None
     ):
         """
         Format beatmap list into a Discord embed.
@@ -42,7 +44,6 @@ class Formatter:
             stars, artist, title, version, beatmap_id, beatmapset_id, mode
         Optionally:
             extra_key: name of a column in row to display between stars and link.
-            extra_fmt: formatting string, e.g. "{value} BPM" or "{value:.1f}x".
         """
 
         start = (page - 1) * page_size
@@ -64,8 +65,9 @@ class Formatter:
             if extra_key is not None:
                 value = row.get(extra_key)
                 if value is not None:
-                    extra_str = extra_fmt.format(value=value, row=row)
-                    extra_part = f" • {extra_str}"
+                    # centralized formatting
+                    extra_str = format_field(extra_key, value, table="beatmapLive")
+                    extra_part = f" | {extra_str}"
 
             mode_name = ['osu', 'taiko', 'fruits', 'mania'][row['mode']]
             url = (
@@ -84,7 +86,7 @@ class Formatter:
         page_count = (total + page_size - 1) // page_size
         time_part = f" • took {elapsed:.2f}s" if elapsed is not None else ""
         embed.set_footer(
-            text=f"Page {page} of {page_count} • Amount: {total:,}{time_part}"
+            text=f"Page {page} of {page_count} • Amount: {format_field('count', total)}{time_part}"
         )
 
         return embed
@@ -161,7 +163,7 @@ class Formatter:
 
             # Example line:
             # 4.12–6.37★ | [Artist - Title](https://osu.ppy.sh/beatmapsets/123456) • 5 diffs
-            count_str = f"{int(beatmap_count):,}" if beatmap_count is not None else "0"
+            count_str = format_field("beatmap_count", beatmap_count)
             if sr_str:
                 lines.append(f"{sr_str} | [{artist} - {title}]({url}) • {count_str} diffs")
             else:
@@ -171,7 +173,7 @@ class Formatter:
 
         total = len(result)
         page_count = max((total + page_size - 1) // page_size, 1)
-        footer_text = f"Page {page} of {page_count} • Sets: {total:,}"
+        footer_text = f"Page {page} of {page_count} • Sets: {format_field('count', total)}"
         if elapsed is not None:
             footer_text += f" • took {elapsed:.2f}s"
         if self.footer:
@@ -215,28 +217,31 @@ class Formatter:
             leaderboard[0]["difference"] = None
 
         embed = discord.Embed(
-            title=f"{self.title} | {total:,} beatmaps",
+            title=f"{self.title} | {format_field('count', total)} beatmaps",
             color=self.color
         )
 
         # Determine consistent column widths (include user_data if adding them)
         all_data = leaderboard if user_found or user_data is None else leaderboard + [user_data]
         width_name = max(len(d["username"]) for d in all_data) if all_data else 10
-        width_count = max(len(f"{d['count']:,}") for d in all_data) if all_data else 5
+        width_count = max(len(format_field("count", d["count"])) for d in all_data) if all_data else 5
 
         lines = []
         for d in leaderboard:
             diff = d.get("difference")
-            diff_str = f"{diff:+,}" if diff is not None else ""
+            diff_str = ""
+            if diff is not None:
+                sign = "+" if diff >= 0 else "-"
+                diff_str = sign + format_field("count", abs(diff))
             lines.append(
-                f"#{d['rank']:<2} | {d['username']:<{width_name}} | {d['count']:<{width_count},} | {diff_str:<6}"
+                f"#{d['rank']:<2} | {d['username']:<{width_name}} | {format_field('count', d['count']):<{width_count}} | {diff_str:<6}"
             )
         
         # Add user at the bottom if not found in current page
         if user_data is not None and not user_found:
             lines.append("..." + "-" * (width_name + width_count + 20))
             lines.append(
-                f"#{user_data['rank']:<2} | {user_data['username']:<{width_name}} | {user_data['count']:<{width_count},} | {'':6}"
+                f"#{user_data['rank']:<2} | {user_data['username']:<{width_name}} | {format_field('count', user_data['count']):<{width_count}} | {'':6}"
             )
 
         embed.description = f"```\n" + "\n".join(lines) + "\n```"
@@ -244,7 +249,7 @@ class Formatter:
         # Update footer with pagination info
         total_results = len(result)
         page_count = (total_results + page_size - 1) // page_size
-        footer_text = f"Page {page} of {page_count} • Amount: {total_results:,}"
+        footer_text = f"Page {page} of {page_count} • Amount: {format_field('count', total_results)}"
         if elapsed is not None:
             footer_text += f" • took {elapsed:.2f}s"
         if self.footer:
@@ -273,16 +278,16 @@ class Formatter:
         # Calculate column widths
         width_range = max(len(d["range"]) for d in data) if data else 10
         width_percentage = 8
-        width_fraction = max(len(f"{d['played']:,}/{d['total']:,}") for d in data) if data else 10
-        width_missing = max(len(f"{d['missing']:,}") for d in data) if data else 5
+        width_fraction = max(len(f"{format_field('played', d['played'])}/{format_field('total', d['total'])}") for d in data) if data else 10
+        width_missing = max(len(format_field("missing", d["missing"])) for d in data) if data else 5
         
         # Build table lines
         lines = []
         for d in data:
             range_str = d["range"].ljust(width_range)
             percentage_str = f"{d['percentage']:06.3f}%".rjust(width_percentage)
-            fraction_str = f"{d['played']:,}/{d['total']:,}".rjust(width_fraction)
-            missing_str = f"-{d['missing']:,}".replace("-0", "✓").rjust(width_missing + 1)
+            fraction_str = f"{format_field('played', d['played'])}/{format_field('total', d['total'])}".rjust(width_fraction)
+            missing_str = ("✓" if int(d.get("missing") or 0) == 0 else "-" + format_field("missing", d["missing"])).rjust(width_missing + 1)
             
             lines.append(f"{range_str} | {percentage_str} | {fraction_str} | {missing_str}")
         
@@ -370,9 +375,9 @@ class Formatter:
         total_beatmaps = len(beatmap_list)
         page_count = (total_beatmaps + page_size - 1) // page_size
         embed.set_footer(
-            text=f"Page {page} of {page_count} • Beatmaps: {total_beatmaps:,} • took {elapsed:.2f}s"
+            text=f"Page {page} of {page_count} • Beatmaps: {format_field('count', total_beatmaps)} • took {elapsed:.2f}s"
             if elapsed is not None
-            else f"Page {page} of {page_count} • Beatmaps: {total_beatmaps:,}"
+            else f"Page {page} of {page_count} • Beatmaps: {format_field('count', total_beatmaps)}"
         )
 
         return embed

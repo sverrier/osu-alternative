@@ -44,24 +44,6 @@ PARAM_SYNONYM_MAP = {
     "-p": "-page",
 }
 
-# Maps column names → formatting strings for display in beatmaplist extra stat
-ORDER_COLUMN_FORMATS = {
-    "bpm": "{value} BPM",
-    "length": "{value}s",
-    "drain_time": "{value}s",
-    "play_count": "{value:,} plays",
-    "pass_count": "{value:,} passes",
-    "favourite_count": "{value:,} favs",
-    "max_combo": "{value}x",
-    # add others as needed
-}
-
-def get_order_formatter(column: str) -> str:
-    """
-    Returns a format string for the given column, or a fallback "{value}".
-    """
-    return ORDER_COLUMN_FORMATS.get(column, "{value}")
-
 
 def escape_string(s):
     special_chars = {"'": "''", "\\": "\\\\", '"': ""}

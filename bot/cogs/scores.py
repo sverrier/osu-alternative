@@ -3,6 +3,8 @@ from discord.ext import commands
 from bot.util.helpers import get_args
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
+from bot.util.formatting import format_field
+from bot.util.presets import *
 
 class Scores(commands.Cog):
     def __init__(self, bot):
@@ -11,14 +13,8 @@ class Scores(commands.Cog):
     async def _set_defaults(self, ctx, di):
         discordid = ctx.author.id
 
-        if "-user_id" not in di and "-username" not in di:
-            query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
-            result, _ = await self.bot.db.executeQuery(query)
-            if result and result[0]:
-                di["-user_id"] = result[0][0]
-
+        #Use user's preferred mode set by default
         if di.get("-mode") is None and di.get("-mode-in") is None:
-            #default to user set mode
             query = f"SELECT mode FROM registrations WHERE discordid = '{discordid}'"
             rows, _ = await self.bot.db.executeQuery(query)
             if not rows:
@@ -35,28 +31,50 @@ class Scores(commands.Cog):
 
         if "converts" not in include_set:
             di.setdefault("-convertless", "true")
-
-        if "d" not in include_set:
-            di.setdefault("-grade-not", "d")
         
         if "all" not in include_set:
             di.setdefault("-highest_score", "true")
+        
+        if "everyone" not in include_set:
+            if "-user_id" not in di and "-username" not in di:
+                query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
+                result, _ = await self.bot.db.executeQuery(query)
+                if result and result[0]:
+                    di["-user_id"] = result[0][0]
 
     @commands.command(aliases=["s"])
     async def scores(self, ctx, *args):
         di = get_args(args)
-        columns = "count(*)"
-        if di.get("-o") == "score":
-            columns = "sum(classic_total_score)"
-        elif di.get("-o") == "legacy":
-            columns = "sum(legacy_total_score)"
         table = "scoreLive"
-
+        preset = get_score_preset(di.get("-o", "count"))
         await self._set_defaults(ctx, di)
 
-        sql = QueryBuilder(di, columns, table).getQuery()
+        if preset is None:
+            await ctx.reply("Preset not allowed. See valid presets with !help presets or !help user")
+            return
+
+        columns = preset["columns"]
+
+        # apply preset flags
+        for k, v in preset.items():
+            if k.startswith("-"):
+                di[k] = v
+
+        # ensure we can format by a stable output name
+        alias = preset.get("alias", "result")
+        columns_aliased = f"{columns} AS {alias}"
+
+        sql = QueryBuilder(di, columns_aliased, table).getQuery()
         result, _ = await self.bot.db.executeQuery(sql)
-        await ctx.reply(str(result[0][0]))
+
+        val = None
+        if result:
+            # supports both list-of-tuples and list-of-dicts patterns
+            row0 = result[0]
+            val = row0[alias] if dict else row0[0]
+
+        msg = format_field(alias, val, table=table, alias=alias)
+        await ctx.reply(msg)
 
     @commands.command(aliases=["sl"])
     async def scorelist(self, ctx, *args):

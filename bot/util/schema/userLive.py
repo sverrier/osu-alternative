@@ -88,3 +88,48 @@ _TOTAL_STATS = {
 }
 
 USER_LIVE_METADATA.update(_TOTAL_STATS)
+
+def _apply_display_hints(meta: dict[str, dict]) -> None:
+    for key, m in meta.items():
+        # don’t overwrite if you explicitly set one
+        if "display" in m:
+            continue
+
+        # time in seconds -> hms
+        if key.endswith("_play_time") or key == "total_play_time":
+            m["display"] = "seconds_hms"
+            continue
+
+        # percent-ish fields (your metadata uses 0..100)
+        if key.endswith("_hit_accuracy"):
+            m["display"] = "percent_2"
+            continue
+        if key.endswith("_level_progress"):
+            m["display"] = "percent_0"
+            continue
+
+        # pp (float)
+        if key.endswith("_pp") or key == "total_pp":
+            m["display"] = "pp_2"   # implement in formatting.py
+            continue
+
+        # combo
+        if key.endswith("_maximum_combo"):
+            m["display"] = "combo_x"  # implement in formatting.py
+            continue
+
+        # big ints: counts/scores/hits/grades/etc
+        if (
+            key.endswith("_ranked_score")
+            or key.endswith("_total_score")
+            or key.endswith("_total_hits")
+            or key.endswith("_play_count")
+            or key.startswith(("total_grade_counts_", "total_replays_", "total_ranked_"))
+            or "_count_" in key                  # count_300/count_100/...
+            or "grade_counts_" in key
+            or "replays_watched_by_others" in key
+        ):
+            if m.get("type") == "int":
+                m["display"] = "int_commas"
+
+_apply_display_hints(USER_LIVE_METADATA)

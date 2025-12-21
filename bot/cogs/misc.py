@@ -463,7 +463,7 @@ class Misc(commands.Cog):
             more = f" (+{len(aliases)-12} more)" if len(aliases) > 12 else ""
             return f"• `-o {key}`{title_part}{alias_part}{more}"
 
-        lb_aliases = invert_synonyms(SCORE_PRESET_SYNONYMS)
+        lb_aliases = invert_synonyms(LEADERBOARD_PRESET_SYNONYMS)
         user_aliases = invert_synonyms(USER_PRESET_SYNONYMS)
         bm_aliases = invert_synonyms(BEATMAP_PRESET_SYNONYMS)
 

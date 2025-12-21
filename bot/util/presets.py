@@ -196,25 +196,113 @@ USER_PRESETS = {
         "description": "Ranks users by total_play_count (highest first).",
     },
     "playtime": {
-        "columns": "username, total_play_time/3600",
+        "columns": "username, total_play_time",
         "-order": "total_play_time",
         "title": "Total playtime",
-        "description": "Ranks users by total_play_time (highest first) and displays time in hours (seconds / 3600).",
+        "description": "Ranks users by total_play_time (highest first) and displays time in hours",
     },
 }
 
 # bot/utils/presets.py
 BEATMAP_PRESETS = {
     "length": {
-        "columns": "format_time_from_seconds(sum(length))",
+        "columns": "sum(length)",
+        "alias": "length",
         "title": "Total length of beatmaps",
-        "description": "Sums beatmap length (seconds) across matches and formats the total into a human-readable time string.",
+        "description": "Sums beatmap length across a set of maps",
     },
     "count": {
         "columns": "count(*)",
+        "alias": "count",
         "title": "Total beatmap count",
         "description": "Counts the number of beatmaps matching the current filters.",
     },
+}
+
+# bot/utils/presets.py
+SCORE_PRESETS = {
+    "length": {
+        "columns": "sum(length)",
+        "alias": "length",
+        "title": "Total length of scores",
+        "description": "Sums length of scores matching the current filters.",
+    },
+    "count": {
+        "columns": "count(*)",
+        "alias": "count",
+        "title": "Total score count",
+        "description": "Counts the number of scores matching the current filters.",
+    },
+    "score": {
+        "columns": "sum(total_score)",
+        "alias": "total_score",
+        "title": "Score (standardized)",
+        "description": "Sums standardized score (total_score) matching the current filters.",
+    },
+    "classicscore": {
+        "columns": "sum(classic_total_score)",
+        "alias": "classic_total_score",
+        "title": "Score (classic)",
+        "description": "Sums standardized score (classic_total_score) matching the current filters.",
+    },
+    "legacyscore": {
+        "columns": "sum(legacy_total_score)",
+        "alias": "legacy_total_score",
+        "title": "Score (legacy)",
+        "description": "Sums legacy score (legacy_total_score) matching the current filters.",
+    }
+}
+
+LEADERBOARD_PRESET_SYNONYMS = {
+    "plays": "plays",
+    "played": "plays",
+    "play": "plays",
+
+    "scores": "scores",
+    "scored": "scores",
+
+    "easyclears": "easyclears",
+    "ec": "easyclears",
+
+    "normalclears": "normalclears",
+    "nc": "normalclears",
+    "clears": "normalclears",
+    "clear": "normalclears",
+
+    "hardclears": "hardclears",
+    "hc": "hardclears",
+
+    "extraclears": "extraclears",
+    "exc": "extraclears",
+
+    "ultraclears": "ultraclears",
+    "uc": "ultraclears",
+
+    "overclears": "overclears",
+    "oc": "overclears",
+
+    "fc": "fc",
+    "full_combo": "fc",
+
+    "ss": "ss",
+    "s": "s",
+    "a": "a",
+    "b": "b",
+    "c": "c",
+    "d": "d",
+
+    "uss": "unique_ss",
+    "unique_ss": "unique_ss",
+    "ufc": "unique_fc",
+    "unique_fc": "unique_fc",
+
+    "score": "score",
+    "standardized": "score",
+    "classicscore": "classicscore",
+    "legacyscore": "legacyscore",
+
+    "sets": "sets",
+    "beatmapsets": "sets",
 }
 
 SCORE_PRESET_SYNONYMS = {
@@ -255,19 +343,21 @@ SCORE_PRESET_SYNONYMS = {
     "c": "c",
     "d": "d",
 
+
     "uss": "unique_ss",
     "unique_ss": "unique_ss",
+    "ufc": "unique_fc",
+    "unique_fc": "unique_fc",
 
     "score": "score",
     "standardized": "score",
-
     "classicscore": "classicscore",
-
     "legacyscore": "legacyscore",
 
-    "sets": "sets",
-    "beatmapsets": "sets",
+    "count":"count",
+    "length":"length",
 }
+
 
 USER_PRESET_SYNONYMS = {
     "playcount": "playcount",
@@ -310,10 +400,13 @@ def resolve_preset(
         return None
 
 def get_leaderboard_preset(name: str):
-    return resolve_preset(name, LEADERBOARD_PRESETS, SCORE_PRESET_SYNONYMS)
+    return resolve_preset(name, LEADERBOARD_PRESETS, LEADERBOARD_PRESET_SYNONYMS)
 
 def get_user_preset(name: str):
     return resolve_preset(name, USER_PRESETS, USER_PRESET_SYNONYMS)
+
+def get_score_preset(name: str):
+    return resolve_preset(name, SCORE_PRESETS, SCORE_PRESET_SYNONYMS)
 
 def get_beatmap_preset(name: str):
     return resolve_preset(name, BEATMAP_PRESETS, BEATMAP_PRESET_SYNONYMS)
@@ -332,7 +425,7 @@ def invert_synonyms(syn_map: dict) -> dict:
     return cleaned
 
 
-_LEADERBOARD_ALIAS_MAP = invert_synonyms(SCORE_PRESET_SYNONYMS)
+_LEADERBOARD_ALIAS_MAP = invert_synonyms(LEADERBOARD_PRESET_SYNONYMS)
 _USER_ALIAS_MAP = invert_synonyms(USER_PRESET_SYNONYMS)
 _BEATMAP_ALIAS_MAP = invert_synonyms(BEATMAP_PRESET_SYNONYMS)
 
@@ -346,7 +439,7 @@ def resolve_any_preset(name: str):
     key = normalize_preset_key(name)
 
     # Leaderboard presets
-    canonical = SCORE_PRESET_SYNONYMS.get(key)
+    canonical = LEADERBOARD_PRESET_SYNONYMS.get(key)
     if canonical and canonical in LEADERBOARD_PRESETS:
         return ("leaderboard", canonical, LEADERBOARD_PRESETS[canonical], _LEADERBOARD_ALIAS_MAP.get(canonical, []))
 
