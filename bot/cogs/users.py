@@ -139,9 +139,9 @@ class Users(commands.Cog):
                         di[k] = v
 
                 di = separate_user_filters(di)           
-            else:
-                await ctx.reply("Preset not allowed. See valid presets with !help presets or !help user")
-                return
+        else:
+            await ctx.reply("Preset not allowed. See valid presets with !help presets or !help user")
+            return
         
         sql = QueryBuilder(di, columns, table).getQuery()
         result, elapsed = await self.bot.db.executeQuery(sql)
