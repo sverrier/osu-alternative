@@ -371,6 +371,7 @@ USER_PRESET_SYNONYMS = {
 
 BEATMAP_PRESET_SYNONYMS = {
     "length": "length",
+    "count": "count",
     "total length": "length",
     "playtime": "length",
 }

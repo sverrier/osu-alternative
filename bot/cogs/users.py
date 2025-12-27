@@ -60,6 +60,7 @@ class Users(commands.Cog):
         if preset is not None:
             columns = preset["columns"]
             title = preset["title"]
+            alias = preset.get("alias")
             for k, v in preset.items():
                 if k.startswith("-"):
                     di[k] = v
@@ -103,7 +104,8 @@ class Users(commands.Cog):
             page=page, 
             page_size=page_size, 
             elapsed=elapsed,
-            user=username
+            user=username,
+            metric_alias=alias
         )
         await ctx.reply(embed=embed)
 
@@ -145,15 +147,12 @@ class Users(commands.Cog):
         
         sql = QueryBuilder(di, columns, table).getQuery()
         result, elapsed = await self.bot.db.executeQuery(sql)
-        if di.get("-o") == "sets":
-            columns = "DISTINCT beatmapset_id"
-        else:
-            columns = "DISTINCT beatmap_id"
-        beatmap_args = separate_beatmap_filters(di)
-        sql = QueryBuilder(beatmap_args, columns, "beatmapLive").getQuery()
+
+        user_args = separate_user_filters(di)
+        sql = QueryBuilder(user_args, columns, "userLive").getQuery()
         beatmaps, elapsed = await self.bot.db.executeQuery(sql)
 
-        formatter = Formatter(title=title, footer=f"Based on Scores • took {elapsed:.2f}s")
+        formatter = Formatter(title=title, footer=f"Based on Users • took {elapsed:.2f}s")
 
         page_size = int(di.get("-limit", 10))
         page_arg = di.get("-page", "1")
@@ -174,7 +173,9 @@ class Users(commands.Cog):
             page=page, 
             page_size=page_size, 
             elapsed=elapsed,
-            user=username
+            user=username,
+            total_label='users',
+            metric_alias=preset_key
         )
         await ctx.reply(embed=embed)
 

@@ -183,12 +183,23 @@ class Formatter:
 
         return embed
 
-    def as_leaderboard(self, result, total, page=1, page_size=10, elapsed=None, user=None):
+    def as_leaderboard(
+        self,
+        result,
+        total,
+        page=1,
+        page_size=10,
+        elapsed=None,
+        user=None,
+        *,
+        metric_alias: str | None = None, # optional alias for format_field
+        total_label: str = "beatmaps",
+    ):
         """
         Render leaderboard from DB query result into a Discord embed with aligned columns.
-        Now supports pagination with -page and -limit flags.
-        If user is provided and not in the current page, adds them at the bottom.
+        raw queried metric values are numeric; formatting is applied on top.
         """
+
         # Apply pagination
         start = (page - 1) * page_size
         end = start + page_size
@@ -196,57 +207,61 @@ class Formatter:
         leaderboard = []
         user_found = False
         user_data = None
-        
+
         # Build leaderboard and check if user is present
         for idx, row in enumerate(result, start=1):
-            username, count = row
+            username, value = row  # value is numeric (int/float)
             if idx >= start + 1 and idx <= end:
-                leaderboard.append({"username": username, "count": int(count), "rank": idx})
-            
-            # Check if this is the user we're looking for
+                leaderboard.append({"username": username, "value": value, "rank": idx})
+
             if user is not None and username == user:
-                user_data = {"username": username, "count": int(count), "rank": idx}
+                user_data = {"username": username, "value": value, "rank": idx}
                 if idx >= start + 1 and idx <= end:
                     user_found = True
 
-        # Calculate differences within the current page
+        # Calculate differences within the current page (numeric)
         for i in range(1, len(leaderboard)):
-            diff = leaderboard[i]["count"] - leaderboard[i - 1]["count"]
-            leaderboard[i]["difference"] = diff
+            leaderboard[i]["difference"] = leaderboard[i]["value"] - leaderboard[i - 1]["value"]
         if leaderboard:
             leaderboard[0]["difference"] = None
 
         embed = discord.Embed(
-            title=f"{self.title} | {format_field('count', total)} beatmaps",
+            title=f"{self.title} | {format_field('count', total)} {total_label}",
             color=self.color
         )
 
         # Determine consistent column widths (include user_data if adding them)
         all_data = leaderboard if user_found or user_data is None else leaderboard + [user_data]
         width_name = max(len(d["username"]) for d in all_data) if all_data else 10
-        width_count = max(len(format_field("count", d["count"])) for d in all_data) if all_data else 5
+        width_val = max(len(format_field(metric_alias, d["value"])) for d in all_data) if all_data else 5
+
+        # format diff using the same formatter + sign
+        def fmt_diff(dv):
+            if dv is None:
+                return ""
+            sign = "+" if dv >= 0 else "-"
+            return sign + format_field(metric_alias, abs(dv))
+
+        width_diff = max(len(fmt_diff(d.get("difference"))) for d in leaderboard) if leaderboard else 0
+        width_diff = max(width_diff, 6)  # keep a minimum so the column doesn't jitter
 
         lines = []
         for d in leaderboard:
-            diff = d.get("difference")
-            diff_str = ""
-            if diff is not None:
-                sign = "+" if diff >= 0 else "-"
-                diff_str = sign + format_field("count", abs(diff))
+            diff_str = fmt_diff(d.get("difference"))
             lines.append(
-                f"#{d['rank']:<2} | {d['username']:<{width_name}} | {format_field('count', d['count']):<{width_count}} | {diff_str:<6}"
+                f"#{d['rank']:<2} | {d['username']:<{width_name}} | {format_field(metric_alias, d['value']):<{width_val}} | {diff_str:<{width_diff}}"
             )
-        
+
         # Add user at the bottom if not found in current page
         if user_data is not None and not user_found:
-            lines.append("..." + "-" * (width_name + width_count + 20))
+            lines.append("..." + "-" * (width_name + width_val + width_diff + 12))
             lines.append(
-                f"#{user_data['rank']:<2} | {user_data['username']:<{width_name}} | {format_field('count', user_data['count']):<{width_count}} | {'':6}"
+                f"#{user_data['rank']:<2} | {user_data['username']:<{width_name}} | {format_field(metric_alias, user_data['value']):<{width_val}} | {'':<{width_diff}}"
             )
 
-        embed.description = f"```\n" + "\n".join(lines) + "\n```"
+        embed.description = "```\n" + "\n".join(lines) + "\n```"
 
-        # Update footer with pagination info
+        # Footer
         total_results = len(result)
         page_count = (total_results + page_size - 1) // page_size
         footer_text = f"Page {page} of {page_count} • Amount: {format_field('count', total_results)}"
@@ -254,10 +269,10 @@ class Formatter:
             footer_text += f" • took {elapsed:.2f}s"
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
-        
-        embed.set_footer(text=footer_text)
 
+        embed.set_footer(text=footer_text)
         return embed
+
     
     def as_completion(self, data, elapsed=None):
         """
@@ -278,16 +293,16 @@ class Formatter:
         # Calculate column widths
         width_range = max(len(d["range"]) for d in data) if data else 10
         width_percentage = 8
-        width_fraction = max(len(f"{format_field('played', d['played'])}/{format_field('total', d['total'])}") for d in data) if data else 10
-        width_missing = max(len(format_field("missing", d["missing"])) for d in data) if data else 5
+        width_fraction = max(len(f"{format_field('count', d['played'])}/{format_field('count', d['total'])}") for d in data) if data else 10
+        width_missing = max(len(format_field("count", d["missing"])) for d in data) if data else 5
         
         # Build table lines
         lines = []
         for d in data:
             range_str = d["range"].ljust(width_range)
             percentage_str = f"{d['percentage']:06.3f}%".rjust(width_percentage)
-            fraction_str = f"{format_field('played', d['played'])}/{format_field('total', d['total'])}".rjust(width_fraction)
-            missing_str = ("✓" if int(d.get("missing") or 0) == 0 else "-" + format_field("missing", d["missing"])).rjust(width_missing + 1)
+            fraction_str = f"{format_field('count', d['played'])}/{format_field('count', d['total'])}".rjust(width_fraction)
+            missing_str = ("✓" if int(d.get("missing") or 0) == 0 else "-" + format_field("count", d["missing"])).rjust(width_missing + 1)
             
             lines.append(f"{range_str} | {percentage_str} | {fraction_str} | {missing_str}")
         
