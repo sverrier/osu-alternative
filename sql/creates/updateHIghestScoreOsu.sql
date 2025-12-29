@@ -77,6 +77,7 @@ BEGIN
                        AND COALESCE(NEW.statistics_ok,0) >= (COALESCE(bm_max_combo,0) - COALESCE(NEW.max_combo,0)))
                   END;
 
+    -- Beatmap counters maintained regardless of registration status (as before)
     IF is_same_mode AND allowed_for_counts AND is_ss_calc THEN
         UPDATE beatmapLive
            SET ss_count = ss_count + 1
@@ -89,27 +90,10 @@ BEGIN
          WHERE beatmap_id = NEW.beatmap_id;
     END IF;
 
-    SELECT id
-      INTO top_score_id
-    FROM scoreOsu
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id    = NEW.user_id
-    ORDER BY
-      (ruleset_id = bm_mode) DESC NULLS LAST,
-      classic_total_score DESC NULLS LAST,
-      id ASC
-    LIMIT 1;
-
-    SELECT id
-      INTO top_pp_id
-    FROM scoreOsu
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id    = NEW.user_id
-    ORDER BY
-      (ruleset_id = bm_mode) DESC NULLS LAST,
-      pp DESC NULLS LAST,
-      id ASC
-    LIMIT 1;
+    -- Only maintain scoreLive for registered users
+    IF NOT EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id) THEN
+        RETURN NULL;
+    END IF;
 
     INSERT INTO scoreLive (
         id,
@@ -236,8 +220,8 @@ BEGIN
         NEW.total_score,
         NEW.total_score_without_mods,
         NEW.type,
-        NEW.highest_score,
-        NEW.highest_pp,
+        FALSE,
+        FALSE,
         NEW.leaderboard_rank,
         COALESCE(calc.mod_acronyms, ARRAY[]::text[]),
         COALESCE(calc.mod_speed_change, 1),
@@ -248,34 +232,30 @@ BEGIN
         NULL,
         NULL,
         NULL
-    FROM (SELECT 1) _
-    WHERE EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id)
     ON CONFLICT (id) DO NOTHING;
 
-    UPDATE scoreOsu
-       SET mod_acronyms        = COALESCE(calc.mod_acronyms, ARRAY[]::text[]),
-           mod_speed_change    = COALESCE(calc.mod_speed_change, 1),
-           difficulty_reducing = has_diff_reducing,
-           difficulty_removing = has_diff_removing,
-           is_fc               = is_fc_calc,
-           is_ss               = is_ss_calc
-     WHERE id = NEW.id;
+    -- Highest flags computed only from scoreLive
+    SELECT id
+      INTO top_score_id
+    FROM scoreLive
+    WHERE beatmap_id_fk = NEW.beatmap_id
+      AND user_id_fk    = NEW.user_id
+    ORDER BY
+      (ruleset_id = bm_mode) DESC NULLS LAST,
+      classic_total_score DESC NULLS LAST,
+      id ASC
+    LIMIT 1;
 
-    WITH desired AS (
-      SELECT s.id,
-             (s.id = top_score_id) AS new_highest_score,
-             (s.id = top_pp_id)    AS new_highest_pp
-      FROM scoreOsu s
-      WHERE s.beatmap_id = NEW.beatmap_id
-        AND s.user_id    = NEW.user_id
-    )
-    UPDATE scoreOsu s
-       SET highest_score = d.new_highest_score,
-           highest_pp    = d.new_highest_pp
-      FROM desired d
-     WHERE s.id = d.id
-       AND (s.highest_score IS DISTINCT FROM d.new_highest_score
-            OR s.highest_pp IS DISTINCT FROM d.new_highest_pp);
+    SELECT id
+      INTO top_pp_id
+    FROM scoreLive
+    WHERE beatmap_id_fk = NEW.beatmap_id
+      AND user_id_fk    = NEW.user_id
+    ORDER BY
+      (ruleset_id = bm_mode) DESC NULLS LAST,
+      pp DESC NULLS LAST,
+      id ASC
+    LIMIT 1;
 
     WITH desired AS (
       SELECT sl.id,

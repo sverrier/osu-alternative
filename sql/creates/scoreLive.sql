@@ -63,9 +63,12 @@ CREATE TABLE IF NOT EXISTS public.scorelive (
 	difficulty_removing bool DEFAULT false NULL,
 	CONSTRAINT scorelive_pkey PRIMARY KEY (id)
 );
+
 CREATE INDEX IF NOT EXISTS idx_scorelive_ended_at ON public.scorelive USING brin (ended_at);
 CREATE INDEX IF NOT EXISTS idx_scorelive_highest_only ON public.scorelive USING btree (beatmap_id_fk, user_id_fk) WHERE (highest_score = true);
 CREATE INDEX IF NOT EXISTS idx_scorelive_mods_path ON public.scorelive USING gin (mods jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS scorelive_beatmap ON public.scorelive USING btree (beatmap_id_fk);
-CREATE INDEX IF NOT EXISTS scorelive_score ON public.scorelive USING btree (beatmap_id_fk, user_id_fk, classic_total_score DESC);
 CREATE INDEX IF NOT EXISTS scorelive_user ON public.scorelive USING btree (user_id_fk);
+CREATE INDEX IF NOT EXISTS scorelive_score_ruleset ON public.scorelive (beatmap_id_fk, user_id_fk, ruleset_id, classic_total_score DESC);
+CREATE INDEX IF NOT EXISTS scorelive_pp_ruleset ON public.scorelive (beatmap_id_fk, user_id_fk, ruleset_id, pp DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_scorelive_highest_by_user ON public.scorelive (user_id_fk) WHERE highest_score = true;

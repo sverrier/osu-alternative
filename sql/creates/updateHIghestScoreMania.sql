@@ -87,88 +87,32 @@ BEGIN
       WHERE beatmap_id = NEW.beatmap_id;
     END IF;
 
-    SELECT id INTO top_score_id
-    FROM scoreMania
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id    = NEW.user_id
-    ORDER BY classic_total_score DESC NULLS LAST, id ASC
-    LIMIT 1;
-
-    SELECT id INTO top_pp_id
-    FROM scoreMania
-    WHERE beatmap_id = NEW.beatmap_id
-      AND user_id    = NEW.user_id
-    ORDER BY pp DESC NULLS LAST, id ASC
-    LIMIT 1;
+    IF NOT EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id) THEN
+        RETURN NULL;
+    END IF;
 
     INSERT INTO scoreLive (
-        id,
-        beatmap_id_fk,
-        user_id_fk,
-        accuracy,
-        best_id,
-        build_id,
-        classic_total_score,
-        ended_at,
-        has_replay,
-        is_perfect_combo,
-        legacy_perfect,
-        legacy_score_id,
-        legacy_total_score,
-        combo,
-        maximum_statistics_perfect,
-        maximum_statistics_great,
-        maximum_statistics_miss,
-        maximum_statistics_ignore_hit,
-        maximum_statistics_ignore_miss,
-        maximum_statistics_slider_tail_hit,
-        maximum_statistics_legacy_combo_increase,
-        maximum_statistics_large_bonus,
-        maximum_statistics_large_tick_hit,
-        maximum_statistics_small_bonus,
-        maximum_statistics_small_tick_hit,
-        mods,
-        passed,
-        pp,
-        preserve,
-        processed,
-        grade,
-        ranked,
-        replay,
-        ruleset_id,
-        started_at,
-        statistics_perfect,
-        statistics_great,
-        statistics_good,
-        statistics_ok,
-        statistics_meh,
-        statistics_miss,
-        statistics_ignore_hit,
-        statistics_ignore_miss,
-        statistics_slider_tail_hit,
-        statistics_slider_tail_miss,
-        statistics_large_bonus,
-        statistics_large_tick_hit,
-        statistics_large_tick_miss,
-        statistics_small_bonus,
-        statistics_small_tick_hit,
-        statistics_small_tick_miss,
+        id, beatmap_id_fk, user_id_fk, accuracy, best_id, build_id,
+        classic_total_score, ended_at, has_replay, is_perfect_combo,
+        legacy_perfect, legacy_score_id, legacy_total_score, combo,
+        maximum_statistics_perfect, maximum_statistics_great, maximum_statistics_miss,
+        maximum_statistics_ignore_hit, maximum_statistics_ignore_miss,
+        maximum_statistics_slider_tail_hit, maximum_statistics_legacy_combo_increase,
+        maximum_statistics_large_bonus, maximum_statistics_large_tick_hit,
+        maximum_statistics_small_bonus, maximum_statistics_small_tick_hit,
+        mods, passed, pp, preserve, processed, grade, ranked, replay,
+        ruleset_id, started_at,
+        statistics_perfect, statistics_great, statistics_good, statistics_ok, statistics_meh,
+        statistics_miss, statistics_ignore_hit, statistics_ignore_miss,
+        statistics_slider_tail_hit, statistics_slider_tail_miss,
+        statistics_large_bonus, statistics_large_tick_hit, statistics_large_tick_miss,
+        statistics_small_bonus, statistics_small_tick_hit, statistics_small_tick_miss,
         statistics_combo_break,
-        total_score,
-        total_score_without_mods,
-        type,
-        highest_score,
-        highest_pp,
-        rank,
-        mod_acronyms,
-        mod_speed_change,
-        difficulty_reducing,
-        difficulty_removing,
-        is_ss,
-        is_fc,
-        attr_diff,
-        attr_date,
-        attr_recalc
+        total_score, total_score_without_mods, type,
+        highest_score, highest_pp, rank,
+        mod_acronyms, mod_speed_change,
+        difficulty_reducing, difficulty_removing, is_ss, is_fc,
+        attr_diff, attr_date, attr_recalc
     )
     SELECT
         NEW.id,
@@ -226,8 +170,8 @@ BEGIN
         NEW.total_score,
         NEW.total_score_without_mods,
         NEW.type,
-        NEW.highest_score,
-        NEW.highest_pp,
+        FALSE,
+        FALSE,
         NEW.leaderboard_rank,
         COALESCE(calc.mod_acronyms, ARRAY[]::text[]),
         COALESCE(calc.mod_speed_change, 1),
@@ -238,34 +182,30 @@ BEGIN
         NULL,
         NULL,
         NULL
-    FROM (SELECT 1) _
-    WHERE EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id)
     ON CONFLICT (id) DO NOTHING;
 
-    UPDATE scoreMania
-       SET mod_acronyms        = COALESCE(calc.mod_acronyms, ARRAY[]::text[]),
-           mod_speed_change    = COALESCE(calc.mod_speed_change, 1),
-           difficulty_reducing = has_diff_reducing,
-           difficulty_removing = has_diff_removing,
-           is_fc               = is_fc_calc,
-           is_ss               = is_ss_calc
-     WHERE id = NEW.id;
+    -- Highest flags computed only from scoreLive
+    SELECT id
+      INTO top_score_id
+    FROM scoreLive
+    WHERE beatmap_id_fk = NEW.beatmap_id
+      AND user_id_fk    = NEW.user_id
+    ORDER BY
+      (ruleset_id = bm_mode) DESC NULLS LAST,
+      classic_total_score DESC NULLS LAST,
+      id ASC
+    LIMIT 1;
 
-    WITH desired AS (
-      SELECT s.id,
-             (s.id = top_score_id) AS new_highest_score,
-             (s.id = top_pp_id)    AS new_highest_pp
-      FROM scoreMania s
-      WHERE s.beatmap_id = NEW.beatmap_id
-        AND s.user_id    = NEW.user_id
-    )
-    UPDATE scoreMania s
-       SET highest_score = d.new_highest_score,
-           highest_pp    = d.new_highest_pp
-      FROM desired d
-     WHERE s.id = d.id
-       AND (s.highest_score IS DISTINCT FROM d.new_highest_score
-            OR s.highest_pp IS DISTINCT FROM d.new_highest_pp);
+    SELECT id
+      INTO top_pp_id
+    FROM scoreLive
+    WHERE beatmap_id_fk = NEW.beatmap_id
+      AND user_id_fk    = NEW.user_id
+    ORDER BY
+      (ruleset_id = bm_mode) DESC NULLS LAST,
+      pp DESC NULLS LAST,
+      id ASC
+    LIMIT 1;
 
     WITH desired AS (
       SELECT sl.id,
@@ -291,5 +231,5 @@ DROP TRIGGER IF EXISTS set_highest_score_mania ON scoreMania;
 CREATE TRIGGER set_highest_score_mania
 AFTER INSERT ON scoreMania
 FOR EACH ROW
-WHEN (NEW.classic_total_score IS NOT NULL)
+WHEN (NEW.classic_total_score IS NOT NULL OR NEW.pp IS NOT NULL)
 EXECUTE FUNCTION update_highest_score_mania();

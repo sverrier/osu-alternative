@@ -46,15 +46,8 @@ CREATE TABLE if not EXISTS scoreTaiko (
 
 CREATE INDEX if not exists idx_scoreTaiko_ended_at ON scoreTaiko USING BRIN (ended_at);
 
-CREATE INDEX IF NOT EXISTS scoreTaiko_score 
-on scoreTaiko(beatmap_id, user_id, classic_total_score desc);
-
 CREATE INDEX IF NOT EXISTS scoreTaiko_user
 on scoreTaiko(user_id);
 
 CREATE INDEX IF NOT EXISTS scoreTaiko_beatmap
 on scoreTaiko(beatmap_id);
-
-CREATE INDEX IF NOT EXISTS idx_scoreTaiko_highest_only 
-ON scoreTaiko (beatmap_id, user_id) 
-WHERE highest_score = TRUE;

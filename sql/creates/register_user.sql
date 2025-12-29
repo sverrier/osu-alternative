@@ -198,5 +198,103 @@ BEGIN
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
 
+    ------------------------------------------------------------------------
+    -- Step 3.1: Recompute derived fields in scoreLive for this user
+    ------------------------------------------------------------------------
+    UPDATE scoreLive sl
+    SET mod_acronyms = x.mod_acronyms,
+        mod_speed_change = x.mod_speed_change,
+        difficulty_reducing = x.has_diff_reducing,
+        difficulty_removing = x.has_diff_removing,
+        is_ss = x.is_ss_calc,
+        is_fc = x.is_fc_calc
+    FROM (
+        SELECT
+            sl2.id,
+            COALESCE(array_agg(e->>'acronym'), ARRAY[]::text[]) AS mod_acronyms,
+            COALESCE(
+                (
+                    SELECT (e2->'settings'->>'speed_change')::numeric
+                    FROM jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e2
+                    WHERE e2->>'acronym' IN ('DT','NC','HT','DC')
+                    AND e2->'settings' ? 'speed_change'
+                    LIMIT 1
+                ),
+                (
+                    SELECT CASE
+                            WHEN e3->>'acronym' IN ('DT','NC') THEN 1.5
+                            WHEN e3->>'acronym' IN ('HT','DC') THEN 0.75
+                        END
+                    FROM jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e3
+                    WHERE e3->>'acronym' IN ('DT','NC','HT','DC')
+                    LIMIT 1
+                ),
+                1
+            ) AS mod_speed_change,
+            EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e4
+                WHERE e4->>'acronym' IN ('EZ','HT','DC','NR','AT','CN','RX','AP','TP','DA','WU','WD')
+            ) AS has_diff_reducing,
+            EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e5
+                WHERE e5->>'acronym' IN ('NF','AT','CN','RX','AP')
+            ) AS has_diff_removing,
+            (sl2.grade IN ('X','XH')) AS is_ss_calc,
+            CASE
+            WHEN sl2.build_id IS NOT NULL THEN
+                (COALESCE(sl2.statistics_miss,0) = 0 AND COALESCE(sl2.statistics_large_tick_miss,0) = 0)
+            ELSE
+                (COALESCE(sl2.statistics_miss,0) = 0
+                AND COALESCE(bl.max_combo,0) >= 0
+                AND COALESCE(sl2.statistics_ok,0) >= (COALESCE(bl.max_combo,0) - COALESCE(sl2.combo,0)))
+            END AS is_fc_calc
+        FROM scoreLive sl2
+        JOIN beatmapLive bl ON bl.beatmap_id = sl2.beatmap_id_fk
+        LEFT JOIN LATERAL jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e ON TRUE
+        WHERE sl2.user_id_fk = p_user_id
+        GROUP BY
+            sl2.id, sl2.mods, sl2.grade, sl2.build_id,
+            sl2.statistics_miss, sl2.statistics_large_tick_miss,
+            sl2.statistics_ok, bl.max_combo, sl2.combo
+    ) x
+    WHERE sl.id = x.id;
+
+    ------------------------------------------------------------------------
+    -- Step 3.2: Recompute highest_score / highest_pp in scoreLive for this user
+    ------------------------------------------------------------------------
+    WITH ranked AS (
+        SELECT
+            sl.id,
+            row_number() OVER (
+                PARTITION BY sl.user_id_fk, sl.beatmap_id_fk
+                ORDER BY
+                (sl.ruleset_id = bl.mode) DESC NULLS LAST,
+                sl.classic_total_score DESC NULLS LAST,
+                sl.id ASC
+            ) AS rn_score,
+            row_number() OVER (
+                PARTITION BY sl.user_id_fk, sl.beatmap_id_fk
+                ORDER BY
+                (sl.ruleset_id = bl.mode) DESC NULLS LAST,
+                sl.pp DESC NULLS LAST,
+                sl.id ASC
+            ) AS rn_pp
+        FROM scoreLive sl
+        JOIN beatmapLive bl
+        ON bl.beatmap_id = sl.beatmap_id_fk
+        WHERE sl.user_id_fk = p_user_id
+    )
+    UPDATE scoreLive sl
+    SET highest_score = (r.rn_score = 1),
+        highest_pp    = (r.rn_pp = 1)
+    FROM ranked r
+    WHERE sl.id = r.id
+    AND (
+            sl.highest_score IS DISTINCT FROM (r.rn_score = 1)
+        OR sl.highest_pp    IS DISTINCT FROM (r.rn_pp = 1)
+    );
+
 END;
 $$;

@@ -55,19 +55,5 @@ CREATE TABLE IF NOT EXISTS scoreOsu (
 );
 
 CREATE INDEX if not exists idx_scoreOsu_ended_at ON scoreOsu USING BRIN (ended_at);
-
-CREATE INDEX IF NOT EXISTS scoreOsu_score 
-on scoreOsu(beatmap_id, user_id, classic_total_score desc);
-
-CREATE INDEX IF NOT EXISTS idx_scoreosu_highest_pp 
-    ON scoreOsu (beatmap_id, user_id, pp DESC);
-
-CREATE INDEX IF NOT EXISTS scoreOsu_user
-on scoreOsu(user_id);
-
-CREATE INDEX IF NOT EXISTS scoreOsu_beatmap
-on scoreOsu(beatmap_id);
-
-CREATE INDEX IF NOT EXISTS idx_scoreOsu_highest_only 
-ON scoreOsu (beatmap_id, user_id) 
-WHERE highest_score = TRUE;
+CREATE INDEX IF NOT EXISTS scoreOsu_user on scoreOsu(user_id);
+CREATE INDEX IF NOT EXISTS scoreOsu_beatmap on scoreOsu(beatmap_id);
