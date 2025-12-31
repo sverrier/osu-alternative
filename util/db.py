@@ -15,7 +15,7 @@ class db:
         self.pool = None
         self.logger = logger
 
-    async def get_pool(self, timeout=120):
+    async def get_pool(self, timeout=300):
         """Ensure asyncpg pool exists."""
         if self.pool is None:
             self.pool = await asyncpg.create_pool(
