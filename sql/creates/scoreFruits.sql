@@ -49,8 +49,6 @@ CREATE TABLE IF NOT EXISTS scoreFruits (
     leaderboard_rank INT NULL
 );
 
-CREATE INDEX if not exists idx_scoreFruits_ended_at ON scoreFruits USING BRIN (ended_at);
-
 CREATE INDEX IF NOT EXISTS scoreFruits_user
 on scoreFruits(user_id);
 

@@ -44,8 +44,6 @@ CREATE TABLE IF NOT EXISTS scoreMania (
     leaderboard_rank INT NULL
 );
 
-CREATE INDEX if not exists idx_scoreMania_ended_at ON scoreMania USING BRIN (ended_at);
-
 CREATE INDEX IF NOT EXISTS scoreMania_user
 on scoreMania(user_id);
 

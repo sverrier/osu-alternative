@@ -54,6 +54,5 @@ CREATE TABLE IF NOT EXISTS scoreOsu (
     leaderboard_rank INT NULL
 );
 
-CREATE INDEX if not exists idx_scoreOsu_ended_at ON scoreOsu USING BRIN (ended_at);
 CREATE INDEX IF NOT EXISTS scoreOsu_user on scoreOsu(user_id);
 CREATE INDEX IF NOT EXISTS scoreOsu_beatmap on scoreOsu(beatmap_id);

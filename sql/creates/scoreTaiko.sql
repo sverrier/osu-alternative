@@ -44,8 +44,6 @@ CREATE TABLE if not EXISTS scoreTaiko (
     leaderboard_rank INT NULL
 );
 
-CREATE INDEX if not exists idx_scoreTaiko_ended_at ON scoreTaiko USING BRIN (ended_at);
-
 CREATE INDEX IF NOT EXISTS scoreTaiko_user
 on scoreTaiko(user_id);
 
