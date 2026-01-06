@@ -59,8 +59,8 @@ BEGIN
     FROM userMaster
     WHERE id = p_user_id
     ON CONFLICT (user_id) DO NOTHING;
-	
-	------------------------------------------------------------------------
+
+    ------------------------------------------------------------------------
     -- Step 2: Populate scoreLive entries for this user
     ------------------------------------------------------------------------
 
@@ -77,12 +77,12 @@ BEGIN
         passed, pp, preserve, processed, grade, ranked, replay, ruleset_id,
         started_at, statistics_great, statistics_ok, statistics_meh,
         statistics_miss, statistics_ignore_hit, statistics_ignore_miss,
-        statistics_slider_tail_hit, statistics_slider_tail_miss,
         statistics_large_bonus, statistics_large_tick_hit,
-        statistics_large_tick_miss, statistics_small_bonus, total_score,
-        total_score_without_mods, type, statistics_small_tick_hit,
-        statistics_small_tick_miss, maximum_statistics_small_tick_hit,
-        highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        statistics_large_tick_miss, statistics_small_bonus,
+        statistics_small_tick_hit, statistics_small_tick_miss, total_score,
+        total_score_without_mods, type,
+        highest_score, highest_pp, rank, mod_acronyms, mod_speed_change,
+        difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         id, beatmap_id, so.user_id, accuracy, best_id, build_id, classic_total_score,
@@ -94,106 +94,114 @@ BEGIN
         passed, pp, preserve, processed, rank, ranked, replay, ruleset_id,
         started_at, statistics_great, statistics_ok, statistics_meh,
         statistics_miss, statistics_ignore_hit, statistics_ignore_miss,
-        statistics_slider_tail_hit, statistics_slider_tail_miss,
         statistics_large_bonus, statistics_large_tick_hit,
-        statistics_large_tick_miss, statistics_small_bonus, total_score,
-        total_score_without_mods, type, statistics_small_tick_hit,
-        statistics_small_tick_miss, maximum_statistics_small_tick_hit,
-        highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        statistics_large_tick_miss, statistics_small_bonus,
+        statistics_small_tick_hit, statistics_small_tick_miss, total_score,
+        total_score_without_mods, type,
+        FALSE, FALSE, leaderboard_rank,
+        NULL::text[], 1::numeric, FALSE, FALSE, FALSE, FALSE
     FROM scoreosu so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
 
     ------------------------------------------------------------------------
-    -- Taiko
+    -- osu!taiko
     ------------------------------------------------------------------------
     INSERT INTO scoreLive (
         accuracy, beatmap_id_fk, best_id, build_id, classic_total_score, ended_at,
         has_replay, id, is_perfect_combo, legacy_perfect, legacy_score_id,
         legacy_total_score, combo, maximum_statistics_great,
         maximum_statistics_large_bonus, maximum_statistics_small_bonus,
-        maximum_statistics_ignore_hit, mods, passed, pp, preserve, processed,
+        maximum_statistics_ignore_hit, maximum_statistics_legacy_combo_increase, mods, passed, pp, preserve, processed,
         grade, ranked, replay, ruleset_id, started_at, statistics_great,
         statistics_ok, statistics_miss, statistics_large_bonus,
         statistics_ignore_hit, statistics_ignore_miss, statistics_small_bonus,
         total_score, total_score_without_mods, type, user_id_fk,
-        maximum_statistics_legacy_combo_increase, highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        maximum_statistics_legacy_combo_increase,
+        highest_score, highest_pp, rank, mod_acronyms, mod_speed_change,
+        difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         accuracy, beatmap_id, best_id, build_id, classic_total_score, ended_at,
         has_replay, id, is_perfect_combo, legacy_perfect, legacy_score_id,
         legacy_total_score, max_combo, maximum_statistics_great,
         maximum_statistics_large_bonus, maximum_statistics_small_bonus,
-        maximum_statistics_ignore_hit, mods, passed, pp, preserve, processed,
+        maximum_statistics_ignore_hit, maximum_statistics_legacy_combo_increase, mods, passed, pp, preserve, processed,
         rank, ranked, replay, ruleset_id, started_at, statistics_great,
         statistics_ok, statistics_miss, statistics_large_bonus,
         statistics_ignore_hit, statistics_ignore_miss, statistics_small_bonus,
         total_score, total_score_without_mods, type, so.user_id,
-        maximum_statistics_legacy_combo_increase, highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        maximum_statistics_legacy_combo_increase,
+        FALSE, FALSE, leaderboard_rank,
+        NULL::text[], 1::numeric, FALSE, FALSE, FALSE, FALSE
     FROM scoretaiko so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
 
     ------------------------------------------------------------------------
-    -- Mania
+    -- osu!mania
     ------------------------------------------------------------------------
     INSERT INTO scoreLive (
-        accuracy, beatmap_id_fk, best_id, build_id, classic_total_score, ended_at,
-        has_replay, id, is_perfect_combo, legacy_perfect, legacy_score_id,
+        id, beatmap_id_fk, user_id_fk, accuracy, best_id, build_id, classic_total_score,
+        ended_at, has_replay, is_perfect_combo, legacy_perfect, legacy_score_id,
         legacy_total_score, combo, maximum_statistics_legacy_combo_increase,
-        maximum_statistics_perfect, maximum_statistics_ignore_hit, mods, passed,
-        pp, preserve, processed, grade, ranked, replay, ruleset_id, started_at,
-        statistics_combo_break, statistics_perfect, statistics_great,
-        statistics_good, statistics_ok, statistics_meh, statistics_miss,
-        statistics_ignore_hit, statistics_ignore_miss, total_score,
-        total_score_without_mods, type, user_id_fk, highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        maximum_statistics_perfect, maximum_statistics_ignore_hit, mods,
+        passed, pp, preserve, processed, grade, ranked, replay, ruleset_id,
+        started_at, statistics_combo_break, statistics_perfect, statistics_great, statistics_good, statistics_ok, statistics_meh,
+        statistics_miss, statistics_ignore_hit, statistics_ignore_miss, total_score,
+        total_score_without_mods, type,
+        highest_score, highest_pp, rank, mod_acronyms, mod_speed_change,
+        difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
-        accuracy, beatmap_id, best_id, build_id, classic_total_score, ended_at,
-        has_replay, id, is_perfect_combo, legacy_perfect, legacy_score_id,
+        id, beatmap_id, so.user_id, accuracy, best_id, build_id, classic_total_score,
+        ended_at, has_replay, is_perfect_combo, legacy_perfect, legacy_score_id,
         legacy_total_score, max_combo, maximum_statistics_legacy_combo_increase,
-        maximum_statistics_perfect, maximum_statistics_ignore_hit, mods, passed,
-        pp, preserve, processed, rank, ranked, replay, ruleset_id, started_at,
-        statistics_combo_break, statistics_perfect, statistics_great,
-        statistics_good, statistics_ok, statistics_meh, statistics_miss,
-        statistics_ignore_hit, statistics_ignore_miss, total_score,
-        total_score_without_mods, type, so.user_id, highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        maximum_statistics_perfect, maximum_statistics_ignore_hit, mods,
+        passed, pp, preserve, processed, rank, ranked, replay, ruleset_id,
+        started_at, statistics_combo_break, statistics_perfect, statistics_great, statistics_good, statistics_ok, statistics_meh,
+        statistics_miss, statistics_ignore_hit, statistics_ignore_miss, total_score,
+        total_score_without_mods, type,
+        FALSE, FALSE, leaderboard_rank,
+        NULL::text[], 1::numeric, FALSE, FALSE, FALSE, FALSE
     FROM scoremania so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
 
     ------------------------------------------------------------------------
-    -- Fruits
+    -- osu!catch (fruits)
     ------------------------------------------------------------------------
     INSERT INTO scoreLive (
-        accuracy, beatmap_id_fk, best_id, build_id, classic_total_score, ended_at,
-        has_replay, id, is_perfect_combo, legacy_perfect, legacy_score_id,
-        legacy_total_score, combo, maximum_statistics_great,
-        maximum_statistics_ignore_hit, maximum_statistics_ignore_miss,
-        maximum_statistics_large_bonus, maximum_statistics_large_tick_hit,
-        maximum_statistics_small_tick_hit, mods, passed, pp, preserve, processed,
-        grade, ranked, replay, ruleset_id, started_at, statistics_great,
+        id, beatmap_id_fk, user_id_fk, accuracy, best_id, build_id, classic_total_score,
+        ended_at, has_replay, is_perfect_combo, legacy_perfect, legacy_score_id,
+        legacy_total_score, combo, maximum_statistics_great, maximum_statistics_miss, maximum_statistics_ignore_hit,
+        maximum_statistics_ignore_miss, maximum_statistics_legacy_combo_increase, maximum_statistics_large_bonus,
+        maximum_statistics_large_tick_hit, maximum_statistics_small_tick_hit, mods,
+        passed, pp, preserve, processed, grade, ranked, replay, ruleset_id,
+        started_at, statistics_great,
         statistics_miss, statistics_ignore_hit, statistics_ignore_miss,
         statistics_large_bonus, statistics_large_tick_hit,
-        statistics_large_tick_miss, statistics_small_tick_hit,
-        statistics_small_tick_miss, total_score, total_score_without_mods, type,
-        user_id_fk, maximum_statistics_legacy_combo_increase,
-        maximum_statistics_miss, highest_score, highest_pp, rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        statistics_large_tick_miss,
+        statistics_small_tick_hit, statistics_small_tick_miss, total_score,
+        total_score_without_mods, type,
+        highest_score, highest_pp, rank, mod_acronyms, mod_speed_change,
+        difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
-        accuracy, beatmap_id, best_id, build_id, classic_total_score, ended_at,
-        has_replay, id, is_perfect_combo, legacy_perfect, legacy_score_id,
-        legacy_total_score, max_combo, maximum_statistics_great,
-        maximum_statistics_ignore_hit, maximum_statistics_ignore_miss,
-        maximum_statistics_large_bonus, maximum_statistics_large_tick_hit,
-        maximum_statistics_small_tick_hit, mods, passed, pp, preserve, processed,
-        rank, ranked, replay, ruleset_id, started_at, statistics_great,
+        id, beatmap_id, so.user_id, accuracy, best_id, build_id, classic_total_score,
+        ended_at, has_replay, is_perfect_combo, legacy_perfect, legacy_score_id,
+        legacy_total_score, max_combo, maximum_statistics_great, maximum_statistics_miss, maximum_statistics_ignore_hit,
+        maximum_statistics_ignore_miss, maximum_statistics_legacy_combo_increase, maximum_statistics_large_bonus,
+        maximum_statistics_large_tick_hit, maximum_statistics_small_tick_hit, mods,
+        passed, pp, preserve, processed, rank, ranked, replay, ruleset_id,
+        started_at, statistics_great,
         statistics_miss, statistics_ignore_hit, statistics_ignore_miss,
         statistics_large_bonus, statistics_large_tick_hit,
-        statistics_large_tick_miss, statistics_small_tick_hit,
-        statistics_small_tick_miss, total_score, total_score_without_mods, type,
-        so.user_id, maximum_statistics_legacy_combo_increase,
-        maximum_statistics_miss, highest_score, highest_pp, leaderboard_rank, mod_acronyms, mod_speed_change, difficulty_reducing, difficulty_removing, is_ss, is_fc
+        statistics_large_tick_miss,
+        statistics_small_tick_hit, statistics_small_tick_miss, total_score,
+        total_score_without_mods, type,
+        FALSE, FALSE, leaderboard_rank,
+        NULL::text[], 1::numeric, FALSE, FALSE, FALSE, FALSE
     FROM scorefruits so
     WHERE so.user_id = p_user_id
     ON CONFLICT DO NOTHING;
@@ -217,14 +225,14 @@ BEGIN
                     SELECT (e2->'settings'->>'speed_change')::numeric
                     FROM jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e2
                     WHERE e2->>'acronym' IN ('DT','NC','HT','DC')
-                    AND e2->'settings' ? 'speed_change'
+                      AND e2->'settings' ? 'speed_change'
                     LIMIT 1
                 ),
                 (
                     SELECT CASE
-                            WHEN e3->>'acronym' IN ('DT','NC') THEN 1.5
-                            WHEN e3->>'acronym' IN ('HT','DC') THEN 0.75
-                        END
+                             WHEN e3->>'acronym' IN ('DT','NC') THEN 1.5
+                             WHEN e3->>'acronym' IN ('HT','DC') THEN 0.75
+                           END
                     FROM jsonb_array_elements(COALESCE(sl2.mods,'[]'::jsonb)) e3
                     WHERE e3->>'acronym' IN ('DT','NC','HT','DC')
                     LIMIT 1
@@ -243,12 +251,12 @@ BEGIN
             ) AS has_diff_removing,
             (sl2.grade IN ('X','XH')) AS is_ss_calc,
             CASE
-            WHEN sl2.build_id IS NOT NULL THEN
+              WHEN sl2.build_id IS NOT NULL THEN
                 (COALESCE(sl2.statistics_miss,0) = 0 AND COALESCE(sl2.statistics_large_tick_miss,0) = 0)
-            ELSE
+              ELSE
                 (COALESCE(sl2.statistics_miss,0) = 0
-                AND COALESCE(bl.max_combo,0) >= 0
-                AND COALESCE(sl2.statistics_ok,0) >= (COALESCE(bl.max_combo,0) - COALESCE(sl2.combo,0)))
+                 AND COALESCE(bl.max_combo,0) >= 0
+                 AND COALESCE(sl2.statistics_ok,0) >= (COALESCE(bl.max_combo,0) - COALESCE(sl2.combo,0)))
             END AS is_fc_calc
         FROM scoreLive sl2
         JOIN beatmapLive bl ON bl.beatmap_id = sl2.beatmap_id_fk
@@ -270,31 +278,31 @@ BEGIN
             row_number() OVER (
                 PARTITION BY sl.user_id_fk, sl.beatmap_id_fk
                 ORDER BY
-                (sl.ruleset_id = bl.mode) DESC NULLS LAST,
-                sl.classic_total_score DESC NULLS LAST,
-                sl.id ASC
+                  (sl.ruleset_id = bl.mode) DESC NULLS LAST,
+                  sl.classic_total_score DESC NULLS LAST,
+                  sl.id ASC
             ) AS rn_score,
             row_number() OVER (
                 PARTITION BY sl.user_id_fk, sl.beatmap_id_fk
                 ORDER BY
-                (sl.ruleset_id = bl.mode) DESC NULLS LAST,
-                sl.pp DESC NULLS LAST,
-                sl.id ASC
+                  (sl.ruleset_id = bl.mode) DESC NULLS LAST,
+                  sl.pp DESC NULLS LAST,
+                  sl.id ASC
             ) AS rn_pp
         FROM scoreLive sl
         JOIN beatmapLive bl
-        ON bl.beatmap_id = sl.beatmap_id_fk
+          ON bl.beatmap_id = sl.beatmap_id_fk
         WHERE sl.user_id_fk = p_user_id
     )
     UPDATE scoreLive sl
-    SET highest_score = (r.rn_score = 1),
-        highest_pp    = (r.rn_pp = 1)
-    FROM ranked r
-    WHERE sl.id = r.id
-    AND (
+       SET highest_score = (r.rn_score = 1),
+           highest_pp    = (r.rn_pp = 1)
+      FROM ranked r
+     WHERE sl.id = r.id
+       AND (
             sl.highest_score IS DISTINCT FROM (r.rn_score = 1)
-        OR sl.highest_pp    IS DISTINCT FROM (r.rn_pp = 1)
-    );
+         OR sl.highest_pp    IS DISTINCT FROM (r.rn_pp = 1)
+       );
 
 END;
 $$;
