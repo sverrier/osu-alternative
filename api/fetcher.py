@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import json
 from datetime import datetime
 
 from api.util.scoreOsu import ScoreOsu
@@ -134,30 +135,129 @@ class Fetcher:
             return self._read_config_file()
         else:
             return self._create_config_file()
+        
     
-    async def sync_registered_user_scores(self):
+    async def _log_batch_complete_to_db(self, user_id: int, fetched: int, total: int):
         """
-        Sync scores for the next unsynced user in `registrations`, using:
+        Mirror console progress into public.logging.
 
-        - registrations (is_synced flag)
-        - beatmapLive
-        - logger (logType = 'FETCHER')
-        - score tables via ScoreOsu/Taiko/Fruits/Mania helpers
+        logtype: 'FETCHER'
+        logkey: 'user_id' (text key label)
+        severity: 'INFO'
+        message: 'batch complete'
+        data: {"user_id": "<user_id>", "fetched": <batch_start>, "total": <batch_size>}
+                """
+        try:
+            data = {"user_id": str(user_id), "fetched": fetched, "total": total}
+
+            await self.db.executeParametrized(
+                """
+                INSERT INTO public.logging (entrytime, logtype, logkey, severity, message, "data")
+                VALUES (NOW(), $1, $2, $3, $4, $5::jsonb)
+                """,
+                "FETCHER",
+                "user_id",
+                "INFO",
+                "batch complete",
+                json.dumps(data),
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to write batch log to public.logging: {e}")
+
+    async def _load_user_token_from_db(self, user_id: int, mode: int | None = None):
         """
-        query = """
-            SELECT user_id
-            FROM registrations
-            WHERE is_synced = false
-            ORDER BY registrationdate
-            LIMIT 1
+        Fetch the most recent token row for a user (optionally filtered by mode).
+        Returns: (user_id, mode, token_dict)
         """
-        rs, elapsed = await self.db.executeQuery(query)
+        if mode is None:
+            query = """
+                SELECT user_id, mode, token
+                FROM tokens
+                WHERE user_id = $1
+                ORDER BY lchg_time DESC
+                LIMIT 1
+            """
+            rows = await self.db.fetchParametrized(query, user_id)
+        else:
+            query = """
+                SELECT user_id, mode, token
+                FROM tokens
+                WHERE user_id = $1 AND mode = $2
+                ORDER BY lchg_time DESC
+                LIMIT 1
+            """
+            rows = await self.db.fetchParametrized(query, user_id, mode)
 
-        if not rs:
-            self.logger.info("All registered users are synced.")
-            return
+        if not rows:
+            raise RuntimeError(f"No token found in tokens table for user_id={user_id}, mode={mode}")
 
-        user_id = rs[0]["user_id"] if isinstance(rs[0], dict) else rs[0][0]
+        row = rows[0]
+
+        # asyncpg Record supports dict-style access
+        db_user_id = row["user_id"]
+        db_mode = row["mode"]
+        token_val = row["token"]
+
+        # token might already be json/jsonb (dict), or stored as text
+        if isinstance(token_val, (dict, list)):
+            token_obj = token_val
+        else:
+            token_obj = json.loads(token_val)
+
+        if "access_token" not in token_obj:
+            raise RuntimeError(f"Token row missing access_token for user_id={db_user_id}, mode={db_mode}")
+
+        return db_user_id, db_mode, token_obj
+
+    def _apply_access_token_to_api(self, access_token: str):
+        """
+        Apply a bearer token to util_api object.
+
+        This assumes util_api reads self.token when building Authorization headers.
+        If your util_api uses a different attribute/method, adjust here only.
+        """
+        self.apiv2.token = access_token
+
+    async def sync_user_scores_from_tokens(self, user_id: int, mode: int | None = None):
+        """
+        Loads (user_id, mode, token) from tokens table, applies the access token,
+        then runs the normal sync routine for that specific user.
+        """
+        db_user_id, db_mode, token_obj = await self._load_user_token_from_db(user_id, mode)
+
+        # Optional: handle expiration if you want
+        # If you store expires_in and some lchg_time, you could decide to refresh here.
+        # For now: just use access_token as requested.
+        self._apply_access_token_to_api(token_obj["access_token"])
+
+        self.logger.info(f"Using user token from tokens table for user {db_user_id} (mode={db_mode})")
+        await self.sync_registered_user_scores(user_id=db_user_id)
+    
+    async def sync_registered_user_scores(self, user_id: int | None = None):
+        """
+        Sync scores for:
+          - the provided user_id, OR
+          - the next unsynced user in registrations (original behavior).
+        """
+
+        if user_id is None:
+            query = """
+                SELECT user_id
+                FROM registrations
+                WHERE is_synced = false
+                ORDER BY registrationdate
+                LIMIT 1
+            """
+            rs, elapsed = await self.db.executeQuery(query)
+
+            if not rs:
+                self.logger.info("All registered users are synced.")
+                return
+
+            user_id = rs[0]["user_id"] if isinstance(rs[0], dict) else rs[0][0]
+        else:
+            # When explicitly passed, we do NOT require them to be unsynced.
+            self.logger.info(f"Explicit user_id provided: syncing user {user_id}")
 
         all_beatmaps = []
         limit = 100
@@ -253,9 +353,21 @@ class Fetcher:
                 f"Processed {len(batch_ids)} beatmaps, {total_scores} scores"
             )
 
-        # Mark user as fully synced
+            await self._log_batch_complete_to_db(
+                user_id=user_id,
+                fetched=idx,
+                total=total
+            )
+
+        # Mark user as fully synced (keep original behavior, even for explicit calls)
         await self.db.executeParametrized(
             "UPDATE registrations SET is_synced = true WHERE user_id = $1",
+            user_id,
+        )
+
+        # Mark user as fully synced (keep original behavior, even for explicit calls)
+        await self.db.executeParametrized(
+            "DELETE FROM tokens WHERE user_id = $1",
             user_id,
         )
 
@@ -263,31 +375,97 @@ class Fetcher:
             f"Sync complete for user {user_id} ({total} beatmaps processed)."
         )
 
+    async def sync_user_scores_from_tokens_queue(self):
+        """
+        Pick the next user from tokens table and sync them using user tokens.
+        """
+        query = """
+            SELECT user_id, mode
+            FROM tokens
+            ORDER BY lchg_time
+            LIMIT 1
+        """
+        rows = await self.db.fetchParametrized(query)
 
-    # ------------------------------------------------------------------ #
-    # LOOP RUNNER
-    # ------------------------------------------------------------------ #
+        if not rows:
+            self.logger.info("No users found in tokens table.")
+            return
+
+        row = rows[0]
+        await self.sync_user_scores_from_tokens(
+            user_id=row["user_id"],
+            mode=row["mode"]
+        )
+
+
 
     async def run(self):
         """
-        Initialize DB + API, then repeatedly run sync_registered_user_scores
+        Initialize DB + API, then repeatedly run the selected fetcher mode
         with a delay in between iterations.
+
+        Modes:
+        - client : old behavior (client_credentials)
+        - user   : token-based fetcher (tokens table)
         """
+
+        # -------------------------
         # Initial setup
+        # -------------------------
         await self.db.get_pool()
         await self.db.execSetupFiles()
-        self.apiv2.refresh_token()
+
+        # -------------------------
+        # Choose fetcher mode
+        # -------------------------
+        print("")
+        print("Select fetcher mode:")
+        print("  [1] client  (client_credentials)")
+        print("  [2] user    (user tokens from tokens table)")
+        choice = input("Enter choice (1/2): ").strip()
+
+        if choice == "2":
+            mode = "user"
+        else:
+            mode = "client"
+
+        self.logger.info(f"Fetcher starting in '{mode}' mode")
+
+        # -------------------------
+        # Initialize API auth
+        # -------------------------
+        if mode == "client":
+            # old behavior
+            self.apiv2.use_client_token()
+            self.apiv2.refresh_client_token()
+
+        else:
+            # user-token mode
+            # NOTE: actual token loading happens per-user inside the sync routine
+            self.apiv2.use_client_token()  # safe default until user token is injected
 
         self.logger.info(
-            f"FetcherLoop started. Running sync_registered_user_scores() "
-            f"every {self.delay} seconds."
+            f"FetcherLoop started ({mode} mode). "
+            f"Running every {self.delay} seconds."
         )
 
+        # -------------------------
+        # Main loop
+        # -------------------------
         while True:
             try:
-                await self.sync_registered_user_scores()
+                if mode == "client":
+                    # Old behavior: oldest unsynced user
+                    await self.sync_registered_user_scores()
+
+                else:
+                    # New behavior: pull next user from tokens table
+                    # You already have this routine
+                    await self.sync_user_scores_from_tokens_queue()
+
             except Exception as e:
-                self.logger.error(f"Error in fetcher loop: {e}")
+                self.logger.error(f"Error in fetcher loop ({mode} mode): {e}")
 
             self.logger.info(f"Sleeping {self.delay} seconds before next iteration...")
             await asyncio.sleep(self.delay)
+

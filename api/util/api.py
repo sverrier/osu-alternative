@@ -2,6 +2,11 @@ import requests
 import time
 import json
 
+import json
+import time
+import requests
+
+
 class util_api:
     def __init__(self, config):
         self.client = config["CLIENT"]
@@ -11,36 +16,153 @@ class util_api:
         self.username = config["USERNAME"]
         self.password = config["PASSWORD"]
         self.token = ""
+        self._auth_mode = "client"
+        self._user_refresh_token = None
 
-    
-    def refresh_token(self):
+    # -------------------
+    # Auth mode switching
+    # -------------------
+
+    def use_client_token(self):
+        """
+        Switch back to client_credentials behavior.
+        Keeps the currently loaded token, but enables client refresh on retry.
+        """
+        self._auth_mode = "client"
+        self._user_refresh_token = None
+
+    def use_user_token(self, access_token: str, refresh_token: str | None = None):
+        """
+        Force all requests to use the provided user access token.
+        In user mode we NEVER fallback to client_credentials on retry.
+        """
+        self._auth_mode = "user"
+        self.token = access_token
+        self._user_refresh_token = refresh_token
+
+    # -------------------
+    # Refresh operations
+    # -------------------
+
+    def refresh_client_token(self):
+        """
+        Client Credentials grant (app token).
+        NOTE: osu! expects form-encoded for /oauth/token; JSON often works on some servers
+        but keeping it form-encoded is safest/standard.
+        """
         try:
             url = "https://osu.ppy.sh/oauth/token"
-            json_input_string = {
+            data = {
                 "grant_type": "client_credentials",
                 "client_id": self.client,
                 "client_secret": self.key,
-                "scope": "public"
+                "scope": "public",
             }
-
             headers = {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
             }
 
-            response = requests.post(url, headers=headers, data=json.dumps(json_input_string))
-            time.sleep(self.delay) 
+            response = requests.post(url, headers=headers, data=data, timeout=30)
+            time.sleep(self.delay)
 
             if response.status_code == 200:
                 json_response = response.json()
-                token = json_response.get("access_token")
-                self.token = token 
-
-            else: 
-                print(response.status_code)
+                self.token = json_response.get("access_token", "")
+                return json_response
+            else:
+                raise RuntimeError(f"Client token refresh failed ({response.status_code}): {response.text}")
 
         except Exception as e:
             print(e)
+            raise
+
+    def refresh_user_token(self, refresh_token: str):
+        """
+        Refresh a USER OAuth token using grant_type=refresh_token.
+
+        Returns:
+            dict with access_token, refresh_token, expires_in, token_type, scope
+        """
+        try:
+            url = "https://osu.ppy.sh/oauth/token"
+
+            data = {
+                "grant_type": "refresh_token",
+                "client_id": self.client,
+                "client_secret": self.key,
+                "refresh_token": refresh_token,
+            }
+
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+            }
+
+            response = requests.post(url, data=data, headers=headers, timeout=30)
+            time.sleep(self.delay)
+
+            if response.status_code != 200:
+                raise RuntimeError(
+                    f"User token refresh failed ({response.status_code}): {response.text}"
+                )
+
+            json_response = response.json()
+
+            # Apply new access token
+            self.token = json_response["access_token"]
+
+            # Refresh-token rotation: store the new refresh token if present
+            new_refresh = json_response.get("refresh_token")
+            if new_refresh:
+                self._user_refresh_token = new_refresh
+
+            return json_response
+
+        except Exception as e:
+            print(f"refresh_user_token error: {e}")
+            raise
+
+    # -----------------------------------------
+    # Unified refresh helper for request retries
+    # -----------------------------------------
+
+    def refresh_token(self):
+        """
+        Refresh whichever token is appropriate for the current auth mode.
+
+        - client mode => refresh_client_token()
+        - user mode   => refresh_user_token(self._user_refresh_token)
+
+        IMPORTANT:
+        In user mode, we do NOT fallback to client tokens. If we can't refresh
+        (missing refresh token), we raise so callers can handle it.
+        """
+        if self._auth_mode == "client":
+            return self.refresh_client_token()
+
+        # user mode
+        if not self._user_refresh_token:
+            raise RuntimeError("Cannot refresh user token: _user_refresh_token is not set")
+        return self.refresh_user_token(self._user_refresh_token)
+
+    # -----------------------------------------
+    # Optional: wrapper for your request exception blocks
+    # -----------------------------------------
+
+    def _handle_request_exception(self, e: Exception, magnitude: int):
+        """
+        Call from your except blocks to centralize sleep/backoff + refresh.
+        """
+        print(e)
+        time.sleep(self.delay * magnitude)
+        magnitude += 5
+
+        # Refresh correct token for current mode
+        self.refresh_token()
+
+        return magnitude
+
 
     def get_user(self, user_id, mode):
         complete = False
@@ -68,12 +190,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
-        
-        return json_response
+                magnitude = self._handle_request_exception(e, magnitude)
 
     def get_users(self, ids):
         complete = False
@@ -104,10 +221,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
     
@@ -139,10 +253,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
 
@@ -172,10 +283,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
 
@@ -208,10 +316,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
     
@@ -245,10 +350,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
 
@@ -281,10 +383,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return scores
     
@@ -336,10 +435,7 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return []
     
@@ -371,10 +467,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
     
@@ -404,10 +497,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
 
@@ -440,10 +530,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return scores
 
@@ -477,10 +564,7 @@ class util_api:
                 magnitude = 1
 
             except Exception as e:
-                print(e)
-                time.sleep(self.delay * magnitude)
-                magnitude += 5
-                self.refresh_token()
+                magnitude = self._handle_request_exception(e, magnitude)
         
         return json_response
 

@@ -67,13 +67,9 @@ class Scores(commands.Cog):
         sql = QueryBuilder(di, columns_aliased, table).getQuery()
         result, _ = await self.bot.db.executeQuery(sql)
 
-        val = None
-        if result:
-            # supports both list-of-tuples and list-of-dicts patterns
-            row0 = result[0]
-            val = row0[alias] if dict else row0[0]
-
+        val = result[0][0]
         msg = format_field(alias, val, table=table, alias=alias)
+        
         await ctx.reply(msg)
 
     @commands.command(aliases=["sl"])

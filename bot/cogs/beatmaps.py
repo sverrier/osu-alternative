@@ -3,6 +3,7 @@ from bot.util.helpers import get_args
 from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 from bot.util.presets import *
+from bot.util.formatting import format_field
 
 class Beatmaps(commands.Cog):
     def __init__(self, bot):
@@ -28,21 +29,27 @@ class Beatmaps(commands.Cog):
     @commands.command(aliases=["b"])
     async def beatmaps(self, ctx, *args):
         di = get_args(args)
+        table = "beatmapLive"
 
         await self._set_defaults(ctx, di)
 
-        preset_key = get_beatmap_preset(di.get("-o", "count"))
-        if preset_key is not None:
-            preset = BEATMAP_PRESETS[preset_key]
+        if di.get("-o", "count") in BEATMAP_PRESETS:
+            preset = get_beatmap_preset(di.get("-o", "count"))
             columns = preset["columns"]
             for k, v in preset.items():
                 if k.startswith("-"):
                     di[k] = v
+            alias = preset.get("alias", "result")
         else:
             await ctx.reply("Preset not allowed. See valid presets with !help presets")
+
         sql = QueryBuilder(di, columns, "beatmapLive").getQuery()
         result, _ = await self.bot.db.executeQuery(sql)
-        await ctx.reply(str(result[0][0]))
+
+        val = result[0][0]
+        msg = format_field(alias, val, table=table, alias=alias)
+        
+        await ctx.reply(msg)
 
     @commands.command(aliases=["bl"])
     async def beatmaplist(self, ctx, *args):
