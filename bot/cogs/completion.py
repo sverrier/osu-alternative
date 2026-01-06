@@ -38,7 +38,9 @@ class Completion(commands.Cog):
             "od": [0, 10, 1],
             "hp": [0, 10, 1],
             "stars": [0, 10.1, 1],
-            "year": [2007, 2026, 1],
+            "year": [2007, 2027, 1],
+            "month": [1, 13, 1],
+            "day": [1, 32, 1],
             "length": [0, 601, 60],
             "drain": [0, 601, 60],
             "drain_time": [0, 601, 60],
@@ -234,7 +236,7 @@ class Completion(commands.Cog):
         is_string, config = self._get_completion_field_config(field)
         
         if is_string is None:
-            numeric_fields = ["ar", "cs", "od", "hp", "stars", "year", "length", "drain", "drain_time", "bpm"]
+            numeric_fields = ["ar", "cs", "od", "hp", "stars", "year", "month", "day" "length", "drain", "drain_time", "bpm"]
             string_fields = ["artist", "title", "version", "source", "status"]
             all_fields = numeric_fields + string_fields
             await ctx.reply(f"Unknown field: {field}. Available: {', '.join(all_fields)}")
@@ -257,8 +259,8 @@ class Completion(commands.Cog):
             
             ranges = self._generate_numeric_ranges(min_val, max_val, precision)
             
-            if len(ranges) > 30:
-                await ctx.reply(f"Too many ranges ({len(ranges)}). Limit your ranges to 30 or less using -val-min and -val-max.")
+            if len(ranges) > 31:
+                await ctx.reply(f"Too many ranges ({len(ranges)}). Limit your ranges to 31 or less using -val-min and -val-max.")
                 return
             
             completion_data = await self._build_numeric_completion(di, field, beatmap_args, ranges)
