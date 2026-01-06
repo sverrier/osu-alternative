@@ -117,7 +117,6 @@ BEGIN
         statistics_ok, statistics_miss, statistics_large_bonus,
         statistics_ignore_hit, statistics_ignore_miss, statistics_small_bonus,
         total_score, total_score_without_mods, type, user_id_fk,
-        maximum_statistics_legacy_combo_increase,
         highest_score, highest_pp, rank, mod_acronyms, mod_speed_change,
         difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
@@ -131,7 +130,6 @@ BEGIN
         statistics_ok, statistics_miss, statistics_large_bonus,
         statistics_ignore_hit, statistics_ignore_miss, statistics_small_bonus,
         total_score, total_score_without_mods, type, so.user_id,
-        maximum_statistics_legacy_combo_increase,
         FALSE, FALSE, leaderboard_rank,
         NULL::text[], 1::numeric, FALSE, FALSE, FALSE, FALSE
     FROM scoretaiko so
