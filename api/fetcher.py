@@ -424,10 +424,10 @@ class Fetcher:
         print("  [2] user    (user tokens from tokens table)")
         choice = input("Enter choice (1/2): ").strip()
 
+        if choice == "1":
+            mode = "client"
         if choice == "2":
             mode = "user"
-        else:
-            mode = "client"
 
         self.logger.info(f"Fetcher starting in '{mode}' mode")
 
