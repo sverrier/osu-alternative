@@ -304,7 +304,7 @@ class util_api:
                 response = requests.get(url, headers=headers)
                 status = response.status_code
 
-                time.sleep(1)
+                time.sleep(0.7)
                 if status == 200:
                     json_response = response.json()
                     if not json_response:

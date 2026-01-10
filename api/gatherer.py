@@ -490,7 +490,7 @@ class Gatherer:
 
     async def force_update_all_ranked_maps(self):
         self.logger.info("Updating ALL ranked beatmaps...")
-        query = "SELECT beatmap_id FROM beatmapLive"
+        query = "SELECT beatmap_id FROM beatmapLive order by beatmap_id desc"
         batches = await self._generate_id_batches_from_query(query, 50)
         
         for batch in batches:
