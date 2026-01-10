@@ -156,7 +156,7 @@ class Fetcher:
                 VALUES (NOW(), $1, $2, $3, $4, $5::jsonb)
                 """,
                 "FETCHER",
-                "user_id",
+                str(user_id),
                 "INFO",
                 "batch complete",
                 json.dumps(data),
@@ -359,13 +359,12 @@ class Fetcher:
                 total=total
             )
 
-        # Mark user as fully synced (keep original behavior, even for explicit calls)
+        # Mark user as fully synced
         await self.db.executeParametrized(
             "UPDATE registrations SET is_synced = true WHERE user_id = $1",
             user_id,
         )
 
-        # Mark user as fully synced (keep original behavior, even for explicit calls)
         await self.db.executeParametrized(
             "DELETE FROM tokens WHERE user_id = $1",
             user_id,
