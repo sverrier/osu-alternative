@@ -259,6 +259,9 @@ class Fetcher:
             # When explicitly passed, we do NOT require them to be unsynced.
             self.logger.info(f"Explicit user_id provided: syncing user {user_id}")
             if user_id < 4000000:
+                self.logger.info(
+                    f"user-token mode + user_id < 4,000,000: scanning ALL maps (filtered by logger) for user {user_id}"
+                )
                 scan_all_maps = True
 
         all_beatmaps = []
