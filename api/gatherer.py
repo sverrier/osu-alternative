@@ -95,9 +95,9 @@ class Gatherer:
         for i in range(start_id, end_id, batch_size):
             yield list(range(i, min(i + batch_size, end_id)))
 
-    async def _generate_id_batches_from_query(self, query, batch_size=50):
+    async def _generate_id_batches_from_query(self, query, batch_size=50, reverse = False):
         rs, elapsed = await self.db.executeQuery(query)
-        ids = sorted(row['id'] if isinstance(row, dict) else row[0] for row in rs)
+        ids = sorted((row['id'] if isinstance(row, dict) else row[0] for row in rs), reverse=reverse)
         batches = []
         for i in range(0, len(ids), batch_size):
             batches.append(ids[i:i + batch_size])
