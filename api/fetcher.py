@@ -265,36 +265,66 @@ class Fetcher:
 
         self.logger.info(f"Fetching all most-played beatmaps for user {user_id}...")
 
-        # Page through user's most-played beatmaps
-        while True:
-            page = self.apiv2.get_user_beatmaps_most_played(user_id, limit, offset)
-            if not page:
-                break
-            all_beatmaps.extend(page)
-            offset += limit
-            self.logger.info(f"Fetched beatmaps up to offset {offset} for user {user_id}...")
+        # --- Decide which beatmaps to scan ---
+        is_user_token_mode = getattr(self.apiv2, "_auth_mode", "client") == "user"
+        scan_all_maps = is_user_token_mode and user_id < 4_000_000
 
-        beatmap_ids = [b["beatmap_id"] for b in all_beatmaps]
-        self.logger.info(f"Fetched {len(beatmap_ids)} total beatmaps for user {user_id}")
-
-        # Determine which beatmaps still need syncing, based on logger
-        query = """
-            SELECT beatmap_id
-            FROM beatmapLive
-            WHERE beatmap_id > (
-                SELECT COALESCE(MAX(beatmap_id), 0)
-                FROM logger
-                WHERE logType = 'FETCHER' AND user_id = $1
+        if scan_all_maps:
+            self.logger.info(
+                f"user-token mode + user_id < 4,000,000: scanning ALL maps (filtered by logger) for user {user_id}"
             )
-        """
-        rs = await self.db.fetchParametrized(query, user_id)
-        existing_ids = {
-            (row["beatmap_id"] if isinstance(row, dict) else row[0]) for row in rs
-        }
 
-        target_ids = sorted([bid for bid in beatmap_ids if bid in existing_ids])
-        total = len(target_ids)
-        self.logger.info(f"{total} beatmaps pending sync for user {user_id}")
+            # Pull only the beatmaps that are beyond logger progress (no need to use most_played)
+            query = """
+                SELECT beatmap_id
+                FROM beatmapLive
+                WHERE beatmap_id > (
+                    SELECT COALESCE(MAX(beatmap_id), 0)
+                    FROM logger
+                    WHERE logType = 'FETCHER' AND user_id = $1
+                )
+                ORDER BY beatmap_id
+            """
+            rs = await self.db.fetchParametrized(query, user_id)
+            target_ids = [row["beatmap_id"] for row in rs]
+
+            total = len(target_ids)
+            self.logger.info(f"{total} beatmaps pending sync for user {user_id} (all-maps scan)")
+        else:
+            all_beatmaps = []
+            limit = 100
+            offset = 0
+
+            self.logger.info(f"Fetching all most-played beatmaps for user {user_id}...")
+
+            # Page through user's most-played beatmaps
+            while True:
+                page = self.apiv2.get_user_beatmaps_most_played(user_id, limit, offset)
+                if not page:
+                    break
+                all_beatmaps.extend(page)
+                offset += limit
+                self.logger.info(f"Fetched beatmaps up to offset {offset} for user {user_id}...")
+
+            beatmap_ids = [b["beatmap_id"] for b in all_beatmaps]
+            self.logger.info(f"Fetched {len(beatmap_ids)} total beatmaps for user {user_id}")
+
+            # Determine which beatmaps still need syncing, based on logger
+            query = """
+                SELECT beatmap_id
+                FROM beatmapLive
+                WHERE beatmap_id > (
+                    SELECT COALESCE(MAX(beatmap_id), 0)
+                    FROM logger
+                    WHERE logType = 'FETCHER' AND user_id = $1
+                )
+            """
+            rs = await self.db.fetchParametrized(query, user_id)
+            existing_ids = {row["beatmap_id"] for row in rs}
+
+            target_ids = sorted([bid for bid in beatmap_ids if bid in existing_ids])
+            total = len(target_ids)
+            self.logger.info(f"{total} beatmaps pending sync for user {user_id}")
 
         # Process beatmaps in batches
         batch_size = 100
