@@ -269,9 +269,6 @@ class Fetcher:
         offset = 0
 
         if scan_all_maps:
-            self.logger.info(
-                f"user-token mode + user_id < 4,000,000: scanning ALL maps (filtered by logger) for user {user_id}"
-            )
 
             # Pull only the beatmaps that are beyond logger progress (no need to use most_played)
             query = """
