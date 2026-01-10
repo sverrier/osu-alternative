@@ -19,25 +19,14 @@ class Fetcher:
     in an infinite loop, using its own config file: fetcher.txt
     """
 
-    def __init__(self, config_file: str = "fetcher.txt", default_delay_seconds: int = 10):
+    def __init__(self, config_file: str = "fetcher.txt"):
         self.config_file = config_file
         self._setup_logging()
         self.logger.info("Initializing FetcherLoop...")
 
         # Load DB/API config from its own file
         self.config_values = self._load_or_create_config()
-
-        # Default delay between iterations (can be overridden by DELAY in config)
-        self.delay = float(default_delay_seconds)
-        if "DELAY" in self.config_values:
-            try:
-                # DELAY is in ms, convert to seconds
-                self.delay = int(self.config_values["DELAY"]) / 1000.0
-            except ValueError:
-                self.logger.warning(
-                    f"Invalid DELAY value '{self.config_values['DELAY']}', "
-                    f"falling back to {self.delay} seconds."
-                )
+        self.delay = int(self.config_values["DELAY"]) / 1000.0
 
         # Create DB and API helpers
         self.db = db(self.config_values, self.logger)
