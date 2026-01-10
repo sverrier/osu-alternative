@@ -255,19 +255,17 @@ class Fetcher:
                 return
 
             user_id = rs[0]["user_id"] if isinstance(rs[0], dict) else rs[0][0]
+            scan_all_maps = False
         else:
             # When explicitly passed, we do NOT require them to be unsynced.
             self.logger.info(f"Explicit user_id provided: syncing user {user_id}")
+            scan_all_maps = user_id < 4000000
 
         all_beatmaps = []
         limit = 100
         offset = 0
 
         self.logger.info(f"Fetching all most-played beatmaps for user {user_id}...")
-
-        # --- Decide which beatmaps to scan ---
-        is_user_token_mode = getattr(self.apiv2, "_auth_mode", "client") == "user"
-        scan_all_maps = is_user_token_mode and user_id < 4_000_000
 
         if scan_all_maps:
             self.logger.info(
