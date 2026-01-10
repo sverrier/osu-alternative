@@ -239,7 +239,7 @@ class Fetcher:
           - the provided user_id, OR
           - the next unsynced user in registrations (original behavior).
         """
-
+        scan_all_maps = False
         if user_id is None:
             query = """
                 SELECT user_id
@@ -255,17 +255,15 @@ class Fetcher:
                 return
 
             user_id = rs[0]["user_id"] if isinstance(rs[0], dict) else rs[0][0]
-            scan_all_maps = False
         else:
             # When explicitly passed, we do NOT require them to be unsynced.
             self.logger.info(f"Explicit user_id provided: syncing user {user_id}")
-            scan_all_maps = user_id < 4000000
+            if user_id < 4000000:
+                scan_all_maps = True
 
         all_beatmaps = []
         limit = 100
         offset = 0
-
-        self.logger.info(f"Fetching all most-played beatmaps for user {user_id}...")
 
         if scan_all_maps:
             self.logger.info(
