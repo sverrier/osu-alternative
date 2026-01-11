@@ -30,7 +30,6 @@ class Fetcher:
 
         # Create DB and API helpers
         self.db = db(self.config_values, self.logger)
-        self.apiv2 = util_api(self.config_values)
 
     # ------------------------------------------------------------------ #
     # LOGGING
@@ -198,31 +197,27 @@ class Fetcher:
 
         return db_user_id, db_mode, token_obj
 
-    def _apply_access_token_to_api(self, access_token: str):
+    def _apply_access_token_to_api(self, api, access_token: str):
         """
         Apply a bearer token to util_api object.
 
         This assumes util_api reads self.token when building Authorization headers.
         If your util_api uses a different attribute/method, adjust here only.
         """
-        self.apiv2.token = access_token
+        api.token = access_token
 
-    async def sync_user_scores_from_tokens(self, user_id: int, mode: int | None = None):
+    async def sync_user_scores_from_tokens(self, api, user_id: int, mode: int | None = None):
         """
         Loads (user_id, mode, token) from tokens table, applies the access token,
         then runs the normal sync routine for that specific user.
         """
         db_user_id, db_mode, token_obj = await self._load_user_token_from_db(user_id, mode)
-
-        # Optional: handle expiration if you want
-        # If you store expires_in and some lchg_time, you could decide to refresh here.
-        # For now: just use access_token as requested.
-        self._apply_access_token_to_api(token_obj["access_token"])
+        self._apply_access_token_to_api(api, token_obj["access_token"])
 
         self.logger.info(f"Using user token from tokens table for user {db_user_id} (mode={db_mode})")
-        await self.sync_registered_user_scores(user_id=db_user_id)
+        await self.sync_registered_user_scores(user_id=db_user_id, api=api)
     
-    async def sync_registered_user_scores(self, user_id: int | None = None):
+    async def sync_registered_user_scores(self, api, user_id: int | None = None):
         """
         Sync scores for:
           - the provided user_id, OR
@@ -284,7 +279,7 @@ class Fetcher:
 
             # Page through user's most-played beatmaps
             while True:
-                page = self.apiv2.get_user_beatmaps_most_played(user_id, limit, offset)
+                page = await asyncio.to_thread(api.get_user_beatmaps_most_played, user_id, limit, offset)
                 if not page:
                     break
                 all_beatmaps.extend(page)
@@ -330,7 +325,7 @@ class Fetcher:
                     f"[{idx}/{total}] Fetching scores for beatmap {beatmap_id} (user {user_id})..."
                 )
 
-                scores = self.apiv2.get_beatmap_user_scores(beatmap_id, user_id)
+                scores = await asyncio.to_thread(api.get_beatmap_user_scores, beatmap_id, user_id)
 
                 # Group scores by ruleset
                 for score_data in scores:
@@ -389,10 +384,7 @@ class Fetcher:
             f"Sync complete for user {user_id} ({total} beatmaps processed)."
         )
 
-    async def sync_user_scores_from_tokens_queue(self):
-        """
-        Pick the next user from tokens table and sync them using user tokens.
-        """
+    async def sync_user_scores_from_tokens_queue(self, api):
         query = """
             SELECT user_id, mode
             FROM tokens
@@ -408,74 +400,84 @@ class Fetcher:
         row = rows[0]
         await self.sync_user_scores_from_tokens(
             user_id=row["user_id"],
-            mode=row["mode"]
+            mode=row["mode"],
+            api=api
         )
 
+    async def _client_loop(self, api_client):
+        self.logger.info("Client loop started.")
+        while True:
+            try:
+                await self.sync_registered_user_scores(api=api_client)
+            except Exception as e:
+                self.logger.error(f"Error in client loop: {e}")
 
+            self.logger.info(f"[client] Sleeping {self.delay} seconds before next iteration...")
+            await asyncio.sleep(self.delay)
+
+
+    async def _user_loop(self, api_user):
+        self.logger.info("User loop started.")
+        while True:
+            try:
+                await self.sync_user_scores_from_tokens_queue(api=api_user)
+            except Exception as e:
+                self.logger.error(f"Error in user loop: {e}")
+
+            self.logger.info(f"[user] Sleeping {self.delay} seconds before next iteration...")
+            await asyncio.sleep(self.delay)
 
     async def run(self):
         """
-        Initialize DB + API, then repeatedly run the selected fetcher mode
-        with a delay in between iterations.
-
         Modes:
-        - client : old behavior (client_credentials)
-        - user   : token-based fetcher (tokens table)
+        [1] client loop (client_credentials, api delay 1000ms)
+        [2] user loop   (tokens table, api delay 10ms)
+        [3] main loop   (run both loops in parallel)
         """
-
-        # -------------------------
-        # Initial setup
-        # -------------------------
         await self.db.get_pool()
         await self.db.execSetupFiles()
 
-        # -------------------------
-        # Choose fetcher mode
-        # -------------------------
         print("")
         print("Select fetcher mode:")
         print("  [1] client  (client_credentials)")
         print("  [2] user    (user tokens from tokens table)")
-        choice = input("Enter choice (1/2): ").strip()
+        print("  [3] main loop (client + user in parallel)")
+        choice = input("Enter choice (1/2/3): ").strip()
+
+        # Build 2 independent API objects so tokens/delay/auth-mode never collide
+        api_client = util_api(self.config_values)
+        api_user = util_api(self.config_values)
+
+        # Initialize client api
+        api_client.use_client_token()
+        api_client._set_delay(1000)
+        api_client.refresh_client_token()
+
+        # Initialize user api (token gets injected per-user from DB)
+        api_user._set_delay(100)
 
         if choice == "1":
             mode = "client"
-        if choice == "2":
+        elif choice == "2":
             mode = "user"
+        elif choice == "3":
+            mode = "main"
+        else:
+            return
 
         self.logger.info(f"Fetcher starting in '{mode}' mode")
+        self.logger.info(f"FetcherLoop started ({mode} mode). Running every {self.delay} seconds.")
 
-        # -------------------------
-        # Initialize API auth
-        # -------------------------
         if mode == "client":
-            # old behavior
-            self.apiv2.use_client_token()
-            self.apiv2.refresh_client_token()
-            self.apiv2._set_delay(1000)
+            await self._client_loop(api_client)
 
-        self.logger.info(
-            f"FetcherLoop started ({mode} mode). "
-            f"Running every {self.delay} seconds."
-        )
+        elif mode == "user":
+            await self._user_loop(api_user)
 
-        # -------------------------
-        # Main loop
-        # -------------------------
-        while True:
-            try:
-                if mode == "client":
-                    # Old behavior: oldest unsynced user
-                    await self.sync_registered_user_scores()
-
-                else:
-                    # New behavior: pull next user from tokens table
-                    # You already have this routine
-                    await self.sync_user_scores_from_tokens_queue()
-
-            except Exception as e:
-                self.logger.error(f"Error in fetcher loop ({mode} mode): {e}")
-
-            self.logger.info(f"Sleeping {self.delay} seconds before next iteration...")
-            await asyncio.sleep(self.delay)
+        else:
+            # Run both forever, in parallel
+            await asyncio.gather(
+                self._client_loop(api_client),
+                self._user_loop(api_user),
+            )
 

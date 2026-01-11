@@ -592,7 +592,6 @@ class Formatter:
         width_rank = max(len(str(r["rank"])) for r in all_rows)
         width_name = max(len(str(r["username"] or "")) for r in all_rows)
         width_val = max(len(fmt_count(r["value"])) for r in all_rows)
-        width_frac = max(len(fmt_frac(r["value"], r["total"])) for r in all_rows)
         width_pct = max(len(fmt_pct(r["value"], r["total"])) for r in all_rows)
         width_date = max(len(str(r["completed_up_to"] or "")) for r in all_rows)
 
@@ -600,7 +599,6 @@ class Formatter:
             f"{'#':<{width_rank}} | "
             f"{'Username':<{width_name}} | "
             f"{'Value':<{width_val}} | "
-            f"{'Value/Total':<{width_frac}} | "
             f"{'%':<{width_pct}} | "
             f"{'Up to':<{width_date}}"
         )
@@ -612,7 +610,6 @@ class Formatter:
                 f"{str(r['rank']).rjust(width_rank)} | "
                 f"{str(r['username'] or '').ljust(width_name)} | "
                 f"{fmt_count(r['value']).rjust(width_val)} | "
-                f"{fmt_frac(r['value'], r['total']).rjust(width_frac)} | "
                 f"{fmt_pct(r['value'], r['total']).rjust(width_pct)} | "
                 f"{str(r['completed_up_to'] or '').rjust(width_date)}"
             )
@@ -624,7 +621,6 @@ class Formatter:
                 f"{str(user_data['rank']).rjust(width_rank)} | "
                 f"{str(user_data['username'] or '').ljust(width_name)} | "
                 f"{fmt_count(user_data['value']).rjust(width_val)} | "
-                f"{fmt_frac(user_data['value'], user_data['total']).rjust(width_frac)} | "
                 f"{fmt_pct(user_data['value'], user_data['total']).rjust(width_pct)} | "
                 f"{str(user_data['completed_up_to'] or '').rjust(width_date)}"
             )

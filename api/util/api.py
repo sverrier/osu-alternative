@@ -507,6 +507,7 @@ class util_api:
     def get_beatmap_user_scores(self, beatmap_id, user_id):
         complete = False
         magnitude = 1
+        print(self.token)
         
         while not complete:
             try:
