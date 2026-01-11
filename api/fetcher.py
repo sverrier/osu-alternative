@@ -424,8 +424,8 @@ class Fetcher:
             except Exception as e:
                 self.logger.error(f"Error in user loop: {e}")
 
-            self.logger.info(f"[user] Sleeping {self.delay} seconds before next iteration...")
-            await asyncio.sleep(self.delay)
+            self.logger.info(f"[user] Sleeping 60 seconds before next iteration...")
+            await asyncio.sleep(60)
 
     async def run(self):
         """
