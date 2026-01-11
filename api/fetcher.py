@@ -432,7 +432,7 @@ class Fetcher:
         Modes:
         [1] client loop (client_credentials, api delay 1000ms)
         [2] user loop   (tokens table, api delay 10ms)
-        [3] main loop   (run both loops in parallel)
+        [3] main loop   (client + user in parallel)
         """
         await self.db.get_pool()
         await self.db.execSetupFiles()
@@ -444,18 +444,37 @@ class Fetcher:
         print("  [3] main loop (client + user in parallel)")
         choice = input("Enter choice (1/2/3): ").strip()
 
-        # Build 2 independent API objects so tokens/delay/auth-mode never collide
+        # ----------------------------------------
+        # Build 2 independent API objects
+        # ----------------------------------------
         api_client = util_api(self.config_values)
         api_user = util_api(self.config_values)
 
-        # Initialize client api
+        # 🔥 Wipe client credentials from memory
+        api_user.client = None
+        api_user.key = None
+
+        # 🔒 Lock auth mode to user only
+        api_user._auth_mode = "user"
+
+        # 🔒 Disable client refresh entirely
+        api_user.refresh_client_token = lambda *args, **kwargs: (_ for _ in ()).throw(
+            RuntimeError("SECURITY: client token refresh called in user API instance")
+        )
+
+        # Set fast delay for user API
+        api_user._set_delay(100)
+
+        # ----------------------------------------
+        # Initialize client API (normal)
+        # ----------------------------------------
         api_client.use_client_token()
         api_client._set_delay(1000)
         api_client.refresh_client_token()
 
-        # Initialize user api (token gets injected per-user from DB)
-        api_user._set_delay(100)
-
+        # ----------------------------------------
+        # Mode selection
+        # ----------------------------------------
         if choice == "1":
             mode = "client"
         elif choice == "2":
@@ -468,6 +487,9 @@ class Fetcher:
         self.logger.info(f"Fetcher starting in '{mode}' mode")
         self.logger.info(f"FetcherLoop started ({mode} mode). Running every {self.delay} seconds.")
 
+        # ----------------------------------------
+        # Dispatch
+        # ----------------------------------------
         if mode == "client":
             await self._client_loop(api_client)
 
@@ -480,4 +502,3 @@ class Fetcher:
                 self._client_loop(api_client),
                 self._user_loop(api_user),
             )
-
