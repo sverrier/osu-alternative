@@ -641,6 +641,7 @@ class Gatherer:
         routine_configs = [
             (self.fetch_recent_scores, 30, "fetch_recent_scores"),  # Every 30 seconds
             (self.fetch_beatmaps, 3600, "fetch_beatmaps"),  # Hourly
+            (self.sync_queued_user_beatmaps, 1800, "sync_queued_user_beatmaps"),  # Hourly
             (self.fetch_users, 600, "fetch_users"),  # Every 10 min
             (self.update_registered_users, 600, "update_registered_users"),  # Every 10 min
             (self.update_registered_users_extended, 10000, "update_registered_users"),  # Daily
