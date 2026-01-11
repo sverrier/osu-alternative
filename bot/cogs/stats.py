@@ -216,7 +216,7 @@ class Stats(commands.Cog):
         # ----------------------------
         # parse metric (required)
         # ----------------------------
-        metric = self._norm(di.get("-metric"))
+        metric = self._norm(di.get("-metric", "normalclears"))
         allowed_metrics = {
             "scores", "plays", "easyclears", "normalclears", "hardclears",
             "extraclears", "ultraclears", "overclears", "fc", "ss",
