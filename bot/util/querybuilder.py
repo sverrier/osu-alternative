@@ -119,28 +119,53 @@ class QueryBuilder:
     # ------------------------------------------------------------------
     # Value / comparison helpers
     # ------------------------------------------------------------------
+    def _sql_quote_literal(self, s: str) -> str:
+        # Minimal safe quoting for SQL literals (single quotes doubled)
+        return "'" + s.replace("'", "''") + "'"
+
+    def _format_text_array(self, raw: str) -> str:
+        """
+        raw: "HD,DT" or "hd, dt" or "".
+        returns: ARRAY['HD','DT']::text[]
+        """
+        parts = [p.strip().upper() for p in str(raw).split(",") if p.strip()]
+        if not parts:
+            return "ARRAY[]::text[]"
+
+        items = ", ".join(self._sql_quote_literal(p) for p in parts)
+        return f"ARRAY[{items}]::text[]"
     def _format_value(self, column, value, operator=None):
         """
         Format a value for SQL based on the column type (from schema).
         """
         meta = get_column_info(column)
         if not meta:
-            return f"'{value}'"
+            # Default: treat as string
+            return "'" + str(value).replace("'", "''") + "'"
 
         col_type = meta.get("type")
 
         if col_type in ("int", "float", "bool"):
             return str(value)
-        elif col_type in ("datetime", "timestamp"):
-            return f"'{value}'"
-        elif col_type == "str":
+
+        if col_type in ("datetime", "timestamp"):
+            return "'" + str(value).replace("'", "''") + "'"
+
+        if col_type == "str":
+            v = str(value).replace("'", "''")
             if operator == "like":
-                return f"'%{value}%'"
-            return f"'{value}'"
-        elif col_type in ("jsonb", "array"):
-            return str(value)
-        else:
-            return f"'{value}'"
+                return f"'%{v}%'"
+            return f"'{v}'"
+
+        if col_type == "array":
+            return self._format_text_array(value)
+
+        if col_type == "jsonb":
+            v = str(value).replace("'", "''")
+            return f"'{v}'::jsonb"
+
+        # Fallback
+        return "'" + str(value).replace("'", "''") + "'"
 
     def _make_case_insensitive(self, column_sql, formatted_value, operator):
         """

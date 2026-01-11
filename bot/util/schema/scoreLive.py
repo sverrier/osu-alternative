@@ -319,11 +319,6 @@ SCORE_LIVE_METADATA = {
     },
     
     # Mods
-    "mods": {
-        "type": "jsonb",
-        "nullable": False,
-        "description": "Mod configuration as JSON"
-    },
     "mod_acronyms": {
         "type": "array",
         "nullable": True,

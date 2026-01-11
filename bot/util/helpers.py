@@ -15,10 +15,22 @@ JOIN_CLAUSES = {
 
 # Special cases that don't follow standard patterns
 VALUED_PARAMS = {
-    "-unplayed": ("NOT EXISTS (SELECT 1 FROM scoreLive s WHERE s.beatmap_id_fk = beatmapLive.beatmap_id and s.ruleset_id = beatmapLive.mode and s.user_id_fk = {value})", ["beatmap_id"]),
-    "-search": ("LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})", ["artist", "title", "source", "version", "tags"]),
-    "-is_fa-true": ("track_id IS NOT NULL", ["track_id"]),
-    "-is_fa-false": ("track_id IS NULL", ["track_id"]),
+    "-unplayed": (
+        "NOT EXISTS (SELECT 1 FROM scoreLive s WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND s.user_id_fk = {value})",
+        ["beatmap_id"]
+    ),
+    "-search": (
+        "LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})",
+        ["artist", "title", "source", "version", "tags"]
+    ),
+    "-mods": (
+        "mod_acronyms @> {value}",
+        ["mod_acronyms"]
+    ),
+    "-mods-exact": (
+        "mod_acronyms @> {value} AND mod_acronyms <@ {value}",
+        ["mod_acronyms"]
+    ),
 }
 
 VALUELESS_PARAMS = {
