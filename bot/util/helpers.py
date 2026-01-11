@@ -56,6 +56,26 @@ PARAM_SYNONYM_MAP = {
     "-p": "-page",
 }
 
+MODE_LABELS = {
+    0: "osu",
+    1: "taiko",
+    2: "fruits",
+    3: "mania",
+    4: "total",
+}
+
+FA_LABELS = {
+    0: "Non-FA",
+    1: "FA",
+    2: "All",
+}
+
+DIFF_LABELS = {
+    0: "Easy",
+    1: "Hard",
+    2: "All",
+}
+
 
 def escape_string(s):
     special_chars = {"'": "''", "\\": "\\\\", '"': ""}

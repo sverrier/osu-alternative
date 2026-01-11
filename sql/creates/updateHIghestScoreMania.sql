@@ -223,6 +223,11 @@ BEGIN
        AND (sl.highest_score IS DISTINCT FROM d.new_highest_score
             OR sl.highest_pp IS DISTINCT FROM d.new_highest_pp);
 
+    INSERT INTO user_metric_dirty (user_id)
+    VALUES (NEW.user_id)
+    ON CONFLICT (user_id)
+    DO UPDATE SET lchg_time = EXCLUDED.lchg_time;
+
     RETURN NULL;
 END;
 $$;
