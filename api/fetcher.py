@@ -452,11 +452,7 @@ class Fetcher:
             # old behavior
             self.apiv2.use_client_token()
             self.apiv2.refresh_client_token()
-
-        else:
-            # user-token mode
-            # NOTE: actual token loading happens per-user inside the sync routine
-            self.apiv2.use_client_token()  # safe default until user token is injected
+            self.apiv2._set_delay(1000)
 
         self.logger.info(
             f"FetcherLoop started ({mode} mode). "

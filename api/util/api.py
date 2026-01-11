@@ -19,6 +19,9 @@ class util_api:
         self._auth_mode = "client"
         self._user_refresh_token = None
 
+    def _set_delay(self, delay):
+        self.delay = delay / 1000
+
     # -------------------
     # Auth mode switching
     # -------------------
