@@ -17,27 +17,95 @@ class Misc(commands.Cog):
         await ctx.reply(file=attach, content="Here is your response:")
 
     @commands.command()
-    async def register(self, ctx, user):
+    async def register(self, ctx, user: int):
         discord_name = ctx.author.name
         discord_id = str(ctx.author.id)
-        query = "SELECT user_id FROM registrations WHERE discordid = $1"
-        existing = await self.bot.db.fetchParametrized(query, discord_id)
-        if existing:
-            query = """
-                INSERT INTO registrations (user_id, registrationdate)
-                VALUES ($1, NOW())
-                ON CONFLICT DO NOTHING
+        user_id = int(user)
+
+        # 1) Check if this discord is already linked to some (possibly different) user_id
+        q_discord_link = "SELECT user_id FROM registrations WHERE discordid = $1 LIMIT 1"
+        linked_row = await self.bot.db.fetchParametrized(q_discord_link, discord_id)
+        linked_user_id = None
+        if linked_row:
+            linked_user_id = linked_row[0]["user_id"] if isinstance(linked_row[0], dict) else linked_row[0][0]
+
+        discord_is_linked_elsewhere = (linked_user_id is not None and linked_user_id != user_id)
+
+        # 2) Check if the target user is already registered and whether it already has a discordid
+        q_user_reg = "SELECT discordid FROM registrations WHERE user_id = $1 LIMIT 1"
+        user_row = await self.bot.db.fetchParametrized(q_user_reg, user_id)
+
+        user_is_registered = bool(user_row)
+        user_discordid = None
+        if user_row:
+            user_discordid = user_row[0].get("discordid") if isinstance(user_row[0], dict) else user_row[0][0]
+        user_has_discord = user_discordid is not None and str(user_discordid) != ""
+
+        # Tell the user BEFORE any insert/update that might block due to triggers/locks
+        status_msg = await ctx.reply(
+            f"Starting registration for user ID `{user_id}`… this can take a bit if the database is busy."
+        )
+
+        # ---- CASE A: user is NOT registered yet ----
+        if not user_is_registered:
+            if discord_is_linked_elsewhere:
+                # Register WITHOUT linking
+                q_insert = """
+                    INSERT INTO registrations (user_id, registrationdate)
+                    VALUES ($1, NOW())
+                    ON CONFLICT (user_id) DO NOTHING
+                """
+                await self.bot.db.executeParametrized(q_insert, user_id)
+
+                await status_msg.edit(
+                    content=(
+                        f"✅ Registered user ID `{user_id}`.\n"
+                        f"⚠️ Your Discord is already linked to user ID `{linked_user_id}`, "
+                        f"so I did **not** link it here."
+                    )
+                )
+                return
+
+            # Register + link
+            q_insert = """
+                INSERT INTO registrations (user_id, discordname, discordid, registrationdate)
+                VALUES ($1, $2, $3, NOW())
+                ON CONFLICT (user_id) DO NOTHING
             """
-            await self.bot.db.executeParametrized(query, int(user))
-            await ctx.reply(f"Registered user ID {user}")
+            await self.bot.db.executeParametrized(q_insert, user_id, discord_name, discord_id)
+
+            await status_msg.edit(content=f"✅ Registered user ID `{user_id}` and linked your Discord account.")
             return
-        query = """
-            INSERT INTO registrations (user_id, discordname, discordid, registrationdate)
-            VALUES ($1, $2, $3, NOW())
-            ON CONFLICT DO NOTHING
+
+        # ---- CASE B: user IS registered already ----
+        if user_has_discord:
+            # Already linked (to someone). Do nothing.
+            await status_msg.edit(content=f"✅ User ID `{user_id}` is already registered and linked. Nothing to do.")
+            return
+
+        # User registered but discord not linked
+        if discord_is_linked_elsewhere:
+            # Caller discord is linked elsewhere -> do NOT link, but registration already exists
+            await status_msg.edit(
+                content=(
+                    f"✅ User ID `{user_id}` is already registered.\n"
+                    f"⚠️ Your Discord is already linked to user ID `{linked_user_id}`, "
+                    f"so I did **not** link it here."
+                )
+            )
+            return
+
+        # Link discord to this already-registered user (only if still NULL to avoid overwriting)
+        q_link = """
+            UPDATE registrations
+               SET discordname = $2,
+                   discordid   = $3
+             WHERE user_id     = $1
+               AND discordid IS NULL
         """
-        await self.bot.db.executeParametrized(query, int(user), discord_name, discord_id)
-        await ctx.reply("Registered and linked your Discord account!")
+        await self.bot.db.executeParametrized(q_link, user_id, discord_name, discord_id)
+
+        await status_msg.edit(content=f"✅ Linked your Discord account to already-registered user ID `{user_id}`.")
 
     @commands.command()
     async def link(self, ctx, user):
