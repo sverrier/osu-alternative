@@ -54,6 +54,8 @@ PARAM_SYNONYM_MAP = {
     "-dir": "-direction",
     "-l": "-limit",
     "-p": "-page",
+    "played-start": "-ended_at-min",
+    "played-end": "-ended_at-max",
 }
 
 MODE_LABELS = {
