@@ -118,6 +118,10 @@ class Misc(commands.Cog):
         await ctx.reply(content="Updated!")
 
     @commands.command()
+    async def fetcher(self, ctx):
+        await ctx.reply(content="https://osualtv2.respektive.pw/")
+
+    @commands.command()
     async def setmode(self, ctx, *, mode_arg):
         discordid = ctx.author.id
 
