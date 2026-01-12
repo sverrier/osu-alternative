@@ -2,6 +2,7 @@ import os
 import logging
 from datetime import datetime
 import asyncio
+import traceback
 
 import discord
 from discord.ext import commands
@@ -40,6 +41,54 @@ class BotRunner:
             self.logger.info(f"Loaded {len(self.bot.commands)} commands:")
             for command in self.bot.commands:
                 self.logger.info(f"  - {command.name}")
+
+        @self.bot.event
+        async def on_command_error(ctx, error):
+            original = getattr(error, "original", error)
+
+            # First-line message for the normal channel
+            first_line = f"Error: {original}"
+
+            # Full traceback for logging / error channel
+            tb = "".join(
+                traceback.format_exception(
+                    type(original),
+                    original,
+                    original.__traceback__,
+                )
+            )
+
+            self.logger.error(
+                f"Exception in command '{getattr(ctx.command, 'qualified_name', ctx.command)}': {original}\n"
+                f"Author: {ctx.author} (ID: {ctx.author.id})\n"
+                f"Channel: {getattr(ctx.channel, 'id', None)}\n"
+                f"Guild: {getattr(ctx.guild, 'id', None)}\n"
+                f"Traceback:\n{tb}"
+            )
+
+            # Send first line to where command was invoked (kept short)
+            try:
+                await ctx.send(f"```{first_line}```")
+            except Exception:
+                pass
+
+            # Send full traceback to #error-log
+            try:
+                if ctx.guild is not None:
+                    target_name = "error-log"
+                    error_ch = discord.utils.get(ctx.guild.text_channels, name=target_name)
+
+                    if error_ch is not None:
+                        header = f"**{first_line}**\nCommand: `{getattr(ctx.command, 'qualified_name', ctx.command)}` | User: `{ctx.author}`"
+                        await error_ch.send(header)
+
+                        code = tb
+                        max_chunk = 1900  
+                        for i in range(0, len(code), max_chunk):
+                            chunk = code[i:i + max_chunk]
+                            await error_ch.send(f"```py\n{chunk}\n```")
+            except Exception:
+                pass
 
     # ------------- LOGGING -------------
 
@@ -140,6 +189,7 @@ class BotRunner:
         """Entry point for running the Discord bot."""
         asyncio.run(self._load_cogs())
         self.bot.run(self.config["DISCORD_TOKEN"])
+
 
 
 if __name__ == "__main__":
