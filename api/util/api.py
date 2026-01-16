@@ -442,13 +442,15 @@ class util_api:
         
         return []
     
-    def get_beatmap_packs(self, cursor_string = None):
+    def get_beatmap_packs(self, cursor_string = None, type = None):
         complete = False
         magnitude = 1
         
         while not complete:
             try:
                 url = f"https://osu.ppy.sh/api/v2/beatmaps/packs"
+                if type != None:
+                    url = url + "?type=" + type
                 if cursor_string != None:
                     url = url + "?cursor_string=" + cursor_string
                 headers = {

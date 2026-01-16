@@ -11,6 +11,7 @@ from api.util.scoreOsu import ScoreOsu
 from api.util.scoreFruits import ScoreFruits
 from api.util.scoreMania import ScoreMania
 from api.util.scoreTaiko import ScoreTaiko
+from api.util.beatmapPack import BeatmapPack
 from api.util.api import util_api
 from util.db import db
 from util.crypto import get_fernet
@@ -264,13 +265,16 @@ class Gatherer:
         self.logger.info(f"Completed fetching all beatmap packs ({total} total).")
 
         for tag in all_tags:
-            pack = self.apiv2.get_beatmap_pack(tag)
+            json_response = self.apiv2.get_beatmap_pack(tag)
+            pack = BeatmapPack(json_response)
             queries = ''
-            for map in pack.get("beatmapsets"):
-                id = map.get("id")
+            for id in json_response.get("beatmapset_ids"):
                 queries += (f"UPDATE beatmapLive SET pack = '{tag}' where beatmapset_id = {id};")
-            maps = len(pack.get("beatmapsets"))
+            maps = len(json_response.get("beatmapset_ids"))
             await self.db.executeSQL(queries)
+            query = pack.get_insert_query_template()
+            params_list = pack.get_insert_params()
+            await self.db.executeParametrized(query, *params_list)
             self.logger.info(f"Updated {maps} beatmaps with pack tag '{tag}'.")
 
     async def fetch_users(self):
