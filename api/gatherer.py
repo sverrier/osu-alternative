@@ -242,40 +242,80 @@ class Gatherer:
         self.logger.info("Fetching beatmap packs...")
 
         all_tags = []
-        cursor_string = None
         total = 0
 
-        while True:
-            packs = self.apiv2.get_beatmap_packs(cursor_string=cursor_string)
+        types = ["standard", "featured", "tournament", "loved", "chart", "theme", "artist"]
 
-            beatmap_packs = packs.get("beatmap_packs", [])
-            if not beatmap_packs:
-                break
+        for type in types:
+            cursor_string = None   # reset cursor per type (important!)
 
-            tags = [p.get("tag") for p in beatmap_packs if p.get("tag")]
-            all_tags.extend(tags)
-            total += len(tags)
+            while True:
+                packs = self.apiv2.get_beatmap_packs(cursor_string=cursor_string, type=type)
 
-            cursor_string = packs.get("cursor_string")
-            self.logger.info(f"Fetched {len(tags)} packs (total: {total}).")
+                beatmap_packs = packs.get("beatmap_packs", [])
+                if not beatmap_packs:
+                    break
 
-            if not cursor_string:
-                break
+                # store BOTH type + tag
+                tags = [
+                    {"type": type, "tag": p.get("tag")}
+                    for p in beatmap_packs
+                    if p.get("tag")
+                ]
+
+                all_tags.extend(tags)
+                total += len(tags)
+
+                cursor_string = packs.get("cursor_string")
+                self.logger.info(f"Fetched {len(tags)} packs (total: {total}).")
+
+                if not cursor_string:
+                    break
+
 
         self.logger.info(f"Completed fetching all beatmap packs ({total} total).")
 
-        for tag in all_tags:
+        for entry in all_tags:
+            pack_type = entry["type"]
+            tag = entry["tag"]
+
             json_response = self.apiv2.get_beatmap_pack(tag)
             pack = BeatmapPack(json_response)
+
             queries = ''
-            for id in json_response.get("beatmapset_ids"):
-                queries += (f"UPDATE beatmapLive SET pack = '{tag}' where beatmapset_id = {id};")
-            maps = len(json_response.get("beatmapset_ids"))
+            beatmapset_ids = json_response.get("beatmapset_ids", [])
+
+            for id in beatmapset_ids:
+
+                # STANDARD packs -> update single pack column
+                if pack_type == "standard":
+                    queries += (
+                        f"UPDATE beatmapLive "
+                        f"SET pack = '{tag}' "
+                        f"WHERE beatmapset_id = {id};"
+                    )
+
+                # ALL TYPES -> append into packs[] array safely
+                queries += (
+                    f"UPDATE beatmapLive "
+                    f"SET packs = CASE "
+                    f"  WHEN packs @> ARRAY['{tag}'] THEN packs "
+                    f"  ELSE array_append(COALESCE(packs, '{{}}'), '{tag}') "
+                    f"END "
+                    f"WHERE beatmapset_id = {id};"
+                )
+
+            maps = len(beatmapset_ids)
+
             await self.db.executeSQL(queries)
+
             query = pack.get_insert_query_template()
             params_list = pack.get_insert_params()
             await self.db.executeParametrized(query, *params_list)
-            self.logger.info(f"Updated {maps} beatmaps with pack tag '{tag}'.")
+
+            self.logger.info(
+                f"Updated {maps} beatmaps with pack tag '{tag}' ({pack_type})."
+            )
 
     async def fetch_users(self):
         self.logger.info("Fetching users...")

@@ -182,6 +182,11 @@ BEATMAP_LIVE_METADATA = {
         "nullable": True,
         "description": "Beatmap pack name or identifier if applicable.",
     },
+    "packs": {
+        "type": "array",
+        "nullable": True,
+        "description": "Array of packs this beatmap belongs to"
+    },
     "lchg_time": {
         "type": "timestamp",
         "nullable": True,

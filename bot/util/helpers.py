@@ -31,6 +31,10 @@ VALUED_PARAMS = {
         "mod_acronyms @> {value} AND mod_acronyms <@ {value}",
         ["mod_acronyms"]
     ),
+    "-packs": (
+        "packs @> {value}",
+        ["packs"]
+    ),
 }
 
 VALUELESS_PARAMS = {
@@ -39,8 +43,10 @@ VALUELESS_PARAMS = {
     "-has_replay": ("has_replay = true", ["has_replay"]),
     "-no_replay": ("has_replay = false", ["has_replay"]),
     "-convertless": ("scoreLive.ruleset_id = beatmapLive.mode", ["mode", "ruleset_id"]),
-    "-not-ultraclear": ("(total_score < 850000 OR round(accuracy, 4) < 0.96)", ["total_score", "accuracy"]),
-    "-not-hardclear": ("(total_score < 400000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
+    "-not-overclear": ("(total_score < 925000 OR round(accuracy, 4) < 0.99 )", ["total_score", "accuracy"]),
+    "-not-ultraclear": ("(total_score < 750000 OR round(accuracy, 4) < 0.96)", ["total_score", "accuracy"]),
+    "-not-extraclear": ("(total_score < 550000 OR grade IN ('B', 'C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
+    "-not-hardclear": ("(total_score < 350000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
     "-not-cleared": ("(difficulty_reducing = true OR difficulty_removing = true OR grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
 }
 

@@ -449,13 +449,19 @@ class util_api:
         while not complete:
             try:
                 url = f"https://osu.ppy.sh/api/v2/beatmaps/packs"
+                if type != None or cursor_string != None:
+                    url = url + "?"
                 if type != None:
-                    url = url + "?type=" + type
+                    url = url + "type=" + type
+                    if cursor_string != None:
+                        url = url + "&"
                 if cursor_string != None:
-                    url = url + "?cursor_string=" + cursor_string
+                    url = url + "cursor_string=" + cursor_string
                 headers = {
                     "Authorization": f"Bearer {self.token}"  
                 }
+
+                print(url)
                 
                 response = requests.get(url, headers=headers)
                 status = response.status_code

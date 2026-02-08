@@ -122,6 +122,10 @@ class Misc(commands.Cog):
         await ctx.reply(content="https://osualtv2.respektive.pw/")
 
     @commands.command()
+    async def repo(self, ctx):
+        await ctx.reply(content="https://github.com/sverrier/osu-alternative")
+
+    @commands.command()
     async def setmode(self, ctx, *, mode_arg):
         discordid = ctx.author.id
 
