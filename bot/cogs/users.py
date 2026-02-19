@@ -189,7 +189,7 @@ class Users(commands.Cog):
         for k, v in di.items():
             if k.startswith("-"):
                 args.extend([k, str(v)])
-        await self.userlist(ctx, *args)
+        await self.leaderboard(ctx, *args)
 
     @commands.command()
     async def clears(self, ctx, *args):

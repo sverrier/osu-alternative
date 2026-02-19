@@ -377,21 +377,12 @@ BEATMAP_PRESET_SYNONYMS = {
     "playtime": "length",
 }
 
-def normalize_preset_key(value: str) -> str:
-    return (
-        value.lower()
-             .replace("_", " ")
-             .replace("-", " ")
-             .strip()
-    )
-
 def resolve_preset(
     name: str,
     presets: dict,
     synonyms: dict,
 ):
-    key = normalize_preset_key(name)
-    canonical = synonyms.get(key)
+    canonical = synonyms.get(name)
 
     if not canonical:
         return None
@@ -438,20 +429,19 @@ def resolve_any_preset(name: str):
       (category, canonical_key, preset_dict, aliases_list)
     or None if not found.
     """
-    key = normalize_preset_key(name)
 
     # Leaderboard presets
-    canonical = LEADERBOARD_PRESET_SYNONYMS.get(key)
+    canonical = LEADERBOARD_PRESET_SYNONYMS.get(name)
     if canonical and canonical in LEADERBOARD_PRESETS:
         return ("leaderboard", canonical, LEADERBOARD_PRESETS[canonical], _LEADERBOARD_ALIAS_MAP.get(canonical, []))
 
     # User presets
-    canonical = USER_PRESET_SYNONYMS.get(key)
+    canonical = USER_PRESET_SYNONYMS.get(name)
     if canonical and canonical in USER_PRESETS:
         return ("user", canonical, USER_PRESETS[canonical], _USER_ALIAS_MAP.get(canonical, []))
 
     # Beatmap presets
-    canonical = BEATMAP_PRESET_SYNONYMS.get(key)
+    canonical = BEATMAP_PRESET_SYNONYMS.get(name)
     if canonical and canonical in BEATMAP_PRESET_SYNONYMS:
         return ("beatmap", canonical, BEATMAP_PRESETS[canonical], _BEATMAP_ALIAS_MAP.get(canonical, []))
 
