@@ -53,26 +53,39 @@ VALUELESS_PARAMS = {
     "-not-hardclear": ("(total_score < 400000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade", "difficulty_reducing", "difficulty_removing"]),
     "-not-normalclear": ("(difficulty_reducing = true OR difficulty_removing = true)", ["difficulty_reducing", "difficulty_removing"]),
     "-not-easyclear": ("difficulty_removing = true", ["difficulty_removing"]),
-    "-not-played": ("((difficulty_reducing = true OR difficulty_removing = true) and grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
+    "-not-play": ("((difficulty_reducing = true OR difficulty_removing = true) and grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
     "-is_lazer": ("build_id IS NOT NULL", ["build_id"]),
     "-is_stable": ("build_id IS NULL", ["build_id"]),
 }
 
-PARAM_SYNONYM_MAP = {
-    "-u": "-username",
-    "-drain": "-drain_time",
-    "-y": "-year",
-    "-c": "-country_code",
-    "-a": "-artist-like",
-    "-min": "-stars-min",
-    "-max": "-stars-max",
-    "-start": "-ranked_date-min",
-    "-end": "-ranked_date-max",
-    "-dir": "-direction",
-    "-l": "-limit",
-    "-p": "-page",
-    "played-start": "-ended_at-min",
-    "played-end": "-ended_at-max",
+PARAM_ALIASES = {
+    "-username": ("-u",),
+    "-drain_time": ("-drain",),
+    "-year": ("-y",),
+    "-country_code": ("-c",),
+    "-artist-like": ("-a",),
+    "-stars-min": ("-min",),
+    "-stars-max": ("-max",),
+    "-ranked_date-min": ("-start",),
+    "-ranked_date-max": ("-end",),
+    "-direction": ("-dir",),
+    "-limit": ("-l",),
+    "-page": ("-p",),
+    "-ended_at-min": ("-played-start",),
+    "-ended_at-max": ("-played-end",),
+    "-not-overclear": ("-not-overcleared",),
+    "-not-ultraclear": ("-not-ultracleared",),
+    "-not-extraclear": ("-not-extracleared",),
+    "-not-hardclear": ("-not-hardcleared",),
+    "-not-normalclear": ("-not-normalcleared","-not-cleared","-not-clear"),
+    "-not-easyclear": ("-not-easycleared",),
+    "-not-play": ("-not-played",),
+}
+
+ALIAS_TO_PARAM = {
+    alias: param
+    for param, aliases in PARAM_ALIASES.items()
+    for alias in aliases
 }
 
 MODE_LABELS = {
@@ -112,7 +125,7 @@ def get_args(arg=None):
             raw_key = args[i].lower()
 
             # Resolve synonyms immediately
-            key = PARAM_SYNONYM_MAP.get(raw_key, raw_key)
+            key = ALIAS_TO_PARAM.get(raw_key, raw_key)
 
             # Handle valueless params
             if key in VALUELESS_PARAMS:
@@ -160,7 +173,7 @@ def separate_user_filters(di):
             continue
 
         # Resolve synonyms first, e.g. -y -> -year, -drain -> -drain_time, etc.
-        canonical = PARAM_SYNONYM_MAP.get(key, key)
+        canonical = ALIAS_TO_PARAM.get(key, key)
 
         # 1) Meta/special options that are always considered beatmap-side
         if canonical in special_params:
@@ -217,7 +230,7 @@ def separate_beatmap_filters(di):
             continue
 
         # Resolve synonyms first, e.g. -y -> -year, -drain -> -drain_time, etc.
-        canonical = PARAM_SYNONYM_MAP.get(key, key)
+        canonical = ALIAS_TO_PARAM.get(key, key)
 
         # 1) Meta/special options that are always considered beatmap-side
         if canonical in special_params:
