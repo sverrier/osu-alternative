@@ -30,18 +30,19 @@ class Collections(commands.Cog):
         if "loved" not in include_set:
             di.setdefault("-status-not", "loved")
 
-        if "converts" not in include_set:
-            di.setdefault("-convertless", "true")
-        
-        if "all" not in include_set:
-            di.setdefault("-highest_score", "true")
-        
-        if "everyone" not in include_set:
-            if "-user_id" not in di and "-username" not in di:
-                query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
-                result, _ = await self.bot.db.executeQuery(query)
-                if result and result[0]:
-                    di["-user_id"] = result[0][0]
+        if di.get("-unplayed") is None:
+            if "converts" not in include_set:
+                di.setdefault("-convertless", "true")
+            
+            if "all" not in include_set:
+                di.setdefault("-highest_score", "true")
+            
+            if "everyone" not in include_set:
+                if "-user_id" not in di and "-username" not in di:
+                    query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
+                    result, _ = await self.bot.db.executeQuery(query)
+                    if result and result[0]:
+                        di["-user_id"] = result[0][0]
 
     @commands.command()
     async def generateosdb(self, ctx, *args):
