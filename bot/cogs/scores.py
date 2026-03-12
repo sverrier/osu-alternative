@@ -84,7 +84,7 @@ class Scores(commands.Cog):
 
         if preset is not None:
             for k, v in preset.items():
-                if k.startswith("-"):
+                if k.startswith("-") and k not in ('-group', '-order'):
                     di[k] = v
         else:
             await ctx.reply("Preset not allowed. See valid presets with !help presets")           

@@ -46,13 +46,16 @@ VALUELESS_PARAMS = {
     "-not_fa": ("track_id IS NULL", ["track_id"]),
     "-has_replay": ("has_replay = true", ["has_replay"]),
     "-no_replay": ("has_replay = false", ["has_replay"]),
-    "-convertless": ("scoreLive.ruleset_id = beatmapLive.mode", ["mode", "ruleset_id"]),
-    "-not-overclear": ("(total_score < 925000 OR round(accuracy, 4) < 0.99 )", ["total_score", "accuracy"]),
-    "-not-ultraclear": ("(total_score < 750000 OR round(accuracy, 4) < 0.96)", ["total_score", "accuracy"]),
-    "-not-extraclear": ("(total_score < 550000 OR grade IN ('B', 'C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
-    "-not-hardclear": ("(total_score < 350000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
-    "-not-cleared": ("(difficulty_reducing = true OR difficulty_removing = true OR grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
-    "-is_lazer": ("scoreLive.build_id IS NOT NULL", ["build_id"]),
+    "-convertless": ("ruleset_id = mode", ["mode", "ruleset_id"]),
+    "-not-overclear": ("(is_fc = false OR round(accuracy, 4) < 0.9900 OR difficulty_reducing = true OR difficulty_removing = true)", ["is_fc", "accuracy", "difficulty_reducing", "difficulty_removing"]),
+    "-not-ultraclear": ("(total_score < 850000 OR grade IN ('B', 'C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "accuracy"]),
+    "-not-extraclear": ("(total_score < 650000 OR grade IN ('B', 'C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade", "difficulty_reducing", "difficulty_removing"]),
+    "-not-hardclear": ("(total_score < 400000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade", "difficulty_reducing", "difficulty_removing"]),
+    "-not-normalclear": ("(difficulty_reducing = true OR difficulty_removing = true)", ["difficulty_reducing", "difficulty_removing"]),
+    "-not-easyclear": ("difficulty_removing = true", ["difficulty_removing"]),
+    "-not-played": ("((difficulty_reducing = true OR difficulty_removing = true) and grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
+    "-is_lazer": ("build_id IS NOT NULL", ["build_id"]),
+    "-is_stable": ("build_id IS NULL", ["build_id"]),
 }
 
 PARAM_SYNONYM_MAP = {
