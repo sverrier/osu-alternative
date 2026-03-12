@@ -73,13 +73,13 @@ PARAM_ALIASES = {
     "-page": ("-p",),
     "-ended_at-min": ("-played-start",),
     "-ended_at-max": ("-played-end",),
-    "-not-overclear": ("-not-overcleared",),
-    "-not-ultraclear": ("-not-ultracleared",),
-    "-not-extraclear": ("-not-extracleared",),
-    "-not-hardclear": ("-not-hardcleared",),
-    "-not-normalclear": ("-not-normalcleared","-not-cleared","-not-clear"),
-    "-not-easyclear": ("-not-easycleared",),
-    "-not-play": ("-not-played",),
+    "-not-overclear": ("-not-overcleared","-not-overclears",),
+    "-not-ultraclear": ("-not-ultracleared","-not-ultraclears",),
+    "-not-extraclear": ("-not-extracleared","-not-extraclears",),
+    "-not-hardclear": ("-not-hardcleared","-not-hardclears",),
+    "-not-normalclear": ("-not-normalcleared","-not-cleared","-not-clear""-not-clears","-not-normalclears",),
+    "-not-easyclear": ("-not-easycleared","-not-easyclears",),
+    "-not-play": ("-not-played","-not-plays",),
 }
 
 ALIAS_TO_PARAM = {

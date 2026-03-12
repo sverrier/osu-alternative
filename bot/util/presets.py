@@ -2,9 +2,10 @@
 
 LEADERBOARD_PRESETS = {
     "scores": {
-        "columns": "username, COUNT(DISTINCT beatmap_id)",
+        "columns": "username, COUNT(*)",
         "-group": "username",
-        "-order": "COUNT(DISTINCT beatmap_id)",
+        "-order": "COUNT(*)",
+        "-highest_score": "true",
         "title": "Total plays",
         "description": "Counts distinct beatmaps played per user",
     },
@@ -14,7 +15,7 @@ LEADERBOARD_PRESETS = {
         "-group": "username",
         "-order": "COUNT(DISTINCT beatmap_id)",
         "title": "Total plays",
-        "description": "Counts distinct beatmaps played per user, excluding D rank plays",
+        "description": "Counts distinct beatmaps played per user, excluding D rank plays with difficulty removing mods",
     },
     "easyclears": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
@@ -226,122 +227,82 @@ SCORE_PRESETS = {
 }
 
 LEADERBOARD_PRESET_SYNONYMS = {
-    "plays": "plays",
-    "played": "plays",
-    "play": "plays",
+    "plays": ("plays", "played", "play"),
 
-    "scores": "scores",
-    "scored": "scores",
+    "scores": ("scores", "scored"),
 
-    "easyclears": "easyclears",
-    "ec": "easyclears",
+    "easyclears": ("easyclears", "easyclear", "easycleared" "ec"),
 
-    "normalclears": "normalclears",
-    "nc": "normalclears",
-    "clears": "normalclears",
-    "clear": "normalclears",
+    "normalclears": ("normalclears", "normalclear", "normalcleared", "nc", "clears", "clear", "cleared"),
 
-    "hardclears": "hardclears",
-    "hc": "hardclears",
+    "hardclears": ("hardclears", "hardclear", "hardcleared", "hc"),
 
-    "extraclears": "extraclears",
-    "exc": "extraclears",
+    "extraclears": ("extraclears", "extraclear", "extracleared", "exc"),
 
-    "ultraclears": "ultraclears",
-    "uc": "ultraclears",
+    "ultraclears": ("ultraclears", "ultraclear", "ultracleared", "uc"),
 
-    "overclears": "overclears",
-    "oc": "overclears",
+    "overclears": ("overclears", "overclear", "overcleared", "oc"),
 
-    "fc": "fc",
-    "full_combo": "fc",
+    "fc": ("fc", "full_combo"),
 
-    "ss": "ss",
-    "s": "s",
+    "ss": ("ss",),
+    "s": ("s",),
 
-    "uss": "unique_ss",
-    "unique_ss": "unique_ss",
-    "ufc": "unique_fc",
-    "unique_fc": "unique_fc",
+    "unique_ss": ("unique_ss", "uss"),
+    "unique_fc": ("unique_fc", "ufc"),
 
-    "score": "score",
-    "standardized": "score",
-    "classicscore": "classicscore",
-    "legacyscore": "legacyscore",
+    "score": ("score", "standardized"),
 
-    "sets": "sets",
-    "beatmapsets": "sets",
+    "classicscore": ("classicscore", "legacyscore"),
+
+    "sets": ("sets", "beatmapsets"),
 }
 
 SCORE_PRESET_SYNONYMS = {
-    "plays": "plays",
-    "played": "plays",
-    "play": "plays",
+    "score": ("score", "standardized"),
 
-    "scores": "scores",
-    "scored": "scores",
+    "classicscore": ("classicscore", "lazerscore"),
 
-    "easyclears": "easyclears",
-    "ec": "easyclears",
-
-    "normalclears": "normalclears",
-    "nc": "normalclears",
-    "clears": "normalclears",
-    "clear": "normalclears",
-
-    "hardclears": "hardclears",
-    "hc": "hardclears",
-
-    "extraclears": "extraclears",
-    "exc": "extraclears",
-
-    "ultraclears": "ultraclears",
-    "uc": "ultraclears",
-
-    "overclears": "overclears",
-    "oc": "overclears",
-
-    "fc": "fc",
-    "full_combo": "fc",
-
-    "ss": "ss",
-    "s": "s",
-    "a": "a",
-    "b": "b",
-    "c": "c",
-    "d": "d",
+    "legacyscore": ("legacyscore", "stablescore"),
 
 
-    "uss": "unique_ss",
-    "unique_ss": "unique_ss",
-    "ufc": "unique_fc",
-    "unique_fc": "unique_fc",
-
-    "score": "score",
-    "standardized": "score",
-    "classicscore": "classicscore",
-    "legacyscore": "legacyscore",
-
-    "count":"count",
-    "length":"length",
+    "count": ("count",),
+    "length": ("length",),
 }
 
 
 USER_PRESET_SYNONYMS = {
-    "playcount": "playcount",
-    "plays": "playcount",
-    "total plays": "playcount",
-
-    "playtime": "playtime",
-    "time played": "playtime",
-    "hours played": "playtime",
+    "playcount": ("playcount"),
+    "playtime": ("playtime"),
 }
 
 BEATMAP_PRESET_SYNONYMS = {
-    "length": "length",
-    "count": "count",
-    "total length": "length",
-    "playtime": "length",
+    "length": ("length", "playtime"),
+    "count": ("count",),
+}
+
+LEADERBOARD_PRESET_LOOKUP = {
+    alias.lower(): key
+    for key, aliases in LEADERBOARD_PRESET_SYNONYMS.items()
+    for alias in aliases
+}
+
+SCORE_PRESET_LOOKUP = {
+    alias.lower(): key
+    for key, aliases in SCORE_PRESET_SYNONYMS.items()
+    for alias in aliases
+}
+
+BEATMAP_PRESET_LOOKUP = {
+    alias.lower(): key
+    for key, aliases in BEATMAP_PRESET_SYNONYMS.items()
+    for alias in aliases
+}
+
+USER_PRESET_LOOKUP = {
+    alias.lower(): key
+    for key, aliases in USER_PRESET_SYNONYMS.items()
+    for alias in aliases
 }
 
 def resolve_preset(
@@ -360,35 +321,16 @@ def resolve_preset(
         return None
 
 def get_leaderboard_preset(name: str):
-    return resolve_preset(name, LEADERBOARD_PRESETS, LEADERBOARD_PRESET_SYNONYMS)
+    return resolve_preset(name, LEADERBOARD_PRESETS, LEADERBOARD_PRESET_LOOKUP)
 
 def get_user_preset(name: str):
-    return resolve_preset(name, USER_PRESETS, USER_PRESET_SYNONYMS)
+    return resolve_preset(name, USER_PRESETS, USER_PRESET_LOOKUP)
 
 def get_score_preset(name: str):
-    return resolve_preset(name, SCORE_PRESETS, SCORE_PRESET_SYNONYMS)
+    return resolve_preset(name, SCORE_PRESETS, SCORE_PRESET_LOOKUP)
 
 def get_beatmap_preset(name: str):
-    return resolve_preset(name, BEATMAP_PRESETS, BEATMAP_PRESET_SYNONYMS)
-
-def invert_synonyms(syn_map: dict) -> dict:
-    """canonical -> sorted list of aliases (excluding canonical itself)"""
-    out = {}
-    for alias, canonical in syn_map.items():
-        out.setdefault(canonical, set()).add(alias)
-
-    cleaned = {}
-    for canonical, aliases in out.items():
-        aliases = set(aliases)
-        aliases.discard(canonical)
-        cleaned[canonical] = sorted(aliases)
-    return cleaned
-
-
-_LEADERBOARD_ALIAS_MAP = invert_synonyms(LEADERBOARD_PRESET_SYNONYMS)
-_USER_ALIAS_MAP = invert_synonyms(USER_PRESET_SYNONYMS)
-_BEATMAP_ALIAS_MAP = invert_synonyms(BEATMAP_PRESET_SYNONYMS)
-
+    return resolve_preset(name, BEATMAP_PRESETS, BEATMAP_PRESET_LOOKUP)
 
 def resolve_any_preset(name: str):
     """
@@ -397,19 +339,46 @@ def resolve_any_preset(name: str):
     or None if not found.
     """
 
+    name = name.lower()
+
     # Leaderboard presets
-    canonical = LEADERBOARD_PRESET_SYNONYMS.get(name)
+    canonical = LEADERBOARD_PRESET_LOOKUP.get(name)
     if canonical and canonical in LEADERBOARD_PRESETS:
-        return ("leaderboard", canonical, LEADERBOARD_PRESETS[canonical], _LEADERBOARD_ALIAS_MAP.get(canonical, []))
+        return (
+            "leaderboard",
+            canonical,
+            LEADERBOARD_PRESETS[canonical],
+            LEADERBOARD_PRESET_SYNONYMS.get(canonical, ())
+        )
 
     # User presets
-    canonical = USER_PRESET_SYNONYMS.get(name)
+    canonical = USER_PRESET_LOOKUP.get(name)
     if canonical and canonical in USER_PRESETS:
-        return ("user", canonical, USER_PRESETS[canonical], _USER_ALIAS_MAP.get(canonical, []))
+        return (
+            "user",
+            canonical,
+            USER_PRESETS[canonical],
+            USER_PRESET_SYNONYMS.get(canonical, ())
+        )
 
     # Beatmap presets
-    canonical = BEATMAP_PRESET_SYNONYMS.get(name)
-    if canonical and canonical in BEATMAP_PRESET_SYNONYMS:
-        return ("beatmap", canonical, BEATMAP_PRESETS[canonical], _BEATMAP_ALIAS_MAP.get(canonical, []))
+    canonical = BEATMAP_PRESET_LOOKUP.get(name)
+    if canonical and canonical in BEATMAP_PRESETS:
+        return (
+            "beatmap",
+            canonical,
+            BEATMAP_PRESETS[canonical],
+            BEATMAP_PRESET_SYNONYMS.get(canonical, ())
+        )
+
+    # Score presets
+    canonical = SCORE_PRESET_LOOKUP.get(name)
+    if canonical and canonical in SCORE_PRESETS:
+        return (
+            "score",
+            canonical,
+            SCORE_PRESETS[canonical],
+            SCORE_PRESET_SYNONYMS.get(canonical, ())
+        )
 
     return None
