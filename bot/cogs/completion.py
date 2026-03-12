@@ -5,6 +5,7 @@ from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 import time
 from bot.util.helpers import separate_beatmap_filters
+from bot.util.presets import *
 
 class Completion(commands.Cog):
     def __init__(self, bot):

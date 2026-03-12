@@ -80,6 +80,16 @@ class Scores(commands.Cog):
 
         await self._set_defaults(ctx, di)
 
+        preset = get_leaderboard_preset(di.get("-o", "scores"))
+
+        if preset is not None:
+            for k, v in preset.items():
+                if k.startswith("-"):
+                    di[k] = v
+        else:
+            await ctx.reply("Preset not allowed. See valid presets with !help presets")           
+            return
+
         query = QueryBuilder(di, columns, table)
         result, elapsed = await self.bot.db.executeQuery(query.getQuery())
         formatter = Formatter(title=f"Total scores: {len(result)}")

@@ -27,6 +27,10 @@ VALUED_PARAMS = {
         "mod_acronyms @> {value}",
         ["mod_acronyms"]
     ),
+    "-mods-not": (
+        "NOT (mod_acronyms @> {value})",
+        ["mod_acronyms"]
+    ),
     "-mods-exact": (
         "mod_acronyms @> {value} AND mod_acronyms <@ {value}",
         ["mod_acronyms"]
@@ -48,7 +52,7 @@ VALUELESS_PARAMS = {
     "-not-extraclear": ("(total_score < 550000 OR grade IN ('B', 'C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
     "-not-hardclear": ("(total_score < 350000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade"]),
     "-not-cleared": ("(difficulty_reducing = true OR difficulty_removing = true OR grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
-    "-not-classic": ("scoreLive.build_id IS NOT NULL", ["build_id"]),
+    "-is_lazer": ("scoreLive.build_id IS NOT NULL", ["build_id"]),
 }
 
 PARAM_SYNONYM_MAP = {
