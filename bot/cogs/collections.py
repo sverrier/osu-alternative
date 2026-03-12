@@ -23,27 +23,6 @@ class Collections(commands.Cog):
         
             di["-mode-in"] = rows[0]["mode"]
 
-        # Parse -include into a set of values
-        include_raw = di.get("-include", "")
-        include_set = {x.strip().lower() for x in include_raw.split(",") if x.strip()}
-
-        if "loved" not in include_set:
-            di.setdefault("-status-not", "loved")
-
-        if di.get("-unplayed") is None:
-            if "converts" not in include_set:
-                di.setdefault("-convertless", "true")
-            
-            if "all" not in include_set:
-                di.setdefault("-highest_score", "true")
-            
-            if "everyone" not in include_set:
-                if "-user_id" not in di and "-username" not in di:
-                    query = f"SELECT user_id FROM registrations WHERE discordid = '{discordid}'"
-                    result, _ = await self.bot.db.executeQuery(query)
-                    if result and result[0]:
-                        di["-user_id"] = result[0][0]
-
     @commands.command()
     async def generateosdb(self, ctx, *args):
         di = get_args(args)
