@@ -4,6 +4,8 @@ from bot.util.querybuilder import QueryBuilder
 from bot.util.formatter import Formatter
 from bot.util.presets import *
 from bot.util.formatting import format_field
+from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class Beatmaps(commands.Cog):
     def __init__(self, bot):
@@ -169,6 +171,10 @@ class Beatmaps(commands.Cog):
         di["-ss_count"] = 0
         di.setdefault("-order", "stars")
         di.setdefault("-direction", "asc")
+        di.setdefault(
+            "-ranked_date-max",
+            (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+        )
 
         args = []
         for k, v in di.items():
@@ -196,6 +202,10 @@ class Beatmaps(commands.Cog):
         di["-fc_count"] = 0
         di.setdefault("-order", "stars")
         di.setdefault("-direction", "asc")
+        di.setdefault(
+            "-ranked_date-max",
+            (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+        )
 
         args = []
         for k, v in di.items():
