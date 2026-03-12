@@ -53,7 +53,7 @@ VALUELESS_PARAMS = {
     "-not-hardclear": ("(total_score < 400000 OR grade IN ('C', 'D') OR difficulty_reducing = true OR difficulty_removing = true)", ["total_score", "grade", "difficulty_reducing", "difficulty_removing"]),
     "-not-normalclear": ("(difficulty_reducing = true OR difficulty_removing = true)", ["difficulty_reducing", "difficulty_removing"]),
     "-not-easyclear": ("difficulty_removing = true", ["difficulty_removing"]),
-    "-not-play": ("((difficulty_reducing = true OR difficulty_removing = true) and grade = 'D')", ["difficulty_reducing", "difficulty_removing", "grade"]),
+    "-not-play": ("(difficulty_removing = true and grade = 'D')", ["difficulty_removing", "grade"]),
     "-is_lazer": ("build_id IS NOT NULL", ["build_id"]),
     "-is_stable": ("build_id IS NULL", ["build_id"]),
 }
