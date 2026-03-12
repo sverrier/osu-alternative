@@ -96,5 +96,16 @@ class Scores(commands.Cog):
         embed = formatter.as_score_list(result, page=int(di.get("-page", 1)), page_size=int(di.get("-limit", 10)), elapsed=elapsed)
         await ctx.reply(embed=embed)
 
+    @commands.command(aliases=["ussl", "uniquesslist"])
+    async def unique_ss_list(self, ctx, *args):
+        di = get_args(args)
+
+        di["-o"] = "unique_ss"
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.scorelist(ctx, *args)
+
 async def setup(bot):
     await bot.add_cog(Scores(bot))
