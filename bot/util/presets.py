@@ -166,17 +166,22 @@ USER_PRESETS = {
         "columns": "username, total_play_count",
         "-order": "total_play_count",
         "title": "Total playcount",
-        "description": "Ranks users by total_play_count (highest first).",
+        "description": "Ranks users by total_play_count",
     },
     "playtime": {
         "columns": "username, total_play_time",
         "-order": "total_play_time",
         "title": "Total playtime",
-        "description": "Ranks users by total_play_time (highest first) and displays time in hours",
+        "description": "Ranks users by total_play_time and displays time in hours",
+    },
+    "score": {
+        "columns": "username, total_ranked_score",
+        "-order": "total_ranked_score",
+        "title": "Total ranked score",
+        "description": "Ranks users by total_ranked_score",
     },
 }
 
-# bot/utils/presets.py
 BEATMAP_PRESETS = {
     "length": {
         "columns": "sum(length)",
@@ -192,7 +197,6 @@ BEATMAP_PRESETS = {
     },
 }
 
-# bot/utils/presets.py
 SCORE_PRESETS = {
     "length": {
         "columns": "sum(length)",
@@ -272,8 +276,9 @@ SCORE_PRESET_SYNONYMS = {
 
 
 USER_PRESET_SYNONYMS = {
-    "playcount": ("playcount"),
-    "playtime": ("playtime"),
+    "playcount": ("playcount",),
+    "playtime": ("playtime",),
+    "score": ("score",),
 }
 
 BEATMAP_PRESET_SYNONYMS = {
@@ -305,20 +310,12 @@ USER_PRESET_LOOKUP = {
     for alias in aliases
 }
 
-def resolve_preset(
-    name: str,
-    presets: dict,
-    synonyms: dict,
-):
-    canonical = synonyms.get(name)
-
-    if not canonical:
+def resolve_preset(name: str, presets: dict, synonyms: dict):
+    if not name:
         return None
 
-    try:
-        return presets[canonical]
-    except KeyError:
-        return None
+    canonical = synonyms.get(name.strip().lower())
+    return presets.get(canonical)
 
 def get_leaderboard_preset(name: str):
     return resolve_preset(name, LEADERBOARD_PRESETS, LEADERBOARD_PRESET_LOOKUP)
@@ -331,54 +328,3 @@ def get_score_preset(name: str):
 
 def get_beatmap_preset(name: str):
     return resolve_preset(name, BEATMAP_PRESETS, BEATMAP_PRESET_LOOKUP)
-
-def resolve_any_preset(name: str):
-    """
-    Returns:
-      (category, canonical_key, preset_dict, aliases_list)
-    or None if not found.
-    """
-
-    name = name.lower()
-
-    # Leaderboard presets
-    canonical = LEADERBOARD_PRESET_LOOKUP.get(name)
-    if canonical and canonical in LEADERBOARD_PRESETS:
-        return (
-            "leaderboard",
-            canonical,
-            LEADERBOARD_PRESETS[canonical],
-            LEADERBOARD_PRESET_SYNONYMS.get(canonical, ())
-        )
-
-    # User presets
-    canonical = USER_PRESET_LOOKUP.get(name)
-    if canonical and canonical in USER_PRESETS:
-        return (
-            "user",
-            canonical,
-            USER_PRESETS[canonical],
-            USER_PRESET_SYNONYMS.get(canonical, ())
-        )
-
-    # Beatmap presets
-    canonical = BEATMAP_PRESET_LOOKUP.get(name)
-    if canonical and canonical in BEATMAP_PRESETS:
-        return (
-            "beatmap",
-            canonical,
-            BEATMAP_PRESETS[canonical],
-            BEATMAP_PRESET_SYNONYMS.get(canonical, ())
-        )
-
-    # Score presets
-    canonical = SCORE_PRESET_LOOKUP.get(name)
-    if canonical and canonical in SCORE_PRESETS:
-        return (
-            "score",
-            canonical,
-            SCORE_PRESETS[canonical],
-            SCORE_PRESET_SYNONYMS.get(canonical, ())
-        )
-
-    return None

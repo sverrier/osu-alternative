@@ -126,21 +126,23 @@ class Users(commands.Cog):
 
         user_columns = set(TABLE_METADATA["userLive"].keys())
 
+        preset = get_user_preset(di.get("-o"))
+
+        print(di["-o"])
+        print(preset)
+
         if preset_key in user_columns:
             columns = di.get("-columns", f"username,COALESCE({preset_key}, 0)")
             title = "Leaderboard"
             di.setdefault("-order", f"COALESCE({preset_key}, 0)")
-        elif preset_key in USER_PRESETS:
-            preset = get_user_preset(di.get("-o"))
+        elif preset is not None:
+            columns = preset["columns"]
+            title = preset["title"]
+            for k, v in preset.items():
+                if k.startswith("-"):
+                    di[k] = v
 
-            if preset is not None:
-                columns = preset["columns"]
-                title = preset["title"]
-                for k, v in preset.items():
-                    if k.startswith("-"):
-                        di[k] = v
-
-                di = separate_user_filters(di)           
+            di = separate_user_filters(di)           
         else:
             await ctx.reply("Preset not allowed. See valid presets with !help presets or !help user")
             return
