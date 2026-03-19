@@ -423,6 +423,7 @@ class Formatter:
 
         # Desired display order
         METRIC_ORDER = [
+            "ss",
             "overclears",
             "ultraclears",
             "extraclears",
@@ -431,8 +432,7 @@ class Formatter:
             "easyclears",
             "plays",
             "scores",
-            "fc",
-            "ss",
+            "unplayed"
         ]
 
         order_index = {name: idx for idx, name in enumerate(METRIC_ORDER)}

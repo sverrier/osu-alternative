@@ -188,7 +188,7 @@ class Stats(commands.Cog):
     async def completionleaderboard(self, ctx, *args):
         """
         ~completionleaderboard
-        -o: scores|plays|easyclears|normalclears|hardclears|extraclears|ultraclears|overclears|fc|ss   (required)
+        -o: scores|plays|easyclears|normalclears|hardclears|extraclears|ultraclears|overclears|ss   (required)
         -fa / -is_fa: 0|false, 1|true, 2|all (default 2)
         -diff / -difficulty: 0|easy, 1|hard, 2|all (default 2)
         -mode: 0|osu, 1|taiko, 2|fruits|catch|ctb, 3|mania, 4|all (default 4)
@@ -219,12 +219,12 @@ class Stats(commands.Cog):
         metric = self._norm(di.get("-o", "normalclears"))
         allowed_metrics = {
             "scores", "plays", "easyclears", "normalclears", "hardclears",
-            "extraclears", "ultraclears", "overclears", "fc", "ss",
+            "extraclears", "ultraclears", "overclears", "ss",
         }
         if not metric or metric not in allowed_metrics:
             await ctx.reply(
                 "Missing/invalid `-o`. Allowed: "
-                "scores, plays, easyclears, normalclears, hardclears, extraclears, ultrclears, overclears, fc, ss"
+                "scores, plays, easyclears, normalclears, hardclears, extraclears, ultrclears, overclears, ss"
             )
             return
 

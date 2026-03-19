@@ -54,6 +54,7 @@ VALUELESS_PARAMS = {
     "-not-normalclear": ("(difficulty_reducing = true OR difficulty_removing = true)", ["difficulty_reducing", "difficulty_removing"]),
     "-not-easyclear": ("difficulty_removing = true", ["difficulty_removing"]),
     "-not-play": ("(difficulty_removing = true and grade = 'D')", ["difficulty_removing", "grade"]),
+    "-play": ("(difficulty_removing = false OR grade != 'D')", ["difficulty_removing", "grade"]),
     "-is_lazer": ("build_id IS NOT NULL", ["build_id"]),
     "-is_stable": ("build_id IS NULL", ["build_id"]),
 }
@@ -80,6 +81,7 @@ PARAM_ALIASES = {
     "-not-normalclear": ("-not-normalcleared","-not-cleared","-not-clear""-not-clears","-not-normalclears",),
     "-not-easyclear": ("-not-easycleared","-not-easyclears",),
     "-not-play": ("-not-played","-not-plays",),
+    "-play": ("-played","-plays",),
 }
 
 ALIAS_TO_PARAM = {

@@ -11,7 +11,7 @@ LEADERBOARD_PRESETS = {
     },
     "plays": {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
-        "-grade-not": "d",
+        "-play": "true",
         "-group": "username",
         "-order": "COUNT(DISTINCT beatmap_id)",
         "title": "Total plays",
@@ -60,6 +60,7 @@ LEADERBOARD_PRESETS = {
         "columns": "username, COUNT(DISTINCT beatmap_id)",
         "-group": "username",
         "-order": "COUNT(DISTINCT beatmap_id)",
+        "-grade-not": "b,c,d",
         "-difficulty_removing": "false",
         "-difficulty_reducing": "false",
         "-total_score-min": "850000",
@@ -328,3 +329,54 @@ def get_score_preset(name: str):
 
 def get_beatmap_preset(name: str):
     return resolve_preset(name, BEATMAP_PRESETS, BEATMAP_PRESET_LOOKUP)
+
+def resolve_any_preset(name: str):
+    """
+    Returns:
+      (category, canonical_key, preset_dict, aliases_list)
+    or None if not found.
+    """
+
+    name = name.lower()
+
+    # Leaderboard presets
+    canonical = LEADERBOARD_PRESET_LOOKUP.get(name)
+    if canonical and canonical in LEADERBOARD_PRESETS:
+        return (
+            "leaderboard",
+            canonical,
+            LEADERBOARD_PRESETS[canonical],
+            LEADERBOARD_PRESET_SYNONYMS.get(canonical, ())
+        )
+
+    # User presets
+    canonical = USER_PRESET_LOOKUP.get(name)
+    if canonical and canonical in USER_PRESETS:
+        return (
+            "user",
+            canonical,
+            USER_PRESETS[canonical],
+            USER_PRESET_SYNONYMS.get(canonical, ())
+        )
+
+    # Beatmap presets
+    canonical = BEATMAP_PRESET_LOOKUP.get(name)
+    if canonical and canonical in BEATMAP_PRESETS:
+        return (
+            "beatmap",
+            canonical,
+            BEATMAP_PRESETS[canonical],
+            BEATMAP_PRESET_SYNONYMS.get(canonical, ())
+        )
+
+    # Score presets
+    canonical = SCORE_PRESET_LOOKUP.get(name)
+    if canonical and canonical in SCORE_PRESETS:
+        return (
+            "score",
+            canonical,
+            SCORE_PRESETS[canonical],
+            SCORE_PRESET_SYNONYMS.get(canonical, ())
+        )
+
+    return None
