@@ -81,6 +81,7 @@ FIELD_FORMAT: dict[str, Formatter] = {
     "percent": fmt_percent_2,
     "drain_time": fmt_seconds_hms,
     "playtime": fmt_seconds_hms,
+    "score": fmt_int_commas,
     "total_score": fmt_int_commas,
     "classic_total_score": fmt_int_commas,
     "legacy_total_score": fmt_int_commas,
