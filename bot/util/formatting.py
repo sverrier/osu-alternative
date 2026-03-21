@@ -56,6 +56,33 @@ def fmt_pp_2(v: Any) -> str:
 def fmt_combo_x(v: Any) -> str:
     return "-" if v is None else f"{int(v)}x"
 
+def fmt_compact_score(decimals: int = 3) -> Formatter:
+    """Format large integers into compact form (e.g., 100.161B)."""
+    suffixes = ["", "K", "M", "B", "T", "Q"]
+
+    def _f(v: Any) -> str:
+        if v is None:
+            return "-"
+
+        n = float(v)
+        neg = n < 0
+        n = abs(n)
+
+        i = 0
+        while n >= 1000 and i < len(suffixes) - 1:
+            n /= 1000
+            i += 1
+
+        # Avoid things like 999.999K instead of 1.000M
+        if round(n, decimals) >= 1000 and i < len(suffixes) - 1:
+            n /= 1000
+            i += 1
+
+        formatted = f"{n:.{decimals}f}".rstrip("0").rstrip(".")
+        return f"-{formatted}{suffixes[i]}" if neg else f"{formatted}{suffixes[i]}"
+
+    return _f
+
 
 FORMATTERS: dict[str, Formatter] = {
     "int_commas": fmt_int_commas,
@@ -85,6 +112,7 @@ FIELD_FORMAT: dict[str, Formatter] = {
     "total_score": fmt_int_commas,
     "classic_total_score": fmt_int_commas,
     "legacy_total_score": fmt_int_commas,
+    "compact_score": fmt_compact_score(3),
 }
 
 
