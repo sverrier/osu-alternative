@@ -7,6 +7,13 @@ from bot.util.helpers import separate_beatmap_filters, separate_user_filters
 from bot.util.schema import TABLE_METADATA
 
 class Users(commands.Cog):
+    """
+    User query commands for analyzing player statistics and leaderboards.
+    
+    This cog provides commands to count users, view leaderboards, and analyze
+    user statistics like play counts, clear counts, and performance metrics.
+    Requires user registration for most commands to filter by specific users.
+    """
     def __init__(self, bot):
         self.bot = bot
 
@@ -33,17 +40,74 @@ class Users(commands.Cog):
         if "converts" not in include_set:
             di.setdefault("-convertless", "true")
 
-    @commands.command(aliases=["u"])
+    @commands.command(
+        aliases=["u"],
+        brief="Count users matching filters"
+    )
     async def users(self, ctx, *args):
-        """Count of users"""
+        """
+        Count users matching specified filters.
+        
+        Usage: !users [filters]
+        
+        Examples:
+        - !users -country_code US
+        - !users -osu_pp-min 8000
+        - !users -global_rank-min 1000
+        
+        Key parameters:
+        - -country_code: Filter by country code (US, JP, DE, etc.)
+        - -osu_pp-min/-osu_pp-max: Filter by osu! performance points
+        - -global_rank-min/-global_rank-max: Filter by global rank
+        - -username-like: Search by username
+        - -mode: Filter by preferred game mode
+        
+        Notes: 
+        - Counts distinct users from the userLive table
+        - Supports all userLive table columns as filters
+        - Case-insensitive username search with -username-like
+        """
         di = get_args(args)
         query = QueryBuilder(di, "count(*)", "userLive")
         sql = query.getQuery()
         result, _ = await self.bot.db.executeQuery(sql)
         await ctx.reply(str(result[0][0]))
 
-    @commands.command(aliases=["l"])
+    @commands.command(
+        aliases=["l"],
+        brief="Display user leaderboard"
+    )
     async def leaderboard(self, ctx, *args):
+        """
+        Display score-based leaderboards with various metrics.
+        
+        Usage: !leaderboard [filters] [-o preset] [-page N] [-limit N]
+        
+        Examples:
+        - !leaderboard -o plays -stars-min 6
+        - !leaderboard -o hardclears -mode 0 -l 25
+        - !leaderboard -o ss -country_code US
+        
+        Key parameters:
+        - -o: Leaderboard preset (plays, hardclears, ss, fc, etc.)
+        - -stars-min/-stars-max: Filter by star rating range
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -country_code: Filter by country
+        - -page/-limit: Pagination controls
+        - -include: Include specific grades (d, everyone, etc.)
+        
+        Available presets:
+        - plays: Total distinct beatmaps played
+        - hardclears: Beatmaps cleared with score ≥400k and B+ rank
+        - ss: Total SS scores achieved
+        - fc: Total full combos achieved
+        - unique_ss: Beatmaps where user has only SS
+        
+        Notes:
+        - Automatically resolves user for "me" page functionality
+        - Shows user's position if they appear in results
+        - Based on scoreLive table aggregations
+        """
         di = get_args(args)
         table = "userLive"
         # Get user_id if not specified
@@ -109,8 +173,40 @@ class Users(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
-    @commands.command(aliases=["ul"])
+    @commands.command(
+        aliases=["ul"],
+        brief="Display user leaderboard"
+    )
     async def userlist(self, ctx, *args):
+        """
+        Display user-based leaderboards with various statistics.
+        
+        Usage: !userlist [filters] [-o preset] [-page N] [-limit N]
+        
+        Examples:
+        - !userlist -o playcount -country_code US
+        - !userlist -o playtime -osu_pp-min 5000
+        - !userlist -o score -global_rank-max 1000
+        
+        Key parameters:
+        - -o: User statistic preset (playcount, playtime, score)
+        - -country_code: Filter by country code
+        - -osu_pp-min/-osu_pp-max: Filter by performance points
+        - -global_rank-min/-global_rank-max: Filter by global rank
+        - -username-like: Search by username
+        - -page/-limit: Pagination controls
+        
+        Available presets:
+        - playcount: Total play count
+        - playtime: Total play time (in hours)
+        - score: Total ranked score
+        
+        Notes:
+        - Automatically resolves user for "me" page functionality
+        - Shows user's position if they appear in results
+        - Based on userLive table statistics
+        - Supports custom column selection with -columns
+        """
         di = get_args(args)
         table = "userLive"
         # Get user_id if not specified
@@ -181,8 +277,33 @@ class Users(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
-    @commands.command(aliases=["uniquess", "uss"])
+    @commands.command(
+        aliases=["uniquess", "uss"],
+        brief="Display unique SS leaderboard"
+    )
     async def unique_ss(self, ctx, *args):
+        """
+        Display leaderboard for users with unique SS scores.
+        
+        Usage: !unique_ss [filters]
+        
+        Examples:
+        - !unique_ss -stars-min 6 -mode 0
+        - !unique_ss -country_code US
+        - !unique_ss -grade SS
+        
+        Key parameters:
+        - -stars-min/-stars-max: Filter by star rating range
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -country_code: Filter by country
+        - -grade: Filter by grade (SS, SSH, etc.)
+        
+        Notes:
+        - Shows users who have the only SS on beatmaps
+        - Uses the unique_ss leaderboard preset
+        - Automatically resolves user for "me" page functionality
+        - Based on scoreLive table aggregations
+        """
         di = get_args(args)
 
         di["-o"] = "unique_ss"
@@ -193,8 +314,33 @@ class Users(commands.Cog):
                 args.extend([k, str(v)])
         await self.leaderboard(ctx, *args)
 
-    @commands.command()
+    @commands.command(
+        brief="Display clear statistics leaderboard"
+    )
     async def clears(self, ctx, *args):
+        """
+        Display leaderboard for user clear statistics.
+        
+        Usage: !clears [filters]
+        
+        Examples:
+        - !clears -stars-min 5 -mode 0
+        - !clears -country_code JP
+        - !clears -grade-not D
+        
+        Key parameters:
+        - -stars-min/-stars-max: Filter by star rating range
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -country_code: Filter by country
+        - -grade-not: Exclude specific grades (D, etc.)
+        - -include: Include specific grades or converts
+        
+        Notes:
+        - Shows total clear counts per user
+        - Uses the clears user preset
+        - Automatically resolves user for "me" page functionality
+        - Based on userLive table statistics
+        """
         di = get_args(args)
 
         di["-o"] = "clears"

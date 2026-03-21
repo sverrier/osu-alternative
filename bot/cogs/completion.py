@@ -8,6 +8,13 @@ from bot.util.helpers import separate_beatmap_filters
 from bot.util.presets import *
 
 class Completion(commands.Cog):
+    """
+    Completion tracking commands for analyzing beatmap coverage statistics.
+    
+    This cog provides commands to analyze completion statistics by various
+    fields (difficulty, star rating, year, etc.) showing what percentage
+    of beatmaps have been played, cleared, or achieved specific milestones.
+    """
     def __init__(self, bot):
         self.bot = bot
 
@@ -202,17 +209,39 @@ class Completion(commands.Cog):
                 username = user_result[0][0]
         return username
 
-    @commands.command(aliases=["comp"])
+    @commands.command(
+        aliases=["comp"],
+        brief="Display completion statistics by field"
+    )
     async def completion(self, ctx, *args):
         """
-        Display completion statistics grouped by a field (e.g., AR, SR, CS, year).
+        Display completion statistics grouped by a field showing play/clear progress.
+        
+        Usage: !completion -field <field> [filters] [-precision N] [-val-min N] [-val-max N]
+        
         Examples:
-        !completion -field ar -precision 0.5 -val-min 6 -val-max 10
-        !completion -field stars -precision 0.5 -username peppy
-        !completion -field year -stars-min 5
-        !completion -field cs -precision 0.25 -status ranked
-        !completion -field artist -limit 20
-        !completion -field title -search anime
+        - !completion -field ar -precision 0.5 -val-min 6 -val-max 10
+        - !completion -field stars -precision 0.5 -username peppy
+        - !completion -field year -stars-min 5
+        - !completion -field cs -precision 0.25 -status ranked
+        - !completion -field artist -limit 20
+        - !completion -field title -search anime
+        
+        Key parameters:
+        - -field: Field to group by (ar, cs, od, hp, stars, year, artist, title, etc.)
+        - -precision: Range size for numeric fields (default: 1)
+        - -val-min/-val-max: Value range for numeric fields
+        - [filters]: Any beatmap filters (stars, mode, status, artist, etc.)
+        - -username/-user_id: Analyze specific user's completion
+        
+        Numeric fields: ar, cs, od, hp, stars, year, month, day, length, drain, bpm
+        String fields: artist, title, version, source, status
+        
+        Notes:
+        - Shows percentage of beatmaps played/cleared in each range
+        - Maximum 31 ranges for numeric fields (Discord embed limit)
+        - String fields grouped by first character (A-Z, # for symbols/numbers)
+        - Requires user registration for default user analysis
         """
         start_time = time.time()
         di = get_args(args)

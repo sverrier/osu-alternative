@@ -1,23 +1,83 @@
 # bot/cogs/misc.py
 from discord.ext import commands
 import discord
-from bot.util.helpers import get_args
-from bot.util.schema import TABLE_METADATA, get_column_info, generate_help_text
+from bot.util.helpers import *
+from bot.util.schema import *
 from bot.util.presets import *
 
 class Misc(commands.Cog):
+    """
+    Miscellaneous utility commands for general bot functionality.
+    
+    This cog provides various utility commands including help,
+    registration, and other general-purpose functions that don't
+    fit into the other specialized cogs.
+    """
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(
+        brief="Execute manual SQL query and export to CSV"
+    )
     async def manual_query(self, ctx, *args):
-        """Exports query results to CSV"""
+        """
+        Execute a manual SQL query and export results to CSV.
+        
+        Usage: !manual_query "SELECT * FROM table LIMIT 10"
+        
+        Examples:
+        - !manual_query "SELECT * FROM beatmapLive WHERE stars > 6"
+        - !manual_query "SELECT username, pp FROM userLive ORDER BY pp DESC"
+        
+        Key parameters:
+        - [query]: Raw SQL query string (must be quoted)
+        
+        Output:
+        - Exports query results to temp.csv and sends as Discord attachment
+        - Shows "Here is your response:" message with file
+        
+        Notes:
+        - Direct SQL access for advanced users
+        - Results are temporary and stored in temp.csv
+        - Use with caution - no validation of query safety
+        """
         await self.bot.db.export_to_csv(args[0], "temp.csv")
         attach = discord.File("temp.csv")
         await ctx.reply(file=attach, content="Here is your response:")
 
-    @commands.command()
+    @commands.command(
+        brief="Register and link Discord account to osu! user"
+    )
     async def register(self, ctx, user: int):
+        """
+        Register and link your Discord account to an osu! user ID.
+        
+        Usage: !register <osu_user_id>
+        
+        Examples:
+        - !register 123456
+        - !register 987654
+        
+        Key parameters:
+        - <osu_user_id>: Your osu! user ID number
+        
+        Process:
+        1. Checks if Discord account is already linked to another user
+        2. Checks if target user is already registered
+        3. Handles various edge cases for linking/unlinking
+        4. Provides clear status messages throughout
+        
+        Output:
+        - Success message with registration/linking status
+        - Warning if Discord is already linked elsewhere
+        - Progress indicator during database operations
+        
+        Notes:
+        - Safe handling of concurrent database operations
+        - Prevents overwriting existing Discord links
+        - Supports both new registration and linking existing accounts
+        - Uses ON CONFLICT DO NOTHING for safe inserts
+        """
         discord_name = ctx.author.name
         discord_id = str(ctx.author.id)
         user_id = int(user)
@@ -107,8 +167,35 @@ class Misc(commands.Cog):
 
         await status_msg.edit(content=f"✅ Linked your Discord account to already-registered user ID `{user_id}`.")
 
-    @commands.command()
+    @commands.command(
+        brief="Link Discord account to osu! user"
+    )
     async def link(self, ctx, user):
+        """
+        Link or update your Discord account to an osu! user ID.
+        
+        Usage: !link <osu_user_id>
+        
+        Examples:
+        - !link 123456
+        - !link 987654
+        
+        Key parameters:
+        - <osu_user_id>: Your osu! user ID number
+        
+        Process:
+        - Inserts new registration or updates existing one
+        - Uses ON CONFLICT DO UPDATE to handle existing records
+        - Overwrites existing Discord links (unlike register command)
+        
+        Output:
+        - "Updated!" confirmation message
+        
+        Notes:
+        - Overwrites existing Discord links (less safe than register)
+        - Always updates discordname and discordid fields
+        - Use !register for safer linking that preserves existing links
+        """
         discordname = ctx.author.name
         discordid = ctx.author.id
 
@@ -117,16 +204,76 @@ class Misc(commands.Cog):
 
         await ctx.reply(content="Updated!")
 
-    @commands.command()
+    @commands.command(
+        brief="Display osu! data fetcher URL"
+    )
     async def fetcher(self, ctx):
+        """
+        Display the osu! data fetcher URL.
+        
+        Usage: !fetcher
+        
+        Output:
+        - Shows "https://osualtv2.respektive.pw/" as Discord message
+        
+        Notes:
+        - Provides link to the data fetching service
+        - Static response, no parameters required
+        """
         await ctx.reply(content="https://osualtv2.respektive.pw/")
 
-    @commands.command()
+    @commands.command(
+        brief="Display GitHub repository URL"
+    )
     async def repo(self, ctx):
+        """
+        Display the GitHub repository URL.
+        
+        Usage: !repo
+        
+        Output:
+        - Shows "https://github.com/sverrier/osu-alternative" as Discord message
+        
+        Notes:
+        - Provides link to the project's source code
+        - Static response, no parameters required
+        """
         await ctx.reply(content="https://github.com/sverrier/osu-alternative")
 
-    @commands.command()
+    @commands.command(
+        brief="Set preferred osu! game modes for default filtering"
+    )
     async def setmode(self, ctx, *, mode_arg):
+        """
+        Set your preferred osu! game modes for default filtering.
+        
+        Usage: !setmode <mode1>,<mode2>,...
+        
+        Examples:
+        - !setmode osu
+        - !setmode taiko,mania
+        - !setmode 0,1,2,3
+        
+        Key parameters:
+        - <mode_arg>: Comma-separated list of modes (names or numbers)
+        - Valid modes: osu(0), taiko(1), fruits/catch/ctb(2), mania(3)
+        
+        Process:
+        1. Parses mode names/numbers into numeric values
+        2. Validates all modes are valid
+        3. Removes duplicates and sorts
+        4. Converts to PostgreSQL tuple format
+        5. Updates user's registration record
+        
+        Output:
+        - Success message with updated modes
+        - Error if modes are invalid or user not registered
+        
+        Notes:
+        - Modes are stored as comma-separated tuple in database
+        - Used as default for commands when no -mode specified
+        - Case-insensitive mode name matching
+        """
         discordid = ctx.author.id
 
         # Mapping names → numeric modes
@@ -193,9 +340,45 @@ class Misc(commands.Cog):
 
 
 
-    @commands.command(aliases=["h"])
+    @commands.command(
+        aliases=["h"],
+        brief="Display comprehensive help information"
+    )
     async def help(self, ctx, *args):
-        """Display help for available columns and parameters"""
+        """
+        Display comprehensive help information for all bot features.
+        
+        Usage: !help [topic] or !help <column>
+        
+        Examples:
+        - !help - Show general overview and available topics
+        - !help commands - List all available commands
+        - !help operators - Show query operators and filters
+        - !help parameters - Show common parameters (pagination, ordering)
+        - !help presets - Show predefined query presets
+        - !help examples - Show usage examples
+        - !help beatmap - Show beatmap table columns
+        - !help score - Show score table columns
+        - !help user - Show user table columns
+        - !help stars - Show help for specific column
+        
+        Key parameters:
+        - [topic]: Help topic (commands, operators, parameters, presets, examples)
+        - [table]: Database table (beatmap, score, user)
+        - [column]: Specific column name for detailed information
+        
+        Output:
+        - Comprehensive help information based on requested topic
+        - Discord embeds with organized information
+        - Usage examples and parameter descriptions
+        - Column details with types, ranges, and valid values
+        
+        Notes:
+        - Supports both general topics and specific column queries
+        - Automatically detects presets and provides detailed information
+        - Paginates large column lists for readability
+        - Provides usage examples for all major features
+        """
         
         if not args:
             # General help overview
@@ -245,31 +428,35 @@ class Misc(commands.Cog):
         
         query = args[0].lower()
         
-        # Help topics
-        if query == "commands":
-            await self._send_commands_help(ctx)
-        elif query in ["operator", "operators", "filter", "filters"]:
-            await self._send_operators_help(ctx)
-        elif query in ["parameter", "parameters", "param", "params"]:
-            await self._send_parameters_help(ctx)
-        elif query in ["preset", "presets"]:
-            if len(args) >= 2:
-                await self._send_single_preset_help(ctx, " ".join(args[1:]))
-            else:
-                await self._send_presets_help(ctx)
-        elif query in ["example", "examples"]:
-            await self._send_examples_help(ctx)
-        # Help for specific tables
-        elif query in ["beatmap", "beatmaps", "beatmaplive"]:
-            await self._send_table_help(ctx, "beatmapLive", "Beatmap Columns")
-        elif query in ["score", "scores", "scorelive"]:
-            await self._send_table_help(ctx, "scoreLive", "Score Columns")
-        elif query in ["user", "users", "userlive"]:
-            await self._send_table_help(ctx, "userLive", "User Columns")
-        elif resolve_any_preset(query):
+        cmd = self.bot.get_command(query)
+        if cmd:
+            await self._send_command_help(ctx, cmd)
+            return
+
+        resolved = resolve_any_preset(query)
+        if resolved:
             await self._send_single_preset_help(ctx, query)
             return
-        else:
+
+        if query in ["beatmap", "beatmaps", "beatmaplive"]:
+            await self._send_table_help(ctx, "beatmapLive", "Beatmap Columns")
+            return
+
+        if query in ["score", "scores", "scorelive"]:
+            await self._send_table_help(ctx, "scoreLive", "Score Columns")
+            return
+
+        if query in ["user", "users", "userlive"]:
+            await self._send_table_help(ctx, "userLive", "User Columns")
+            return
+        
+        if query.startswith("-"):
+            handled = await self._send_parameter_help(ctx, query)
+            if handled:
+                return
+
+        column_info = get_column_info(query)
+        if column_info:
             # Help for specific column
             column_info = get_column_info(query)
             if column_info:
@@ -318,71 +505,190 @@ class Misc(commands.Cog):
                 await ctx.reply(f"❌ Unknown column or topic: `{query}`\nUse `!help` for available options.")
     
     async def _send_commands_help(self, ctx):
-        """Send help for all available commands"""
         embed = discord.Embed(
             title="📚 Available Commands",
             description="All commands available in the bot",
             color=discord.Color.blue()
         )
-        
+
+        cmds = sorted(self.bot.commands, key=lambda c: c.name)
+
+        lines = []
+        for cmd in cmds:
+            if cmd.hidden:
+                continue
+            desc = cmd.brief or "No description"
+            lines.append(f"`!{cmd.name}` - {desc}")
+
         embed.add_field(
-            name="🗺️ Beatmap Commands",
-            value=(
-                "`!beatmaps [filters]` - Count beatmaps matching filters\n"
-                "`!beatmaplist [filters]` - List beatmaps with details\n"
-                "• Filters: `-stars`, `-ar`, `-cs`, `-od`, `-hp`, `-bpm`, `-mode`, `-status`, etc."
-            ),
+            name="Commands",
+            value="\n".join(lines[:25]),
             inline=False
         )
-        
-        embed.add_field(
-            name="🎯 Score Commands",
-            value=(
-                "`!scores [filters]` - Count your scores (requires registration)\n"
-                "`!scorelist [filters]` - List your scores with details\n"
-                "`!scores -o score` - Sum of classic_total_score\n"
-                "`!scores -o legacy` - Sum of legacy_total_score\n"
-                "• Filters: `-pp`, `-accuracy`, `-grade`, `-mods`, `-beatmap_id`, etc.\n"
-                "• Use `-user_id` or `-username` to query other users"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="👥 User Commands",
-            value=(
-                "`!users [filters]` - Count users matching filters\n"
-                "`!userlist [filters]` - User leaderboard\n"
-                "`!userlist -o <preset>` - Use a preset (see `!help presets`)\n"
-                "• Filters: `-pp`, `-country_code`, `-global_rank`, etc.\n"
-                "• Presets: plays, clears, hardclears, playcount, playtime"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="📦 Collection Commands",
-            value=(
-                "`!generateosdb [filters] -name <name>` - Create .osdb collection file\n"
-                "`!generateosdbs` - Generate multiple collections from .txt file\n"
-                "• Upload a .txt file with one command per line"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="⚙️ Utility Commands",
-            value=(
-                "`!register -u <osu_user_id>` - Register & link Discord account\n"
-                "`!link -u <osu_user_id>` - Update linked osu! account\n"
-                "`!help [topic]` - Show help information"
-            ),
-            inline=False
-        )
-        
-        embed.set_footer(text="Use !help <topic> for detailed information on filters and parameters")
+
         await ctx.reply(embed=embed)
-    
+
+    async def _send_command_help(self, ctx, cmd: commands.Command):
+        doc = cmd.help or "No help available."
+
+        def parse_help(doc: str):
+            sections = {}
+            current = "description"
+            sections[current] = []
+
+            for line in doc.splitlines():
+                line = line.strip()
+
+                if not line:
+                    continue
+
+                if line.endswith(":"):
+                    current = line[:-1].lower()
+                    sections[current] = []
+                else:
+                    sections[current].append(line)
+
+            return {k: "\n".join(v).strip() for k, v in sections.items()}
+
+        parsed = parse_help(doc)
+
+        embed = discord.Embed(
+            title=f"⚙️ Command: !{cmd.name}",
+            description=parsed.get("description", ""),
+            color=discord.Color.blue()
+        )
+
+        # Aliases
+        if cmd.aliases:
+            embed.add_field(
+                name="Aliases",
+                value=", ".join(f"`{a}`" for a in cmd.aliases),
+                inline=False
+            )
+
+        # Usage
+        if "usage" in parsed:
+            embed.add_field(name="Usage", value=f"```\n{parsed['usage']}\n```", inline=False)
+
+        # Examples
+        if "examples" in parsed:
+            embed.add_field(name="Examples", value=f"```\n{parsed['examples']}\n```", inline=False)
+
+        # Key params
+        if "key parameters" in parsed:
+            embed.add_field(name="Parameters", value=parsed["key parameters"], inline=False)
+
+        # Notes
+        if "notes" in parsed:
+            embed.add_field(name="Notes", value=parsed["notes"], inline=False)
+
+        embed.set_footer(text="Syntax: !command [filters] [options]")
+
+        await ctx.reply(embed=embed)
+
+    async def _send_parameter_help(self, ctx, query: str):
+        # 1Manual meta params first
+        if query in PARAMETER_HELP:
+            info = PARAMETER_HELP[query]
+
+            embed = discord.Embed(
+                title=f"⚙️ Parameter: {query}",
+                description=info["description"],
+                color=discord.Color.gold()
+            )
+
+            if "usage" in info:
+                embed.add_field(name="Usage", value=info["usage"], inline=False)
+
+            await ctx.reply(embed=embed)
+            return True
+
+        # Dynamic resolution
+        resolved = resolve_parameter(query)
+        if not resolved:
+            return False
+
+        embed = discord.Embed(
+            title=f"⚙️ Parameter: {query}",
+            color=discord.Color.gold()
+        )
+
+        # -------------------------
+        # COLUMN-BASED
+        # -------------------------
+        if resolved[0] in ("column", "column_suffix"):
+            column = resolved[1]
+            col_info = get_column_info(column)
+
+            embed.description = col_info.get("description", "No description")
+
+            embed.add_field(name="Column", value=f"`{column}`", inline=True)
+            embed.add_field(name="Type", value=col_info.get("type", "unknown"), inline=True)
+
+            ops = [
+                f"`-{column}` = value",
+                f"`-{column}-min` ≥ value",
+                f"`-{column}-max` < value",
+                f"`-{column}-not` ≠ value",
+                f"`-{column}-in` list match",
+                f"`-{column}-notin` exclude list",
+            ]
+
+            if col_info.get("type") == "str":
+                ops.append(f"`-{column}-like` contains text")
+                ops.append(f"`-{column}-regex` regex match")
+
+            embed.add_field(name="Operators", value="\n".join(ops), inline=False)
+
+            # Example
+            embed.add_field(
+                name="Example",
+                value=f"`!beatmaplist -{column}-min 5`",
+                inline=False
+            )
+
+        # -------------------------
+        # VALUED PARAMS
+        # -------------------------
+        elif resolved[0] == "valued":
+            param = resolved[1]
+            template, deps = VALUED_PARAMS[param]
+
+            embed.description = "Special parameter with custom query behavior."
+
+            if deps:
+                embed.add_field(
+                    name="Uses Columns",
+                    value=", ".join(f"`{c}`" for c in deps),
+                    inline=False
+                )
+
+            # Optional: hide raw SQL if you want cleaner UX
+            embed.add_field(
+                name="Behavior",
+                value="Custom filtering logic (see operators or examples).",
+                inline=False
+            )
+
+        # -------------------------
+        # VALUELESS PARAMS
+        # -------------------------
+        elif resolved[0] == "valueless":
+            param = resolved[1]
+            clause, deps = VALUELESS_PARAMS[param]
+
+            embed.description = "Boolean flag (no value required)."
+
+            if deps:
+                embed.add_field(
+                    name="Affects Columns",
+                    value=", ".join(f"`{c}`" for c in deps),
+                    inline=False
+                )
+
+        await ctx.reply(embed=embed)
+        return True
+        
     async def _send_operators_help(self, ctx):
         """Send help for query operators"""
         embed = discord.Embed(
@@ -449,68 +755,6 @@ class Misc(commands.Cog):
         )
         
         embed.set_footer(text="Operators are case-insensitive for text fields")
-        await ctx.reply(embed=embed)
-    
-    async def _send_parameters_help(self, ctx):
-        """Send help for common parameters"""
-        embed = discord.Embed(
-            title="⚙️ Common Parameters",
-            description="Parameters that work with most list commands",
-            color=discord.Color.gold()
-        )
-        
-        embed.add_field(
-            name="Pagination",
-            value=(
-                "`-p <page>` - Page number (default: 1)\n"
-                "`-l <limit>` - Results per page (default: 10)\n"
-                "**Example:** `-p 2 -l 20` - Page 2, 20 results per page"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="Ordering",
-            value=(
-                "`-order <column>` - Sort by column (default: DESC)\n"
-                "`-direction ASC|DESC` - Sort direction\n"
-                "**Example:** `-order pp -direction DESC` - Highest PP first"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="Grouping & Aggregation",
-            value=(
-                "`-group <column>` - Group results by column\n"
-                "`-limit <n>` - Limit total results\n"
-                "**Example:** `-group username -order COUNT(*) -limit 100`"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="Output Options (userlist)",
-            value=(
-                "`-o <preset>` - Use preset configuration\n"
-                "`-columns <col1,col2>` - Custom columns to display\n"
-                "`-include d` - Include D rank scores\n"
-                "**Example:** `-columns username,pp,play_count -order pp`"
-            ),
-            inline=False
-        )
-        
-        embed.add_field(
-            name="Score Filters",
-            value=(
-                "`-o score` - Sum classic_total_score (scores command)\n"
-                "`-o legacy` - Sum legacy_total_score (scores command)\n"
-                "`-highest_score true` - Filter to highest scores only"
-            ),
-            inline=False
-        )
-        
-        embed.set_footer(text="Parameter order doesn't matter")
         await ctx.reply(embed=embed)
     
     async def _send_presets_help(self, ctx):

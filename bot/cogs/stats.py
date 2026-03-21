@@ -7,6 +7,13 @@ from bot.util.helpers import separate_beatmap_filters, separate_user_filters
 from bot.util.schema import TABLE_METADATA
 
 class Stats(commands.Cog):
+    """
+    Statistics and user statistics commands for analyzing performance data.
+    
+    This cog provides commands to view user statistics and completion
+    leaderboards based on the userstats table, showing aggregated data
+    across different modes, difficulty settings, and FA status.
+    """
     def __init__(self, bot):
         self.bot = bot
 
@@ -83,8 +90,37 @@ class Stats(commands.Cog):
             return "DESC", None
         return "DESC", "Invalid -direction. Use asc or desc."
 
-    @commands.command(aliases=["ustats", "stats"])
+    @commands.command(
+        aliases=["ustats", "stats"],
+        brief="Display user statistics from userstats table"
+    )
     async def userstats(self, ctx, *args):
+        """
+        Display detailed user statistics from the userstats table.
+        
+        Usage: !userstats [filters]
+        
+        Examples:
+        - !userstats -user_id 123456
+        - !userstats -username peppy -mode 0
+        - !userstats -fa true -diff hard
+        
+        Key parameters:
+        - -user_id/-username: Target user (auto-resolves if not specified)
+        - -fa/-is_fa: Featured Artist filter (0=false, 1=true, 2=all)
+        - -diff/-difficulty: Difficulty filter (0=easy, 1=hard, 2=all)
+        - -mode: Game mode filter (0=osu, 1=taiko, 2=fruits, 3=mania, 4=all)
+        
+        Output:
+        - Shows aggregated statistics by mode, FA status, and difficulty
+        - Displays metric type, value, total, and completion date
+        - Based on userstats table data
+        
+        Notes:
+        - Automatically resolves user from Discord registration if not specified
+        - Supports all userstats table bucket combinations
+        - Shows completion progress and counts for various metrics
+        """
         di = get_args(args)
 
         # ----------------------------
@@ -114,7 +150,7 @@ class Stats(commands.Cog):
                     username = rows[0][1] if len(rows[0]) > 1 else None
 
         if user_id is None:
-            await ctx.reply("Could not auto-resolve your user. Please provide `-user_id <id>`.")
+            await ctx.reply("Could not auto-resolve your user. Please provide `-user_id <id>`.") 
             return
 
         # ----------------------------
@@ -184,17 +220,39 @@ class Stats(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
-    @commands.command(aliases=["clb", "completionlb"])
+    @commands.command(
+        aliases=["clb", "completionlb"],
+        brief="Display completion leaderboard"
+    )
     async def completionleaderboard(self, ctx, *args):
         """
-        ~completionleaderboard
-        -o: scores|plays|easyclears|normalclears|hardclears|extraclears|ultraclears|overclears|ss   (required)
-        -fa / -is_fa: 0|false, 1|true, 2|all (default 2)
-        -diff / -difficulty: 0|easy, 1|hard, 2|all (default 2)
-        -mode: 0|osu, 1|taiko, 2|fruits|catch|ctb, 3|mania, 4|all (default 4)
-        -order: count|date|total (default count)
-        -direction: asc|desc (default desc)
-        -page/-limit (synonyms -p/-l handled by get_args via PARAM_SYNONYM_MAP)
+        Display completion leaderboard based on userstats table data.
+        
+        Usage: !completionleaderboard -o <metric> [filters] [-page N] [-limit N]
+        
+        Examples:
+        - !completionleaderboard -o plays -mode 0 -fa true
+        - !completionleaderboard -o hardclears -diff hard -page 2
+        - !completionleaderboard -o ss -mode 4 -page me
+        
+        Key parameters:
+        - -o: Metric type (scores, plays, easyclears, normalclears, hardclears, extraclears, ultraclears, overclears, ss)
+        - -fa/-is_fa: Featured Artist filter (0=false, 1=true, 2=all)
+        - -diff/-difficulty: Difficulty filter (0=easy, 1=hard, 2=all)
+        - -mode: Game mode filter (0=osu, 1=taiko, 2=fruits, 3=mania, 4=all)
+        - -order: Sort by (count, date, total)
+        - -direction: Sort direction (asc, desc)
+        - -page/-limit: Pagination controls
+        
+        Output:
+        - Shows completion statistics leaderboard
+        - Displays username, value, total, and completion date
+        - Supports "me" page functionality for user's position
+        
+        Notes:
+        - Based on aggregated userstats table data
+        - Combines mode, FA status, and difficulty buckets
+        - Shows completion progress across different metrics
         """
         di = get_args(args)
 
@@ -259,7 +317,7 @@ class Stats(commands.Cog):
         # ----------------------------
         # fetch FULL ordered leaderboard (no LIMIT/OFFSET)
         # ----------------------------
-        # IMPORTANT: order_col is whitelisted; direction_sql is ASC/DESC only.
+        # IMPORTANT: order_col is whitelisted above; direction_sql is ASC/DESC only.
         sql = f"""
             SELECT
             ul.username AS username,

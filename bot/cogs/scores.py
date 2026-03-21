@@ -7,6 +7,13 @@ from bot.util.formatting import format_field
 from bot.util.presets import *
 
 class Scores(commands.Cog):
+    """
+    Score query commands for analyzing user performance and statistics.
+    
+    This cog provides commands to count, list, and analyze scores from the database
+    using various filters like accuracy, PP, grade, and more. Requires user registration
+    for most commands to filter by specific users.
+    """
     def __init__(self, bot):
         self.bot = bot
 
@@ -42,8 +49,35 @@ class Scores(commands.Cog):
                 if result and result[0]:
                     di["-user_id"] = result[0][0]
 
-    @commands.command(aliases=["s"])
+    @commands.command(
+        aliases=["s"],
+        brief="Count scores matching filters"
+    )
     async def scores(self, ctx, *args):
+        """
+        Count scores matching specified filters.
+        
+        Usage: !scores [filters] [-o preset]
+        
+        Examples:
+        - !scores -pp-min 400 -mode 0
+        - !scores -accuracy-min 98 -grade-in SS,S
+        - !scores -stars-min 7 -o score
+        
+        Key parameters:
+        - -pp-min/-pp-max: Filter by PP range
+        - -accuracy-min/-accuracy-max: Filter by accuracy range
+        - -grade-in/-grade-not: Filter by grade (SS, S, A, B, etc.)
+        - -mods: Filter by mods (HD, DT, HR, etc.)
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -o: Output preset (count, score, classicscore, legacyscore)
+        - -user_id/-username: Filter by specific user
+        
+        Notes: 
+        - Requires registration for default user filtering
+        - Defaults to highest score per beatmap only
+        - Supports score aggregation presets (sum of scores)
+        """
         di = get_args(args)
         table = "scoreLive"
         preset = get_score_preset(di.get("-o", "count"))
@@ -72,8 +106,37 @@ class Scores(commands.Cog):
         
         await ctx.reply(msg)
 
-    @commands.command(aliases=["sl"])
+    @commands.command(
+        aliases=["sl"],
+        brief="List scores with detailed information"
+    )
     async def scorelist(self, ctx, *args):
+        """
+        List scores with detailed information matching specified filters.
+        
+        Usage: !scorelist [filters] [-page N] [-limit N]
+        
+        Examples:
+        - !scorelist -pp-min 400 -mode 0 -l 15
+        - !scorelist -grade-in SS,S -accuracy-min 99
+        - !scorelist -mods HD,DT -page 2
+        
+        Key parameters:
+        - -pp-min/-pp-max: Filter by PP range
+        - -accuracy-min/-accuracy-max: Filter by accuracy range
+        - -grade-in/-grade-not: Filter by grade (SS, S, A, B, etc.)
+        - -mods: Filter by mods (HD, DT, HR, etc.)
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -user_id/-username: Filter by specific user
+        - -page/-limit: Pagination controls
+        - -order: Sort by column (e.g., pp, accuracy, stars)
+        - -direction: Sort direction (ASC/DESC)
+        
+        Notes: 
+        - Displays score details including PP, accuracy, grade, and mods
+        - Defaults to highest score per beatmap only
+        - Supports leaderboard presets for common score aggregations
+        """
         di = get_args(args)
         table = "scoreLive"
         columns = "stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms"
@@ -96,8 +159,34 @@ class Scores(commands.Cog):
         embed = formatter.as_score_list(result, page=int(di.get("-page", 1)), page_size=int(di.get("-limit", 10)), elapsed=elapsed)
         await ctx.reply(embed=embed)
 
-    @commands.command(aliases=["ussl", "uniquesslist"])
+    @commands.command(
+        aliases=["ussl", "uniquesslist"],
+        brief="List unique SS (perfect score) plays"
+    )
     async def unique_ss_list(self, ctx, *args):
+        """
+        List scores that are unique SS (perfect score) plays.
+        
+        Usage: !unique_ss_list [filters]
+        
+        Examples:
+        - !unique_ss_list -stars-min 6 -mode 0
+        - !unique_ss_list -mods HD -grade SS
+        - !unique_ss_list -user_id 123456
+        
+        Key parameters:
+        - -stars-min/-stars-max: Filter by star rating range
+        - -pp-min/-pp-max: Filter by PP range
+        - -mods: Filter by mods (HD, DT, HR, etc.)
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -user_id/-username: Filter by specific user
+        - -grade: Filter by grade (SS, SSH, etc.)
+        
+        Notes: 
+        - Shows scores where the user has the only SS on the beatmap
+        - Uses the unique_ss leaderboard preset
+        - Requires registration for default user filtering
+        """
         di = get_args(args)
 
         di["-o"] = "unique_ss"

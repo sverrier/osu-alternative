@@ -8,6 +8,13 @@ from bot.util.querybuilder import QueryBuilder
 from bot.util.presets import *
 
 class Collections(commands.Cog):
+    """
+    Collection generation commands for creating osu! collection files.
+    
+    This cog provides commands to generate .osdb collection files from
+    beatmap queries, allowing users to export beatmaps matching specific
+    criteria for use in the osu! client.
+    """
     def __init__(self, bot):
         self.bot = bot
 
@@ -30,8 +37,31 @@ class Collections(commands.Cog):
         if "loved" not in include_set:
             di.setdefault("-status-not", "loved")
 
-    @commands.command()
+    @commands.command(
+        brief="Generate single .osdb collection file"
+    )
     async def generateosdb(self, ctx, *args):
+        """
+        Generate a single .osdb collection file from beatmap filters.
+        
+        Usage: !generateosdb [filters] [-name collection_name]
+        
+        Examples:
+        - !generateosdb -stars-min 6 -stars-max 8 -name "6-8 Star Maps"
+        - !generateosdb -mode 0 -status ranked -name "Ranked Osu Maps"
+        - !generateosdb -artist-like demetori -name "Demetori Collection"
+        
+        Key parameters:
+        - [filters]: Any beatmap filters (stars, mode, status, artist, etc.)
+        - -name: Name for the collection (defaults to "collection")
+        - -o: Leaderboard preset to apply (plays, hardclears, etc.)
+        
+        Notes:
+        - Generates a .osdb file compatible with osu! client
+        - File is sent directly to Discord as an attachment
+        - Supports all beatmapLive table columns as filters
+        - Automatically applies user's default mode if not specified
+        """
         di = get_args(args)
         columns = "checksum as hash, beatmapLive.beatmap_id, beatmapset_id, artist, title, version, mode, stars"
 
@@ -58,8 +88,40 @@ class Collections(commands.Cog):
         with open(filename, "rb") as file:
             await ctx.reply("Your file is:", file=discord.File(file, filename))
 
-    @commands.command(aliases=["gen"])
+    @commands.command(
+        aliases=["gen"],
+        brief="Generate multiple collections from file"
+    )
     async def generateosdbs(self, ctx, *args):
+        """
+        Generate multiple .osdb collection files from a text file or single command.
+        
+        Usage: !generateosdbs [filters] [-name collection_name]
+        Or: Upload a .txt file with one command per line
+        
+        Examples:
+        - !generateosdbs -stars-min 6 -name "Hard Maps"
+        - Upload file with content:
+          -stars-min 5 -name "Easy Maps"
+          -stars-max 3 -name "Beginner Maps"
+        
+        Key parameters:
+        - [filters]: Any beatmap filters (stars, mode, status, artist, etc.)
+        - -name: Name for each collection
+        - -o: Leaderboard preset to apply
+        
+        File format:
+        Each line should contain a valid generateosdb command without the command name.
+        Example file content:
+        -stars-min 5 -mode 0 -name "Osu Maps"
+        -artist-like touhou -name "Touhou Collection"
+        
+        Notes:
+        - If no file is attached, behaves like generateosdb
+        - If file is attached, processes each line as a separate collection
+        - Merges all collections into a single .osdb file
+        - File must be .txt format with UTF-8 encoding
+        """
         # If no file attached, behave like generateosdb
         if not ctx.message.attachments:
             di = get_args(args)

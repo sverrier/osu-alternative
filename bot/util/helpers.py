@@ -1,4 +1,4 @@
-from bot.util.schema import TABLE_METADATA
+from bot.util.schema import *
 
 TABLE_COLUMNS = {
     "beatmapLive": list(TABLE_METADATA["beatmapLive"].keys()),
@@ -267,3 +267,50 @@ def separate_beatmap_filters(di):
             beatmap_args[key] = value
 
     return beatmap_args
+
+def resolve_parameter(query: str):
+    canonical = ALIAS_TO_PARAM.get(query, query)
+
+    # Special valued
+    if canonical in VALUED_PARAMS:
+        return ("valued", canonical)
+
+    # Valueless
+    if canonical in VALUELESS_PARAMS:
+        return ("valueless", canonical)
+
+    # Column + suffix
+    suffixes = ["-min", "-max", "-not", "-in", "-notin", "-like", "-regex"]
+
+    for suffix in suffixes:
+        if canonical.endswith(suffix):
+            base = canonical[:-len(suffix)]
+            if validate_column(base):
+                return ("column_suffix", base, suffix)
+
+    # Direct column param
+    if canonical.startswith("-"):
+        base = canonical[1:]
+        if validate_column(base):
+            return ("column", base)
+
+    return None
+
+PARAMETER_HELP = {
+    "-page": {
+        "description": "Page number for pagination",
+        "usage": "`-page 2`",
+    },
+    "-limit": {
+        "description": "Number of results per page",
+        "usage": "`-limit 20`",
+    },
+    "-order": {
+        "description": "Column to sort by",
+        "usage": "`-order pp`",
+    },
+    "-direction": {
+        "description": "Sort direction (ASC/DESC)",
+        "usage": "`-direction DESC`",
+    },
+}
