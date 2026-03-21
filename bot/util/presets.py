@@ -153,7 +153,7 @@ LEADERBOARD_PRESETS = {
         "description": "Sums legacy score per user, restricted to the user's top leaderboard play (highest_score=true).",
     },
     "length": {
-        "columns": "sum(length)",
+        "columns": "username, sum(length)",
         "alias": "length",
         "-group": "username",
         "-order": "sum(length)",
