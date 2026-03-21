@@ -23,6 +23,13 @@ class Collections(commands.Cog):
         
             di["-mode-in"] = rows[0]["mode"]
 
+        # Parse -include into a set of values
+        include_raw = di.get("-include", "")
+        include_set = {x.strip().lower() for x in include_raw.split(",") if x.strip()}
+
+        if "loved" not in include_set:
+            di.setdefault("-status-not", "loved")
+
     @commands.command()
     async def generateosdb(self, ctx, *args):
         di = get_args(args)
