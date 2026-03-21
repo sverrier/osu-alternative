@@ -152,6 +152,15 @@ LEADERBOARD_PRESETS = {
         "title": "Ranked Score (Legacy)",
         "description": "Sums legacy score per user, restricted to the user's top leaderboard play (highest_score=true).",
     },
+    "length": {
+        "columns": "sum(length)",
+        "alias": "length",
+        "-group": "username",
+        "-order": "sum(length)",
+        "-highest_score": "true",
+        "title": "Total length of scores",
+        "description": "Sums length of scores matching the current filters.",
+    },
     "sets": {
         "columns": "username, COUNT(DISTINCT beatmapset_id)",
         "-group": "username",
@@ -259,6 +268,8 @@ LEADERBOARD_PRESET_SYNONYMS = {
     "score": ("score", "standardized"),
 
     "classicscore": ("classicscore", "legacyscore"),
+
+    "length": ("length",),
 
     "sets": ("sets", "beatmapsets"),
 }

@@ -145,8 +145,6 @@ class util_api:
             return self.refresh_client_token()
 
         # user mode
-        if not self._user_refresh_token:
-            raise RuntimeError("Cannot refresh user token: _user_refresh_token is not set")
         return self.refresh_user_token(self._user_refresh_token)
 
     # -----------------------------------------
