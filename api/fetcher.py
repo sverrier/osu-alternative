@@ -197,7 +197,7 @@ class Fetcher:
 
         return db_user_id, db_mode, token_obj
 
-    def _apply_access_token_to_api(self, api, access_token: str, refresh_token: str):
+    def _apply_access_token_to_api(self, api, access_token: str):
         """
         Apply a bearer token to util_api object.
 
@@ -205,7 +205,6 @@ class Fetcher:
         If your util_api uses a different attribute/method, adjust here only.
         """
         api.token = access_token
-        api._user_refresh_token = refresh_token
 
     async def sync_user_scores_from_tokens(self, api, user_id: int, mode: int | None = None):
         """
@@ -213,7 +212,7 @@ class Fetcher:
         then runs the normal sync routine for that specific user.
         """
         db_user_id, db_mode, token_obj = await self._load_user_token_from_db(user_id, mode)
-        self._apply_access_token_to_api(api, token_obj["access_token"], token_obj["refresh_token"])
+        self._apply_access_token_to_api(api, token_obj["access_token"])
 
         self.logger.info(f"Using user token from tokens table for user {db_user_id} (mode={db_mode})")
         await self.sync_registered_user_scores(user_id=db_user_id, api=api)
