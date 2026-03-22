@@ -124,7 +124,6 @@ class Misc(commands.Cog):
                         f"so I did **not** link it here."
                     )
                 )
-                return
             else:
 
                 # Register + link
@@ -135,11 +134,13 @@ class Misc(commands.Cog):
                 """
                 await self.bot.db.executeParametrized(q_insert, user_id, discord_name, discord_id)
 
+                await status_msg.edit(content=f"✅ Registered user ID `{user_id}` and linked your Discord account.")
+
+
             q_register = f"CALL public.register_user($1)"
 
             await self.bot.db.executeParametrized(q_register, user_id)
 
-            await status_msg.edit(content=f"✅ Registered user ID `{user_id}` and linked your Discord account.")
             return
 
         # ---- CASE B: user IS registered already ----
