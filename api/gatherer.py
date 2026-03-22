@@ -423,6 +423,7 @@ class Gatherer:
         self.logger.info("Fetching recent scores...")
         counter = 0
         while True:
+            break
             result, elapsed = await self.db.executeQuery(
                 "SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1"
             )
@@ -464,6 +465,8 @@ class Gatherer:
             self.logger.info(f"Processed {len(scores)} scores in batch {counter}.")
             if len(scores) < 500:
                 break
+
+        await self.register_new_user()
 
     async def update_registered_users(self):
         self.logger.info("Updating registered users...")
@@ -574,6 +577,33 @@ class Gatherer:
             
             if found:
                 break
+
+    async def register_new_user(self):
+        self.logger.info("Updating new registered users...")
+        
+        query = """
+            SELECT user_id 
+            FROM registrations 
+            WHERE is_registered = false 
+            ORDER BY registrationdate 
+            LIMIT 1
+        """
+        
+        rs, elapsed = await self.db.executeQuery(query)
+
+        if not rs:
+            self.logger.info("No unregistered users found.")
+            return None  # or just return
+
+        user_id = rs[0][0]
+
+        query = f"CALL public.register_user({user_id})"
+
+        await self.db.executeQuery(query)
+
+        self.logger.info(f"Registered {user_id}")
+
+
 
     async def sync_queued_user_beatmaps(self):
         """
