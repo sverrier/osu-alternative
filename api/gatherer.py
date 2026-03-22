@@ -602,6 +602,10 @@ class Gatherer:
 
         self.logger.info(f"Registered {user_id}")
 
+        query = f"UPDATE registrations set is_registered = true where user_id = {user_id}"
+
+        await self.db.executeQuery(query)
+
 
 
     async def sync_queued_user_beatmaps(self):
