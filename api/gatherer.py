@@ -423,7 +423,6 @@ class Gatherer:
         self.logger.info("Fetching recent scores...")
         counter = 0
         while True:
-            break
             result, elapsed = await self.db.executeQuery(
                 "SELECT cursor_string FROM cursorString ORDER BY dateInserted DESC LIMIT 1"
             )
