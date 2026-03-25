@@ -97,6 +97,8 @@ class util_api:
                 "refresh_token": refresh_token,
             }
 
+            print(data)
+
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json",
