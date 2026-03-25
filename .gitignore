@@ -1,6 +1,7 @@
 config.txt
 botconfig.txt
 fetcher.txt
+userfetcher.txt
 api/build/
 .venv/
 logs/
