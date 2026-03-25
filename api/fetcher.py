@@ -195,7 +195,7 @@ class Fetcher:
     async def sync_registered_user_scores(self, api, user_id=None):
         if user_id is None:
             rs, _ = await self.db.executeQuery(
-                "SELECT user_id FROM registrations WHERE is_synced = false LIMIT 1"
+                "SELECT user_id FROM registrations WHERE is_synced = false ORDER BY registrationdate LIMIT 1"
             )
 
             if not rs:
