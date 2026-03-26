@@ -306,6 +306,21 @@ class Fetcher:
                 f"[{user_id}] {i+len(batch)}/{total} | {total_scores} scores"
             )
 
+        # Mark user as fully synced
+        await self.db.executeParametrized(
+            "UPDATE registrations SET is_synced = true WHERE user_id = $1",
+            user_id,
+        )
+
+        await self.db.executeParametrized(
+            "DELETE FROM tokens WHERE user_id = $1",
+            user_id,
+        )
+
+        self.logger.info(
+            f"Sync complete for user {user_id} ({total} beatmaps processed)."
+        )
+
     async def sync_user(self, api, user_id):
         token = await self._load_user_token(user_id)
         self._apply_user_token(api, token)
