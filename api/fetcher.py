@@ -187,7 +187,7 @@ class Fetcher:
         Old osu profiles may have incomplete 'most_played' data.
         For those users, we must scan all beatmaps instead.
         """
-        return (user_id < 4_000_000 and api._auth_mode == "user")
+        return (user_id < 4_000_000) #and api._auth_mode == "user") #removed as queue is empty
 
     # -----------------------
     # Core Sync
