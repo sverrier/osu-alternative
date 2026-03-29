@@ -210,20 +210,65 @@ class Fetcher:
 
         if scan_all_maps:
             self.logger.info(
-                f"[user:{user_id}] full scan mode (API completeness fallback)"
+                f"[user:{user_id}] hybrid scan mode (pre-2016 full + post-2016 most_played)"
             )
 
-            rows = await self.db.fetchParametrized(
+            # -----------------------
+            # 1. Pre-2016: full DB scan
+            # -----------------------
+            db_rows = await self.db.fetchParametrized(
                 """
                 SELECT beatmap_id
                 FROM beatmapLive
-                WHERE beatmap_id > $1
+                WHERE ranked_date < '2016-01-01'
+                AND beatmap_id > $1
                 ORDER BY beatmap_id
                 """,
                 last_id
             )
 
-            target_ids = [r["beatmap_id"] for r in rows]
+            db_ids = [r["beatmap_id"] for r in db_rows]
+
+            # -----------------------
+            # 2. Post-2016: most_played
+            # -----------------------
+            beatmaps = []
+            offset = 0
+
+            while True:
+                page = await asyncio.to_thread(
+                    api.get_user_beatmaps_most_played,
+                    user_id,
+                    100,
+                    offset
+                )
+                if not page:
+                    break
+
+                beatmaps.extend(page)
+                offset += 100
+
+            beatmap_ids = [b["beatmap_id"] for b in beatmaps]
+
+            # Validate + filter by ranked_date >= 2016
+            rows = await self.db.fetchParametrized(
+                """
+                SELECT beatmap_id
+                FROM beatmapLive
+                WHERE beatmap_id = ANY($1)
+                AND ranked_date >= '2016-01-01'
+                """,
+                beatmap_ids
+            )
+
+            mp_ids = {r["beatmap_id"] for r in rows}
+
+            # -----------------------
+            # 3. Combine + filter
+            # -----------------------
+            target_ids = sorted(
+                set(db_ids) | {bid for bid in beatmap_ids if bid in mp_ids and bid > last_id}
+            )
 
         else:
             self.logger.info(
