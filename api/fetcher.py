@@ -248,6 +248,8 @@ class Fetcher:
                 beatmaps.extend(page)
                 offset += 100
 
+                self.logger.info(f"Fetched beatmaps up to offset {offset} for user {user_id}...")
+
             beatmap_ids = [b["beatmap_id"] for b in beatmaps]
 
             # Validate + filter by ranked_date >= 2016
