@@ -427,6 +427,61 @@ class Misc(commands.Cog):
             return
         
         query = args[0].lower()
+
+        if query in ["commands", "cmds"]:
+            await self._send_commands_help(ctx)
+            return
+
+        if query in ["operators", "ops"]:
+            await self._send_operators_help(ctx)
+            return
+
+        if query in ["parameters", "params"]:
+            # Show general parameter overview instead of requiring "-param"
+            embed = discord.Embed(
+                title="⚙️ Parameters Overview",
+                description="Common parameters used across queries",
+                color=discord.Color.gold()
+            )
+
+            embed.add_field(
+                name="Pagination",
+                value=(
+                    "`-l <limit>` - Number of results (default varies)\n"
+                    "`-p <page>` - Page number"
+                ),
+                inline=False
+            )
+
+            embed.add_field(
+                name="Ordering",
+                value=(
+                    "`-order <column>` - Sort by column\n"
+                    "`-direction asc|desc` - Sort direction"
+                ),
+                inline=False
+            )
+
+            embed.add_field(
+                name="Output Control",
+                value=(
+                    "`-columns col1,col2` - Select output columns\n"
+                    "`-o <preset>` - Use preset output format"
+                ),
+                inline=False
+            )
+
+            embed.set_footer(text="Use !help -<parameter> for detailed info")
+            await ctx.reply(embed=embed)
+            return
+
+        if query in ["presets"]:
+            await self._send_presets_help(ctx)
+            return
+
+        if query in ["examples", "example"]:
+            await self._send_examples_help(ctx)
+            return
         
         cmd = self.bot.get_command(query)
         if cmd:
@@ -520,11 +575,27 @@ class Misc(commands.Cog):
             desc = cmd.brief or "No description"
             lines.append(f"`!{cmd.name}` - {desc}")
 
-        embed.add_field(
-            name="Commands",
-            value="\n".join(lines[:25]),
-            inline=False
-        )
+        # -------------------------
+        # Chunk into <=1024 chars
+        # -------------------------
+        chunks = []
+        current = ""
+
+        for line in lines:
+            # +1 for newline
+            if len(current) + len(line) + 1 > 1024:
+                chunks.append(current)
+                current = line
+            else:
+                current = f"{current}\n{line}" if current else line
+
+        if current:
+            chunks.append(current)
+
+        # Add chunks as separate fields
+        for i, chunk in enumerate(chunks):
+            name = "Commands" if i == 0 else "Commands (cont.)"
+            embed.add_field(name=name, value=chunk, inline=False)
 
         await ctx.reply(embed=embed)
 
