@@ -18,6 +18,7 @@ class util_api:
         self.token = ""
         self._auth_mode = "client"
         self._user_refresh_token = None
+        self.on_token_refresh = None
 
     def _set_delay(self, delay):
         self.delay = delay / 1000
@@ -81,12 +82,6 @@ class util_api:
             raise
 
     def refresh_user_token(self, refresh_token: str):
-        """
-        Refresh a USER OAuth token using grant_type=refresh_token.
-
-        Returns:
-            dict with access_token, refresh_token, expires_in, token_type, scope
-        """
         try:
             url = "https://osu.ppy.sh/oauth/token"
 
@@ -96,8 +91,6 @@ class util_api:
                 "client_secret": self.key,
                 "refresh_token": refresh_token,
             }
-
-            print(data)
 
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -114,23 +107,22 @@ class util_api:
 
             json_response = response.json()
 
-            # Apply new access token
             self.token = json_response["access_token"]
 
-            # Refresh-token rotation: store the new refresh token if present
-            new_refresh = json_response.get("refresh_token")
-            if new_refresh:
-                self._user_refresh_token = new_refresh
+            # Ensure we ALWAYS keep a refresh token (rotation safe)
+            new_refresh = json_response.get("refresh_token") or refresh_token
+            self._user_refresh_token = new_refresh
+
+            json_response["refresh_token"] = new_refresh
+
+            if self.on_token_refresh:
+                self.on_token_refresh(json_response)
 
             return json_response
 
         except Exception as e:
             print(f"refresh_user_token error: {e}")
             raise
-
-    # -----------------------------------------
-    # Unified refresh helper for request retries
-    # -----------------------------------------
 
     def refresh_token(self):
         """

@@ -13,7 +13,7 @@ class Projects(commands.Cog):
         self.bot = bot
 
     @commands.command(
-        brief="Special Demetori artist analysis project"
+        brief="Leaderboard aggregate for all demetori maps"
     )
     async def projectdemetori(self, ctx, *args):
         """

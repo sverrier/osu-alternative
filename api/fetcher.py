@@ -100,16 +100,14 @@ class Fetcher:
     # -----------------------
     # API Builders
     # -----------------------
-    def _build_client_api(self):
-        api = util_api(self.client_config)
-        api.use_client_token()
-        api._set_delay(self.client_delay * 1000)
-        api.refresh_client_token()
-        return api
+    def _build_api(self, config, delay, mode="client"):
+        api = util_api(config)
+        api._set_delay(delay * 1000)
 
-    def _build_user_api(self):
-        api = util_api(self.user_config)
-        api._set_delay(self.user_delay * 1000)
+        if mode == "client":
+            api.use_client_token()
+            api.refresh_client_token()
+
         return api
 
     # -----------------------
@@ -180,6 +178,10 @@ class Fetcher:
         return token
 
     def _apply_user_token(self, api, token):
+        """
+        Apply existing token only.
+        Refresh will happen automatically on failure via util_api.
+        """
         api.use_user_token(token["access_token"], token.get("refresh_token"))
 
     def _should_scan_all_maps(self, user_id: int, api) -> bool:
@@ -370,6 +372,22 @@ class Fetcher:
 
     async def sync_user(self, api, user_id):
         token = await self._load_user_token(user_id)
+
+        def persist(token_data):
+            asyncio.create_task(
+                self.db.executeParametrized(
+                    """
+                    UPDATE tokens
+                    SET token = $1, lchg_time = NOW()
+                    WHERE user_id = $2
+                    """,
+                    json.dumps(token_data),
+                    user_id
+                )
+            )
+
+        api.on_token_refresh = persist
+
         self._apply_user_token(api, token)
         await self.sync_registered_user_scores(api, user_id)
 
@@ -403,8 +421,8 @@ class Fetcher:
         await self.db.get_pool()
         await self.db.execSetupFiles()
 
-        api_client = self._build_client_api()
-        api_user = self._build_user_api()
+        api_client = self._build_api(self.client_config, self.client_delay, "client")
+        api_user = self._build_api(self.user_config, self.user_delay, "user")
 
         print("1=client 2=user 3=both")
         choice = input().strip()
