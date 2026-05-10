@@ -20,6 +20,9 @@ DECLARE
     allowed_for_counts BOOLEAN;
     is_ss_calc         BOOLEAN;
     is_fc_calc         BOOLEAN;
+
+    prev_ss_count INT;
+	  prev_fc_count INT;
 BEGIN
     SELECT bl.mode, bl.max_combo
       INTO bm_mode, bm_max_combo
@@ -79,15 +82,49 @@ BEGIN
 
     -- Beatmap counters maintained regardless of registration status (as before)
     IF is_same_mode AND allowed_for_counts AND is_ss_calc THEN
+
         UPDATE beatmapLive
-           SET ss_count = ss_count + 1
-         WHERE beatmap_id = NEW.beatmap_id;
+          SET ss_count = ss_count + 1
+        WHERE beatmap_id = NEW.beatmap_id
+        RETURNING ss_count - 1
+          INTO prev_ss_count;
+
+        IF prev_ss_count = 0 THEN
+            INSERT INTO events (
+                event_type,
+                beatmap_id,
+                score_id
+            )
+            VALUES (
+                'first_ss',
+                NEW.beatmap_id,
+                NEW.id
+            );
+        END IF;
+
     END IF;
 
     IF is_same_mode AND allowed_for_counts AND is_fc_calc THEN
+        
         UPDATE beatmapLive
-           SET fc_count = fc_count + 1
-         WHERE beatmap_id = NEW.beatmap_id;
+          SET fc_count = fc_count + 1
+        WHERE beatmap_id = NEW.beatmap_id
+        RETURNING fc_count - 1
+          INTO prev_fc_count;
+
+        IF prev_fc_count = 0 THEN
+            INSERT INTO events (
+                event_type,
+                beatmap_id,
+                score_id
+            )
+            VALUES (
+                'first_fc',
+                NEW.beatmap_id,
+                NEW.id
+            );
+        END IF;
+
     END IF;
 
     -- Only maintain scoreLive for registered users
