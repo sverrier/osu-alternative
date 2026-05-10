@@ -10,6 +10,7 @@ CHANNEL_ID = 793594664262303814
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print("INIT")
         self.event_loop.start()
 
     def cog_unload(self):
@@ -17,6 +18,7 @@ class Events(commands.Cog):
 
     @tasks.loop(seconds=10)
     async def event_loop(self):
+        print("LOOP")
         try:
             events = await self.bot.db.fetchParametrized(
                 """
@@ -25,7 +27,8 @@ class Events(commands.Cog):
                        beatmap_id,
                        score_id
                 FROM events
-                WHERE processed_at IS NULL
+                WHERE processed = False
+                    and event_type = 'first_ss'
                 ORDER BY created_at ASC
                 LIMIT 1
                 """
@@ -33,6 +36,8 @@ class Events(commands.Cog):
 
             if not events:
                 return
+            
+            print(events)
 
             channel = self.bot.get_channel(CHANNEL_ID)
 
@@ -52,7 +57,7 @@ class Events(commands.Cog):
                     await self.bot.db.executeParametrized(
                         """
                         UPDATE events
-                        SET processed_at = NOW()
+                        SET processed = True, lchg_time = NOW()
                         WHERE event_id = $1
                         """,
                         event["event_id"]
@@ -71,7 +76,9 @@ class Events(commands.Cog):
 
     @event_loop.before_loop
     async def before_event_loop(self):
+        print("WAITING")
         await self.bot.wait_until_ready()
+        print("READY")
 
     async def build_embed(self, event):
         if event["event_type"] == "first_ss":

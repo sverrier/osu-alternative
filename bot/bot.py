@@ -5,7 +5,7 @@ import asyncio
 import traceback
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from cryptography.fernet import Fernet
 from util.crypto import get_fernet
 from util.db import db
@@ -185,10 +185,12 @@ class BotRunner:
                 except Exception as e:
                     self.logger.exception(f"Failed to load cog {name}: {e}")
 
+    async def start_bot(self):
+        await self._load_cogs()
+        await self.bot.start(self.config["DISCORD_TOKEN"])
+
     def run(self):
-        """Entry point for running the Discord bot."""
-        asyncio.run(self._load_cogs())
-        self.bot.run(self.config["DISCORD_TOKEN"])
+        asyncio.run(self.start_bot())
 
 
 
