@@ -48,23 +48,119 @@ class Projects(commands.Cog):
             await ctx.reply("Users cog not loaded.")
             return
         
-        # First userlist: plays with -include d
+        # First userlist: Completion points
         args_plays = []
         for k, v in di.items():
             if k.startswith("-"):
                 args_plays.extend([k, str(v)])
-        args_plays.extend(["-o", "plays", "-include", "d"])
+        args_plays.extend(["-o", "completion"])
         
-        await users_cog.userlist(ctx, *args_plays)
-        
-        # Second userlist: hardclears
+        await users_cog.leaderboard(ctx, *args_plays)
+
+        # Second userlist: FCs
         args_hardclears = []
         for k, v in di.items():
             if k.startswith("-"):
                 args_hardclears.extend([k, str(v)])
-        args_hardclears.extend(["-o", "hardclears"])
+        args_hardclears.extend(["-o", "fc"])
         
-        await users_cog.userlist(ctx, *args_hardclears)
+        await users_cog.leaderboard(ctx, *args_hardclears)
+        
+        # Third userlist: Score
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "score"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
+
+    @commands.command(
+        brief="Leaderboard aggregate for the legendary hitogata set"
+    )
+    async def projecthitogata(self, ctx, *args):
+        """
+        Special project command for hitogata.
+        """
+        di = get_args(args)
+        di["-beatmapset_id"] = "942714"
+        
+        # Get the Users cog to access userlist
+        users_cog = self.bot.get_cog("Users")
+        if not users_cog:
+            await ctx.reply("Users cog not loaded.")
+            return
+        
+        # First userlist: Completion points
+        args_plays = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_plays.extend([k, str(v)])
+        args_plays.extend(["-o", "completion"])
+        
+        await users_cog.leaderboard(ctx, *args_plays)
+
+        # Second userlist: FCs
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "fc"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
+        
+        # Third userlist: Score
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "score"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
+
+    @commands.command(
+        brief="Leaderboard aggregate for hit anime sword art online",
+        aliases=["projectsao",]
+    )
+    async def projectswordartonline(self, ctx, *args):
+        """
+        Special project command for sword art online.
+        """
+        di = get_args(args)
+        di["-search"] = "%sword%art%online%"
+        
+        # Get the Users cog to access userlist
+        users_cog = self.bot.get_cog("Users")
+        if not users_cog:
+            await ctx.reply("Users cog not loaded.")
+            return
+        
+        # First userlist: Completion points
+        args_plays = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_plays.extend([k, str(v)])
+        args_plays.extend(["-o", "completion"])
+        
+        await users_cog.leaderboard(ctx, *args_plays)
+
+        # Second userlist: FCs
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "fc"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
+        
+        # Third userlist: Score
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "score"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
 
         
 

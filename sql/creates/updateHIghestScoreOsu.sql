@@ -105,9 +105,13 @@ BEGIN
     END IF;
 
     IF is_same_mode AND allowed_for_counts AND is_fc_calc THEN
-        
+            
         UPDATE beatmapLive
-          SET fc_count = fc_count + 1
+          SET fc_count = fc_count + 1,
+              max_rate = GREATEST(
+                  COALESCE(max_rate, 0),
+                  COALESCE(mod_speed_change, 1)
+              )
         WHERE beatmap_id = NEW.beatmap_id
         RETURNING fc_count - 1
           INTO prev_fc_count;

@@ -168,6 +168,15 @@ LEADERBOARD_PRESETS = {
         "title": "Ranked Score (Legacy)",
         "description": "Sums legacy score per user, restricted to the user's top leaderboard play (highest_score=true).",
     },
+    "completion": {
+        "columns": "username, SUM(completion_score(is_ss,difficulty_removing,difficulty_reducing,accuracy,is_fc,grade::text,total_score))",
+        "-group": "username",
+        "-order": "SUM(completion_score(is_ss,difficulty_removing,difficulty_reducing,accuracy,is_fc,grade,total_score))",
+        "-highest_score": "true",
+        "alias": "count",
+        "title": "Total completion score",
+        "description": "Sums completion score achieved per user",
+    },
     "length": {
         "columns": "username, sum(length)",
         "-group": "username",
@@ -261,37 +270,39 @@ SCORE_PRESETS = {
 }
 
 LEADERBOARD_PRESET_SYNONYMS = {
-    "plays": ("plays", "played", "play"),
+    "plays": ("plays", "played", "play",),
 
-    "scores": ("scores", "scored"),
+    "scores": ("scores", "scored",),
 
-    "easyclears": ("easyclears", "easyclear", "easycleared" "ec"),
+    "easyclears": ("easyclears", "easyclear", "easycleared" "ec",),
 
-    "normalclears": ("normalclears", "normalclear", "normalcleared", "nc", "clears", "clear", "cleared"),
+    "normalclears": ("normalclears", "normalclear", "normalcleared", "nc", "clears", "clear", "cleared",),
 
-    "hardclears": ("hardclears", "hardclear", "hardcleared", "hc"),
+    "hardclears": ("hardclears", "hardclear", "hardcleared", "hc",),
 
-    "extraclears": ("extraclears", "extraclear", "extracleared", "exc"),
+    "extraclears": ("extraclears", "extraclear", "extracleared", "exc",),
 
-    "ultraclears": ("ultraclears", "ultraclear", "ultracleared", "uc"),
+    "ultraclears": ("ultraclears", "ultraclear", "ultracleared", "uc",),
 
-    "overclears": ("overclears", "overclear", "overcleared", "oc"),
+    "overclears": ("overclears", "overclear", "overcleared", "oc",),
 
-    "fc": ("fc", "full_combo"),
+    "fc": ("fc", "full_combo",),
 
     "ss": ("ss",),
     "s": ("s",),
 
-    "unique_ss": ("unique_ss", "uss"),
-    "unique_fc": ("unique_fc", "ufc"),
+    "unique_ss": ("unique_ss", "uss",),
+    "unique_fc": ("unique_fc", "ufc",),
 
-    "score": ("score", "standardized"),
+    "score": ("score", "standardized",),
 
-    "classicscore": ("classicscore", "legacyscore"),
+    "classicscore": ("classicscore", "legacyscore",),
+
+    "completion": ("completion",),
 
     "length": ("length",),
 
-    "sets": ("sets", "beatmapsets"),
+    "sets": ("sets", "beatmapsets",),
 }
 
 SCORE_PRESET_SYNONYMS = {
@@ -345,7 +356,7 @@ USER_PRESET_LOOKUP = {
 def resolve_preset(name: str, presets: dict, synonyms: dict):
     if not name:
         return None
-
+    
     canonical = synonyms.get(name.strip().lower())
     return presets.get(canonical)
 
