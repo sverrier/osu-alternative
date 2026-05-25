@@ -19,6 +19,9 @@ DECLARE
     allowed_for_counts BOOLEAN;
     is_ss_calc         BOOLEAN;
     is_fc_calc         BOOLEAN;
+
+    prev_ss_count INT;
+	  prev_fc_count INT;
 BEGIN
     SELECT bl.mode
       INTO bm_mode
@@ -69,15 +72,63 @@ BEGIN
     -- fruits original uses "miss=0" FC-style check
     is_fc_calc := (COALESCE(NEW.statistics_miss, 0) = 0);
 
+    -- Beatmap counters maintained regardless of registration status (as before)
     IF is_same_mode AND allowed_for_counts AND is_ss_calc THEN
-      UPDATE beatmapLive SET ss_count = ss_count + 1
-      WHERE beatmap_id = NEW.beatmap_id;
+
+        UPDATE beatmapLive
+          SET ss_count = ss_count + 1
+        WHERE beatmap_id = NEW.beatmap_id
+        RETURNING ss_count - 1
+          INTO prev_ss_count;
+
+        IF prev_ss_count = 0 THEN
+            INSERT INTO events (
+                event_type,
+                beatmap_id,
+                score_id
+            )
+            VALUES (
+                'first_ss',
+                NEW.beatmap_id,
+                NEW.id
+            );
+        END IF;
+
     END IF;
 
     IF is_same_mode AND allowed_for_counts AND is_fc_calc THEN
-      UPDATE beatmapLive SET fc_count = fc_count + 1
-      WHERE beatmap_id = NEW.beatmap_id;
+            
+        UPDATE beatmapLive
+          SET fc_count = fc_count + 1,
+              max_rate = GREATEST(
+                  COALESCE(max_rate, 0),
+                  COALESCE(mod_speed_change, 1)
+              )
+        WHERE beatmap_id = NEW.beatmap_id
+        RETURNING fc_count - 1
+          INTO prev_fc_count;
+
+        IF prev_fc_count = 0 THEN
+            INSERT INTO events (
+                event_type,
+                beatmap_id,
+                score_id
+            )
+            VALUES (
+                'first_fc',
+                NEW.beatmap_id,
+                NEW.id
+            );
+        END IF;
+
     END IF;
+
+    UPDATE beatmapLive
+          SET top_score = GREATEST(
+                  COALESCE(top_score, 0),
+                  COALESCE(NEW.total_score, 0)
+              )
+        WHERE beatmap_id = NEW.beatmap_id;
 
     IF NOT EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id) THEN
         RETURN NULL;

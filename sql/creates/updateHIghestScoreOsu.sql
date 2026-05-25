@@ -131,6 +131,13 @@ BEGIN
 
     END IF;
 
+    UPDATE beatmapLive
+          SET top_score = GREATEST(
+                  COALESCE(top_score, 0),
+                  COALESCE(NEW.total_score, 0)
+              )
+        WHERE beatmap_id = NEW.beatmap_id;
+
     -- Only maintain scoreLive for registered users
     IF NOT EXISTS (SELECT 1 FROM userLive WHERE user_id = NEW.user_id) THEN
         RETURN NULL;
