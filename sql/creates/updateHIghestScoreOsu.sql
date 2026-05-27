@@ -329,10 +329,3 @@ BEGIN
     RETURN NULL;
 END;
 $$;
-
-DROP TRIGGER IF EXISTS set_highest_score_osu ON scoreOsu;
-CREATE TRIGGER set_highest_score_osu
-AFTER INSERT ON scoreOsu
-FOR EACH ROW
-WHEN (NEW.classic_total_score IS NOT NULL OR NEW.pp IS NOT NULL)
-EXECUTE FUNCTION update_highest_score_osu();
