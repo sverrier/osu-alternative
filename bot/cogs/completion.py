@@ -303,6 +303,21 @@ class Completion(commands.Cog):
         embed = formatter.as_completion(completion_data, elapsed=elapsed)
         await ctx.reply(embed=embed)
 
+    @commands.command(
+        aliases=["sc"],
+        brief="Display star rating completion"
+    )
+    async def stars_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "stars"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
 
 async def setup(bot):
     await bot.add_cog(Completion(bot))
