@@ -417,7 +417,7 @@ class Misc(commands.Cog):
                     "**Basic query:** `!beatmaps -stars-min 5 -stars-max 7`\n"
                     "**View list:** `!beatmaplist -mode 0 -status ranked -l 15`\n"
                     "**Your scores:** `!scores` (requires registration)\n"
-                    "**Register:** `!register -u <osu_user_id>`"
+                    "**Register:** `!register <osu_user_id>`"
                 ),
                 inline=False
             )
