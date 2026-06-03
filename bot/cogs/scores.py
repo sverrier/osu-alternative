@@ -107,7 +107,7 @@ class Scores(commands.Cog):
         await ctx.reply(msg)
 
     @commands.command(
-        aliases=["sl"],
+        aliases=["sl", "gs", "getscores"],
         brief="List scores with detailed information"
     )
     async def scorelist(self, ctx, *args):

@@ -74,7 +74,7 @@ class Users(commands.Cog):
         await ctx.reply(str(result[0][0]))
 
     @commands.command(
-        aliases=["l"],
+        aliases=["l", "q", "query"],
         brief="Display user leaderboard"
     )
     async def leaderboard(self, ctx, *args):

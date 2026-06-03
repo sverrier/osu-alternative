@@ -25,7 +25,7 @@ class BotRunner:
         intents.message_content = True
 
         self.bot = commands.Bot(
-            command_prefix="~",
+            command_prefix="!",
             case_insensitive=True,
             intents=intents,
             help_command=None,
