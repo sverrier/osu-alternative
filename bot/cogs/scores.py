@@ -39,11 +39,8 @@ class Scores(commands.Cog):
         if "converts" not in include_set:
             di.setdefault("-convertless", "true")
         
-        if "all" in include_set:
-            di.pop("-highest_score", None)
-        else:
+        if "all" not in include_set:
             di.setdefault("-highest_score", "true")
-            
         
         if "everyone" not in include_set:
             if "-user_id" not in di and "-username" not in di:
@@ -146,7 +143,7 @@ class Scores(commands.Cog):
 
         await self._set_defaults(ctx, di)
 
-        preset = get_leaderboard_preset(di.get("-o", "scores"))
+        preset = get_leaderboard_preset(di.get("-o", "allscores"))
 
         if preset is not None:
             for k, v in preset.items():

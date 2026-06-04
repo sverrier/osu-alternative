@@ -1,6 +1,14 @@
 # bot/utils/presets.py
 
 LEADERBOARD_PRESETS = {
+    "allscores": {
+        "columns": "username, COUNT(*)",
+        "-group": "username",
+        "-order": "COUNT(*)",
+        "alias": "count",
+        "title": "Total plays",
+        "description": "Counts total scores per user",
+    },
     "scores": {
         "columns": "username, COUNT(*)",
         "-group": "username",
@@ -271,6 +279,8 @@ SCORE_PRESETS = {
 
 LEADERBOARD_PRESET_SYNONYMS = {
     "plays": ("plays", "played", "play",),
+
+    "allscores": ("allscores",),
 
     "scores": ("scores", "scored",),
 
