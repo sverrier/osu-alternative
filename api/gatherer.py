@@ -494,8 +494,9 @@ class Gatherer:
             for mode in modes:
                 user_json = self.apiv2.get_user(user_id, mode)
 
-                ue = UserExtended(user_json.copy(), mode)
-                query = ue.generate_insert_query()
+                if(user_json is not None):
+                    ue = UserExtended(user_json.copy(), mode)
+                    query = ue.generate_insert_query()
 
                 if query:
                     await self.db.executeSQL(query)
@@ -716,20 +717,19 @@ class Gatherer:
         
         # Define routines with their intervals (in seconds)
         routine_configs = [
-            (self.fetch_recent_scores, 30, "fetch_recent_scores"),  # Every 30 seconds
-            (self.fetch_beatmaps, 3600, "fetch_beatmaps"),  # Hourly
-            (self.sync_queued_user_beatmaps, 1800, "sync_queued_user_beatmaps"),  # Hourly
-            (self.fetch_users, 600, "fetch_users"),  # Every 10 min
-            (self.update_registered_users, 600, "update_registered_users"),  # Every 10 min
-            (self.update_registered_users_extended, 10000, "update_registered_users"),  # Daily
+            (self.fetch_recent_scores, 30, "fetch_recent_scores", 0),
+            (self.fetch_beatmaps, 3600, "fetch_beatmaps", 0),
+            (self.sync_queued_user_beatmaps, 1800, "sync_queued_user_beatmaps", 900),
+            (self.fetch_users, 1200, "fetch_users", 600),
+            (self.update_registered_users, 1800, "update_registered_users", 300),
+            (self.update_registered_users_extended, 10000, "update_registered_users_extended", 0),
         ]
-        
-        # Create tasks for each routine
+
         tasks = [
-            asyncio.create_task(run_routine_loop(func, interval, name))
-            for func, interval, name in routine_configs
+            asyncio.create_task(run_routine_loop(func, interval, name, delay))
+            for func, interval, name, delay in routine_configs
         ]
-        
+                
         # Run all tasks concurrently (this will run indefinitely)
         await asyncio.gather(*tasks, return_exceptions=True)
 
