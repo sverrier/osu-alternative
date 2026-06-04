@@ -494,6 +494,8 @@ class Gatherer:
             for mode in modes:
                 user_json = self.apiv2.get_user(user_id, mode)
 
+                print(user_json)
+
                 if(user_json is not None):
                     ue = UserExtended(user_json.copy(), mode)
                     query = ue.generate_insert_query()
