@@ -122,6 +122,10 @@ class Events(commands.Cog):
                 s.mod_acronyms,
 
                 u.username,
+                u.osu_pp,
+                u.taiko_pp,
+                u.fruits_pp,
+                u.mania_pp,
 
                 ue.avatar_url,
 
@@ -202,6 +206,22 @@ class Events(commands.Cog):
 
         mode = mode_names.get(row["mode"], "osu")
 
+        profile_pp_columns = {
+            0: "osu_pp",
+            1: "taiko_pp",
+            2: "fruits_pp",
+            3: "mania_pp",
+        }
+
+        profile_pp_col = profile_pp_columns.get(row["mode"], "osu_pp")
+        profile_pp = row[profile_pp_col]
+
+        profile_pp_str = (
+            f"{float(profile_pp):,.0f}pp"
+            if profile_pp is not None
+            else "0pp"
+        )
+
         beatmap_url = (
             f"https://osu.ppy.sh/beatmapsets/"
             f"{row['beatmapset_id']}#{mode}/"
@@ -235,9 +255,14 @@ class Events(commands.Cog):
 
         if row["avatar_url"]:
             embed.set_author(
-                name=f"{row['username']} - {pp}",
+                name=f"{row['username']} - {profile_pp_str}",
                 icon_url=row["avatar_url"]
             )
+        else:
+            embed.set_author(
+                name=f"{row['username']} - {profile_pp_str}"
+            )
+
 
         return embed
 
