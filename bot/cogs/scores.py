@@ -39,10 +39,11 @@ class Scores(commands.Cog):
         if "converts" not in include_set:
             di.setdefault("-convertless", "true")
         
-        if "all" not in include_set:
-            di.setdefault("-highest_score", "true")
+        if "all" in include_set:
+            di.pop("-highest_score", None)
         else:
-            di.pop("-highest_score")
+            di.setdefault("-highest_score", "true")
+            
         
         if "everyone" not in include_set:
             if "-user_id" not in di and "-username" not in di:
