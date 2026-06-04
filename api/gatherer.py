@@ -494,7 +494,8 @@ class Gatherer:
             for mode in modes:
                 user_json = self.apiv2.get_user(user_id, mode)
 
-                print(user_json)
+                self.logger.info(user_json)
+                self.logger.info("test")
 
                 if(user_json is not None):
                     ue = UserExtended(user_json.copy(), mode)
