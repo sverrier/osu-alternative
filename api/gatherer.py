@@ -703,8 +703,13 @@ class Gatherer:
         Run routines in parallel with staggered execution and individual intervals.
         Useful if different routines should run at different frequencies.
         """
-        async def run_routine_loop(routine_func, interval_seconds, name):
+        async def run_routine_loop(routine_func, interval_seconds, name, initial_delay=0):
             """Helper to run a routine repeatedly with a specific interval"""
+
+            if initial_delay > 0:
+                self.logger.info(f"{name} initial delay: {initial_delay}s")
+                await asyncio.sleep(initial_delay)
+
             while True:
                 try:
                     self.logger.info(f"Starting {name}...")
@@ -712,8 +717,8 @@ class Gatherer:
                     self.logger.info(f"{name} completed. Sleeping {interval_seconds}s...")
                     await asyncio.sleep(interval_seconds)
                 except Exception as e:
-                    self.logger.error(f"{name} failed: {e}")
-                    await asyncio.sleep(interval_seconds)  # Still sleep on error
+                    self.logger.exception(f"{name} failed")
+                    await asyncio.sleep(interval_seconds)
         
         # Define routines with their intervals (in seconds)
         routine_configs = [
