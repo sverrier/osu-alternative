@@ -494,9 +494,6 @@ class Gatherer:
             for mode in modes:
                 user_json = self.apiv2.get_user(user_id, mode)
 
-                self.logger.info(user_json)
-                self.logger.info("test")
-
                 if(user_json is not None):
                     ue = UserExtended(user_json.copy(), mode)
                     query = ue.generate_insert_query()
@@ -730,7 +727,7 @@ class Gatherer:
             (self.sync_queued_user_beatmaps, 1800, "sync_queued_user_beatmaps", 900),
             (self.fetch_users, 1200, "fetch_users", 600),
             (self.update_registered_users, 1800, "update_registered_users", 300),
-            (self.update_registered_users_extended, 10000, "update_registered_users_extended", 0),
+            #(self.update_registered_users_extended, 10000, "update_registered_users_extended", 0),
         ]
 
         tasks = [
