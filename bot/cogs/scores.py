@@ -41,6 +41,7 @@ class Scores(commands.Cog):
         
         if "all" not in include_set:
             di.setdefault("-highest_score", "true")
+        else:
             di.pop("-highest_score")
         
         if "everyone" not in include_set:
