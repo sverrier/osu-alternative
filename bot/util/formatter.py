@@ -308,7 +308,15 @@ class Formatter:
             
             lines.append(f"{range_str} | {percentage_str} | {fraction_str} | {missing_str}")
         
-        embed.description = "```\n" + "\n".join(lines) + "\n```"
+        ruler = '᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼'
+
+        embed.description = (
+            "```\n"
+            + "\n".join(lines)
+            + "\n"
+            + ruler
+            + "\n```"
+        )
         
         # Set footer
         footer_text = "Based on Scores in the database"
@@ -316,7 +324,9 @@ class Formatter:
             footer_text += f" • took {elapsed:.2f}s"
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
-        
+
+        footer_text += ruler
+
         embed.set_footer(text=footer_text)
         
         return embed

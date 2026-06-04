@@ -81,24 +81,23 @@ class Completion(commands.Cog):
 
     def _format_range_label(self, field, range_min, range_max, precision):
         """Format a range label for display."""
-        display_field = field.upper()
         
         if field == "year":
             if range_max is None:
-                return f"{display_field} {int(range_min)}+"
+                return f"{int(range_min)}+"
             else:
-                return f"{display_field} {int(range_min)}-{int(range_max)}"
+                return f"{int(range_min)}-{int(range_max)}"
         else:
             if range_max is None:
                 if precision >= 1:
-                    return f"{display_field} {range_min:.0f}+"
+                    return f"{range_min:.0f}+"
                 else:
-                    return f"{display_field} {range_min:.2f}+"
+                    return f"{range_min:.2f}+"
             else:
                 if precision >= 1:
-                    return f"{display_field} {range_min:.0f}-{range_max:.0f}"
+                    return f"{range_min:.0f}-{range_max:.0f}"
                 else:
-                    return f"{display_field} {range_min:.2f}-{range_max:.2f}"
+                    return f"{range_min:.2f}-{range_max:.2f}"
 
     
 
