@@ -306,7 +306,9 @@ LEADERBOARD_PRESET_SYNONYMS = {
 
     "score": ("score", "standardized",),
 
-    "classicscore": ("classicscore", "legacyscore",),
+    "classicscore": ("classicscore",),
+
+    "legacyscore": ("legacyscore",),
 
     "completion": ("completion",),
 
