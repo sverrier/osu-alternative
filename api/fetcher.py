@@ -329,8 +329,9 @@ class Fetcher:
                     f"[{idx}/{total}] Fetching scores for beatmap {beatmap_id} (user {user_id})..."
                 )
                 scores = await asyncio.to_thread(api.get_beatmap_user_scores, beatmap_id, user_id)
-                for s in scores:
-                    grouped[s["ruleset_id"]].append(s)
+                if scores is not None:
+                    for s in scores:
+                        grouped[s["ruleset_id"]].append(s)
 
             total_scores = 0
             for ruleset_id, data in grouped.items():
