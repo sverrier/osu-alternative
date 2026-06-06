@@ -511,6 +511,10 @@ class util_api:
     def get_beatmap_user_scores(self, beatmap_id, user_id):
         complete = False
         magnitude = 1
+
+        #broken maps temporarily
+        if beatmap_id in (246410,5564129,272317):
+            return None
         
         while not complete:
             try:
