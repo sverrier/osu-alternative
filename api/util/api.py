@@ -171,6 +171,8 @@ class util_api:
                 headers = {
                     "Authorization": f"Bearer {self.token}"  
                 }
+
+                print(url)
                 
                 response = requests.get(url, headers=headers)
                 status = response.status_code

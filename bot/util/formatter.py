@@ -14,6 +14,7 @@ class Formatter:
         self.total = total
         self.footer = footer
         self.color = color
+        self.ruler = '᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼'
 
     def calculate_user_page(self, result, user, page_size):
         """
@@ -88,7 +89,7 @@ class Formatter:
         page_count = (total + page_size - 1) // page_size
         time_part = f" • took {elapsed:.2f}s" if elapsed is not None else ""
         embed.set_footer(
-            text=f"Page {page} of {page_count} • Amount: {format_field('count', total)}{time_part}"
+            text=f"Page {page} of {page_count} • Amount: {format_field('count', total)}{time_part}{self.ruler}"
         )
 
         return embed
@@ -181,7 +182,7 @@ class Formatter:
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
 
-        embed.set_footer(text=footer_text)
+        embed.set_footer(text=footer_text + self.ruler)
 
         return embed
 
@@ -272,7 +273,7 @@ class Formatter:
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
 
-        embed.set_footer(text=footer_text)
+        embed.set_footer(text=footer_text + self.ruler)
         return embed
 
     
@@ -308,13 +309,11 @@ class Formatter:
             
             lines.append(f"{range_str} | {percentage_str} | {fraction_str} | {missing_str}")
         
-        ruler = '᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼᲼'
-
         embed.description = (
             "```\n"
             + "\n".join(lines)
             + "\n"
-            + ruler
+            + self.ruler
             + "\n```"
         )
         
@@ -325,7 +324,7 @@ class Formatter:
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
 
-        footer_text += ruler
+        footer_text += self.ruler
 
         embed.set_footer(text=footer_text)
         
@@ -402,9 +401,9 @@ class Formatter:
         total_beatmaps = len(beatmap_list)
         page_count = (total_beatmaps + page_size - 1) // page_size
         embed.set_footer(
-            text=f"Page {page} of {page_count} • Beatmaps: {format_field('count', total_beatmaps)} • took {elapsed:.2f}s"
+            text=f"Page {page} of {page_count} • Beatmaps: {format_field('count', total_beatmaps)} • took {elapsed:.2f}s{self.ruler}"
             if elapsed is not None
-            else f"Page {page} of {page_count} • Beatmaps: {format_field('count', total_beatmaps)}"
+            else f"Page {page} of {page_count} • Beatmaps: {format_field('count', total_beatmaps)}{self.ruler}"
         )
 
         return embed
@@ -505,7 +504,7 @@ class Formatter:
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
 
-        embed.set_footer(text=footer_text)
+        embed.set_footer(text=footer_text + self.ruler)
 
         return embed
     
@@ -577,7 +576,7 @@ class Formatter:
                 footer_text += f" • took {elapsed:.2f}s"
             if self.footer:
                 footer_text = f"{self.footer} • {footer_text}"
-            embed.set_footer(text=footer_text)
+            embed.set_footer(text=footer_text + self.ruler)
             return embed
 
         # Formatting helpers
@@ -642,7 +641,7 @@ class Formatter:
             footer_text += f" • took {elapsed:.2f}s"
         if self.footer:
             footer_text = f"{self.footer} • {footer_text}"
-        embed.set_footer(text=footer_text)
+        embed.set_footer(text=footer_text + self.ruler)
 
         return embed
 
