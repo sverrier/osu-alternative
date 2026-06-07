@@ -330,6 +330,12 @@ SCORE_LIVE_METADATA = {
         "range": (0.5, 2.0),
         "description": "Speed multiplier from mods"
     },
+    "modded_sr": {
+        "type": "float",
+        "nullable": True,
+        "range": (0, 15),
+        "description": "Actual play SR with mods"
+    },
     
     # Type
     "type": {
@@ -337,6 +343,8 @@ SCORE_LIVE_METADATA = {
         "nullable": False,
         "description": "Score type"
     },
+
+
 
 
 

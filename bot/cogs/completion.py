@@ -303,7 +303,7 @@ class Completion(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(
-        aliases=["sc"],
+        aliases=["sc", "src"],
         brief="Display star rating completion"
     )
     async def stars_completion(self, ctx, *args):
@@ -316,6 +316,98 @@ class Completion(commands.Cog):
             if k.startswith("-"):
                 args.extend([k, str(v)])
         await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["yc"],
+        brief="Display yearly completion"
+    )
+    async def year_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "year"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["mc"],
+        brief="Display monthly completion"
+    )
+    async def monthly_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "month"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["dc"],
+        brief="Display daily completion"
+    )
+    async def daily_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "day"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["arc"],
+        brief="Display AR completion"
+    )
+    async def ar_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "AR"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["lc"],
+        brief="Display length completion"
+    )
+    async def length_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "length"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["coc"],
+        brief="Display combo completion"
+    )
+    async def combo_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "combo"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+        
 
 
 async def setup(bot):

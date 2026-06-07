@@ -203,6 +203,12 @@ LEADERBOARD_PRESETS = {
         "title": "Total plays",
         "description": "Counts plays on distinct beatmap sets (beatmapset_id) per user, excluding grade D results.",
     },
+    "custom": {
+        "columns": "username, COUNT(*)",
+        "alias": "count",
+        "title": "Custom leaderboard",
+        "description": "Custom leaderboard",
+    },
 }
 
 USER_PRESETS = {
