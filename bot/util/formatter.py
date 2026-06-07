@@ -330,7 +330,7 @@ class Formatter:
         
         return embed
     
-    def as_score_list(self, result, page=1, page_size=10, elapsed=None):
+    def as_score_list(self, result, page=1, page_size=10, order="stars", elapsed=None):
         """
         Format score list into a Discord embed with pagination.
         Groups scores by beatmap and supports -page and -limit flags.
@@ -361,14 +361,16 @@ class Formatter:
         for beatmap_id, scores in subset:
             # Use first score for beatmap info (all scores share same beatmap)
             first = scores[0]
-            artist = first['artist']
-            title = first['title']
-            version = first['version']
-            bset_id = first['beatmapset_id']
-            mode = first['mode']
-            mode_name = ['osu', 'taiko', 'fruits', 'mania'][mode]
-            stars_val = first.get('stars')
+            artist = first["artist"]
+            title = first["title"]
+            version = first["version"]
+            bset_id = first["beatmapset_id"]
+            mode = first["mode"]
+            mode_name = ["osu", "taiko", "fruits", "mania"][mode]
+            stars_val = first.get("stars")
             stars = f"{float(stars_val or 0):.2f}★"
+            modded_sr = first.get("modded_sr")
+            order_value = first.get(f"{order}")
             
             # Build beatmap link
             url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode_name}/{beatmap_id}"
@@ -392,7 +394,7 @@ class Formatter:
                     mods_str = ""
                 
                 # Indented score line
-                score_line = f"  ↳ {mods_str} {accuracy:.2f}% | {pp:.2f}pp | {grade}"
+                score_line = f"  ↳ {mods_str} {accuracy:.2f}% | {pp:.2f}pp | {grade} | {modded_sr}★ | {order_value}"
                 lines.append(score_line)
 
         embed.description = "\n".join(lines) if lines else "No scores found"

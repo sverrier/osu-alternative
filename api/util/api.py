@@ -53,76 +53,95 @@ class util_api:
         Client Credentials grant (app token).
         NOTE: osu! expects form-encoded for /oauth/token; JSON often works on some servers
         but keeping it form-encoded is safest/standard.
+        Uses exponential backoff on failure, resetting on success.
         """
-        try:
-            url = "https://osu.ppy.sh/oauth/token"
-            data = {
-                "grant_type": "client_credentials",
-                "client_id": self.client,
-                "client_secret": self.key,
-                "scope": "public",
-            }
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "application/json",
-            }
+        complete = False
+        retry_count = 0
 
-            response = requests.post(url, headers=headers, data=data, timeout=30)
-            time.sleep(self.delay)
+        while not complete:
+            try:
+                url = "https://osu.ppy.sh/oauth/token"
+                data = {
+                    "grant_type": "client_credentials",
+                    "client_id": self.client,
+                    "client_secret": self.key,
+                    "scope": "public",
+                }
+                headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json",
+                }
 
-            if response.status_code == 200:
-                json_response = response.json()
-                self.token = json_response.get("access_token", "")
-                return json_response
-            else:
-                raise RuntimeError(f"Client token refresh failed ({response.status_code}): {response.text}")
+                response = requests.post(url, headers=headers, data=data, timeout=30)
+                time.sleep(self.delay)
 
-        except Exception as e:
-            print(e)
-            raise
+                if response.status_code == 200:
+                    json_response = response.json()
+                    self.token = json_response.get("access_token", "")
+                    retry_count = 0
+                    return json_response
+                else:
+                    raise RuntimeError(f"Client token refresh failed ({response.status_code}): {response.text}")
+
+            except Exception as e:
+                print(e)
+                backoff = min(self.delay * (2 ** retry_count), 60.0)
+                time.sleep(backoff)
+                retry_count += 1
 
     def refresh_user_token(self, refresh_token: str):
-        try:
-            url = "https://osu.ppy.sh/oauth/token"
+        """
+        Refresh user access token using the refresh token.
+        Uses exponential backoff on failure, resetting on success.
+        """
+        complete = False
+        retry_count = 0
 
-            data = {
-                "grant_type": "refresh_token",
-                "client_id": self.client,
-                "client_secret": self.key,
-                "refresh_token": refresh_token,
-            }
+        while not complete:
+            try:
+                url = "https://osu.ppy.sh/oauth/token"
 
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "application/json",
-            }
+                data = {
+                    "grant_type": "refresh_token",
+                    "client_id": self.client,
+                    "client_secret": self.key,
+                    "refresh_token": refresh_token,
+                }
 
-            response = requests.post(url, data=data, headers=headers, timeout=30)
-            time.sleep(self.delay)
+                headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json",
+                }
 
-            if response.status_code != 200:
-                raise RuntimeError(
-                    f"User token refresh failed ({response.status_code}): {response.text}"
-                )
+                response = requests.post(url, data=data, headers=headers, timeout=30)
+                time.sleep(self.delay)
 
-            json_response = response.json()
+                if response.status_code != 200:
+                    raise RuntimeError(
+                        f"User token refresh failed ({response.status_code}): {response.text}"
+                    )
 
-            self.token = json_response["access_token"]
+                json_response = response.json()
 
-            # Ensure we ALWAYS keep a refresh token (rotation safe)
-            new_refresh = json_response.get("refresh_token") or refresh_token
-            self._user_refresh_token = new_refresh
+                self.token = json_response["access_token"]
 
-            json_response["refresh_token"] = new_refresh
+                # Ensure we ALWAYS keep a refresh token (rotation safe)
+                new_refresh = json_response.get("refresh_token") or refresh_token
+                self._user_refresh_token = new_refresh
 
-            if self.on_token_refresh:
-                self.on_token_refresh(json_response)
+                json_response["refresh_token"] = new_refresh
 
-            return json_response
+                if self.on_token_refresh:
+                    self.on_token_refresh(json_response)
 
-        except Exception as e:
-            print(f"refresh_user_token error: {e}")
-            raise
+                retry_count = 0
+                return json_response
+
+            except Exception as e:
+                print(f"refresh_user_token error: {e}")
+                backoff = min(self.delay * (2 ** retry_count), 60.0)
+                time.sleep(backoff)
+                retry_count += 1
 
     def refresh_token(self):
         """
@@ -147,23 +166,28 @@ class util_api:
     # Optional: wrapper for your request exception blocks
     # -----------------------------------------
 
-    def _handle_request_exception(self, e: Exception, magnitude: int):
+    def _handle_request_exception(self, e: Exception, retry_count: int):
         """
         Call from your except blocks to centralize sleep/backoff + refresh.
+        Uses exponential backoff: delay * 2^retry_count, capped at 60 seconds.
         """
         print(e)
-        time.sleep(self.delay * magnitude)
-        magnitude += 5
+
+        # Exponential backoff: delay * 2^retry_count, capped at 60 seconds
+        backoff = min(self.delay * (2 ** retry_count), 60.0)
+        time.sleep(backoff)
+
+        retry_count += 1
 
         # Refresh correct token for current mode
         self.refresh_token()
 
-        return magnitude
+        return retry_count
 
 
     def get_user(self, user_id, mode):
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -186,14 +210,14 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
 
     def get_users(self, ids):
         complete = False
-        magnitude = 1
+        retry_count = 0
 
         # Format the IDs into the query string
         id_query = "&".join([f"ids[]={id}" for id in ids])
@@ -217,16 +241,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
     
     def get_user_beatmaps_most_played(self, user, limit, offset):
         complete = False
-        magnitude = 1
+        retry_count = 0
 
         # Format the IDs into the query string
         
@@ -249,16 +273,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}") 
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
 
     def get_beatmap(self, beatmap_id):
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -279,16 +303,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
 
     def get_beatmaps(self, ids):
         complete = False
-        magnitude = 1
+        retry_count = 0
 
         # Format the IDs into the query string
         id_query = "&".join([f"ids[]={id}" for id in ids])
@@ -312,17 +336,17 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}") 
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
     
     
     def get_beatmapsets(self, cursor_string=None):
         complete = False
-        magnitude = 1
+        retry_count = 0
 
         while not complete:
             try:
@@ -346,16 +370,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}") 
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
 
     def get_beatmap_scores(self, beatmap_id):
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -379,10 +403,10 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return scores
     
@@ -398,7 +422,7 @@ class util_api:
             List of scores matching the mod combination
         """
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -428,19 +452,19 @@ class util_api:
                     
                     scores = json_response.get("scores", [])
                     complete = True
-                    magnitude = 1
+                    retry_count = 0
                     return scores
                 else:
                     raise Exception(f"Unexpected response code: {status}")
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return []
     
     def get_beatmap_packs(self, cursor_string = None, type = None):
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -471,16 +495,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
     
     def get_beatmap_pack(self, tag):
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -501,16 +525,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
 
     def get_beatmap_user_scores(self, beatmap_id, user_id):
         complete = False
-        magnitude = 1
+        retry_count = 0
 
         #broken maps temporarily
         if beatmap_id in (246410,5564129,272317):
@@ -538,16 +562,16 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return scores
 
     def get_scores(self, cursor_string = None):
         complete = False
-        magnitude = 1
+        retry_count = 0
         
         while not complete:
             try:
@@ -572,10 +596,10 @@ class util_api:
                     raise Exception(f"Unexpected response code: {status}")
                 
                 complete = True
-                magnitude = 1
+                retry_count = 0
 
             except Exception as e:
-                magnitude = self._handle_request_exception(e, magnitude)
+                retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
 

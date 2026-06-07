@@ -139,7 +139,8 @@ class Scores(commands.Cog):
         """
         di = get_args(args)
         table = "scoreLive"
-        columns = "stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms"
+        order = di.get("-order", "stars")
+        columns = f"stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms, modded_sr, {order}"
 
         await self._set_defaults(ctx, di)
 
@@ -152,11 +153,13 @@ class Scores(commands.Cog):
         else:
             await ctx.reply("Preset not allowed. See valid presets with !help presets")           
             return
+        
+        di["-order"] = order
 
         query = QueryBuilder(di, columns, table)
         result, elapsed = await self.bot.db.executeQuery(query.getQuery())
         formatter = Formatter(title=f"Total scores: {len(result)}")
-        embed = formatter.as_score_list(result, page=int(di.get("-page", 1)), page_size=int(di.get("-limit", 10)), elapsed=elapsed)
+        embed = formatter.as_score_list(result, page=int(di.get("-page", 1)), page_size=int(di.get("-limit", 10)), order=order, elapsed=elapsed)
         await ctx.reply(embed=embed)
 
     @commands.command(
