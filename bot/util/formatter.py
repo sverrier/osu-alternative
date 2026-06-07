@@ -395,7 +395,9 @@ class Formatter:
                     mods_str = ""
                 
                 # Indented score line
-                score_line = f"  ↳ {mods_str} {accuracy:.2f}% | {pp:.2f}pp | {grade} | {modded_sr}★ | {order_value}"
+                score_line = f"  ↳ {mods_str} {accuracy:.2f}% | {pp:.2f}pp | {grade} | {modded_sr}"
+                if order not in ("accuracy", "modded_sr", "pp"):
+                    score_line = score_line + f" | {order_value}"
                 lines.append(score_line)
 
         embed.description = "\n".join(lines) if lines else "No scores found"
