@@ -284,7 +284,7 @@ class Formatter:
         )
 
         width_range = max(len(d["range"]) for d in data) if data else 10
-        width_percentage = 8
+        width_percentage = 7
         width_fraction = max(
             len(f"{format_field('count', d['played'])}/{format_field('count', d['total'])}")
             for d in data
