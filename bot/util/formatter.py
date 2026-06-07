@@ -278,37 +278,65 @@ class Formatter:
 
     
     def as_completion(self, data, elapsed=None):
-        """
-        Format completion statistics into a Discord embed.
-        
-        Args:
-            data: List of dicts with keys: range, percentage, played, total, missing
-            elapsed: Optional query execution time
-        
-        Returns:
-            discord.Embed with formatted completion table
-        """
         embed = discord.Embed(
             title=self.title,
             color=self.color
         )
-        
-        # Calculate column widths
+
         width_range = max(len(d["range"]) for d in data) if data else 10
         width_percentage = 8
-        width_fraction = max(len(f"{format_field('count', d['played'])}/{format_field('count', d['total'])}") for d in data) if data else 10
-        width_missing = max(len(format_field("count", d["missing"])) for d in data) if data else 5
-        
-        # Build table lines
+        width_fraction = max(
+            len(f"{format_field('count', d['played'])}/{format_field('count', d['total'])}")
+            for d in data
+        ) if data else 10
+        width_missing = max(
+            len(format_field("count", d["missing"]))
+            for d in data
+        ) if data else 5
+
+        # Maximum width allowed before dropping the missing column
+        max_width = 42
+
+        longest_line = (
+            width_range
+            + 3  # " | "
+            + width_percentage
+            + 3
+            + width_fraction
+            + 3
+            + (width_missing + 1)
+        )
+
+        show_missing = longest_line <= max_width
+
         lines = []
         for d in data:
             range_str = d["range"].ljust(width_range)
-            percentage_str = f"{d['percentage']:06.3f}%".rjust(width_percentage)
-            fraction_str = f"{format_field('count', d['played'])}/{format_field('count', d['total'])}".rjust(width_fraction)
-            missing_str = ("✓" if int(d.get("missing") or 0) == 0 else "-" + format_field("count", d["missing"])).rjust(width_missing + 1)
-            
-            lines.append(f"{range_str} | {percentage_str} | {fraction_str} | {missing_str}")
-        
+            percentage_str = f"{d['percentage']:06.2f}%".rjust(width_percentage)
+            fraction_str = (
+                f"{format_field('count', d['played'])}/"
+                f"{format_field('count', d['total'])}"
+            ).rjust(width_fraction)
+
+            if show_missing:
+                missing_str = (
+                    "✓"
+                    if int(d.get("missing") or 0) == 0
+                    else "-" + format_field("count", d["missing"])
+                ).rjust(width_missing + 1)
+
+                line = (
+                    f"{range_str} | {percentage_str} | "
+                    f"{fraction_str} | {missing_str}"
+                )
+            else:
+                line = (
+                    f"{range_str} | {percentage_str} | "
+                    f"{fraction_str}"
+                )
+
+            lines.append(line)
+
         embed.description = (
             "```\n"
             + "\n".join(lines)

@@ -6,6 +6,9 @@ import json
 import time
 import requests
 
+import asyncio
+import concurrent.futures
+
 
 class util_api:
     def __init__(self, config):
@@ -18,7 +21,9 @@ class util_api:
         self.token = ""
         self._auth_mode = "client"
         self._user_refresh_token = None
-        self.on_token_refresh = None
+        self.db = None
+        self.user_id = None
+        self.loop = None
 
     def _set_delay(self, delay):
         self.delay = delay / 1000
@@ -47,6 +52,33 @@ class util_api:
     # -------------------
     # Refresh operations
     # -------------------
+
+    def configure_token_persistence(self, db, user_id, loop):
+        self.db = db
+        self.user_id = user_id
+        self.loop = loop
+
+    def _persist_refreshed_token(self, token_data):
+        if not self.db:
+            return
+
+        future = asyncio.run_coroutine_threadsafe(
+            self.db.executeParametrized(
+                """
+                UPDATE tokens
+                SET token = $1,
+                    lchg_time = NOW()
+                WHERE user_id = $2
+                """,
+                json.dumps(token_data),
+                self.user_id
+            ),
+            self.loop
+        )
+
+        # Block until commit completes.
+        # If DB update fails, raise and abort refresh.
+        future.result()
 
     def refresh_client_token(self):
         """
@@ -123,16 +155,15 @@ class util_api:
 
                 json_response = response.json()
 
-                self.token = json_response["access_token"]
-
-                # Ensure we ALWAYS keep a refresh token (rotation safe)
                 new_refresh = json_response.get("refresh_token") or refresh_token
-                self._user_refresh_token = new_refresh
-
                 json_response["refresh_token"] = new_refresh
 
-                if self.on_token_refresh:
-                    self.on_token_refresh(json_response)
+                # Persist FIRST
+                self._persist_refreshed_token(json_response)
+
+                # Only update memory after DB commit succeeds
+                self.token = json_response["access_token"]
+                self._user_refresh_token = new_refresh
 
                 retry_count = 0
                 return json_response

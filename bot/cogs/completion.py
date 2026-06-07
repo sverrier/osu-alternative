@@ -57,7 +57,7 @@ class Completion(commands.Cog):
             "combo": [0, 5001, 500]
         }
         
-        string_fields = ["artist", "title", "version", "source", "status"]
+        string_fields = ["artist", "title", "version", "source", "status", "grade"]
         
         if field in numeric_field_map:
             return False, numeric_field_map[field]
@@ -197,6 +197,65 @@ class Completion(commands.Cog):
             })
         
         return completion_data if completion_data else None
+    
+    async def _generate_grade_completion(self, di, beatmap_args):
+        """Build completion data for grade buckets."""
+
+        grade_buckets = [
+            ("Total SS", ["X", "XH"]),
+            ("Silver SS", ["XH"]),
+            ("SS", ["X"]),
+            ("Total S", ["S", "SH"]),
+            ("Silver S", ["SH"]),
+            ("S", ["S"]),
+            ("A", ["A"]),
+            ("B", ["B"]),
+            ("C", ["C"]),
+            ("D", ["D"])
+        ]
+
+        completion_data = []
+
+        # Total beatmaps matching beatmap filters
+        total_query = QueryBuilder(
+            beatmap_args,
+            columns="count(DISTINCT beatmap_id)",
+            table="beatmapLive"
+        )
+        total_result, _ = await self.bot.db.executeQuery(total_query.getQuery())
+        total = total_result[0][0] if total_result else 0
+
+        for label, grades in grade_buckets:
+            score_args = di.copy()
+
+            if len(grades) == 1:
+                score_args["-grade"] = grades[0]
+            else:
+                score_args["-grade-in"] = ",".join(grades)
+
+            played_query = QueryBuilder(
+                score_args,
+                columns="count(DISTINCT beatmap_id)",
+                table="scoreLive"
+            )
+
+            played_result, _ = await self.bot.db.executeQuery(
+                played_query.getQuery()
+            )
+            played = played_result[0][0] if played_result else 0
+
+            missing = total - played
+            percentage = (played / total * 100) if total > 0 else 100.0
+
+            completion_data.append({
+                "range": label,
+                "percentage": percentage,
+                "played": played,
+                "total": total,
+                "missing": missing
+            })
+
+        return completion_data
 
     async def _get_username_for_display(self, di, user_id, ctx):
         """Get username for display in title."""
@@ -273,9 +332,13 @@ class Completion(commands.Cog):
         
         display_field = field.upper()
         beatmap_args = separate_beatmap_filters(di)
-        
-        # Handle string vs numeric fields
-        if is_string:
+
+        if field == "grade":
+            completion_data = await self._generate_grade_completion(
+                di,
+                beatmap_args
+            )
+        elif is_string:
             completion_data = await self._build_string_completion(di, field, beatmap_args)
             if completion_data is None:
                 await ctx.reply(f"No {field} values found matching your criteria.")
@@ -378,6 +441,51 @@ class Completion(commands.Cog):
         await self.completion(ctx, *args)
 
     @commands.command(
+        aliases=["odc"],
+        brief="Display OD completion"
+    )
+    async def od_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "OD"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["csc"],
+        brief="Display CS completion"
+    )
+    async def cs_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "CS"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["hpc"],
+        brief="Display HP completion"
+    )
+    async def hp_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "HP"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
         aliases=["lc"],
         brief="Display length completion"
     )
@@ -400,6 +508,36 @@ class Completion(commands.Cog):
         di = get_args(args)
 
         di["-field"] = "combo"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["oc"],
+        brief="Display object completion"
+    )
+    async def object_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "object"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["gc","gb","grade_breakdown"],
+        brief="Display grade breakdown"
+    )
+    async def grade_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "grade"
 
         args = []
         for k, v in di.items():

@@ -374,20 +374,11 @@ class Fetcher:
     async def sync_user(self, api, user_id):
         token = await self._load_user_token(user_id)
 
-        def persist(token_data):
-            asyncio.create_task(
-                self.db.executeParametrized(
-                    """
-                    UPDATE tokens
-                    SET token = $1, lchg_time = NOW()
-                    WHERE user_id = $2
-                    """,
-                    json.dumps(token_data),
-                    user_id
-                )
-            )
-
-        api.on_token_refresh = persist
+        api.configure_token_persistence(
+            db=self.db,
+            user_id=user_id,
+            loop=asyncio.get_running_loop()
+        )
 
         self._apply_user_token(api, token)
         await self.sync_registered_user_scores(api, user_id)
