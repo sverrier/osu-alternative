@@ -295,7 +295,7 @@ class Formatter:
         ) if data else 5
 
         # Maximum width allowed before dropping the missing column
-        max_width = 42
+        max_width = 41
 
         longest_line = (
             width_range

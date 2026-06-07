@@ -324,8 +324,8 @@ class Completion(commands.Cog):
         is_string, config = self._get_completion_field_config(field)
         
         if is_string is None:
-            numeric_fields = ["ar", "cs", "od", "hp", "stars", "year", "month", "day" "length", "drain", "drain_time", "bpm"]
-            string_fields = ["artist", "title", "version", "source", "status"]
+            numeric_fields = ["ar", "cs", "od", "hp", "stars", "year", "month", "day" "length", "drain", "drain_time", "bpm", "objects"]
+            string_fields = ["artist", "title", "version", "source", "status", "grade"]
             all_fields = numeric_fields + string_fields
             await ctx.reply(f"Unknown field: {field}. Available: {', '.join(all_fields)}")
             return
@@ -516,13 +516,13 @@ class Completion(commands.Cog):
         await self.completion(ctx, *args)
 
     @commands.command(
-        aliases=["oc"],
-        brief="Display object completion"
+        aliases=["oc", "object_completion"],
+        brief="Display objects completion"
     )
-    async def object_completion(self, ctx, *args):
+    async def objects_completion(self, ctx, *args):
         di = get_args(args)
 
-        di["-field"] = "object"
+        di["-field"] = "objects"
 
         args = []
         for k, v in di.items():
