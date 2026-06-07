@@ -312,7 +312,7 @@ class Formatter:
         lines = []
         for d in data:
             range_str = d["range"].ljust(width_range)
-            percentage_str = f"{d['percentage']:06.2f}%".rjust(width_percentage)
+            percentage_str = f"{d['percentage']:05.2f}%".rjust(width_percentage)
             fraction_str = (
                 f"{format_field('count', d['played'])}/"
                 f"{format_field('count', d['total'])}"
