@@ -369,7 +369,8 @@ class Formatter:
             mode_name = ["osu", "taiko", "fruits", "mania"][mode]
             stars_val = first.get("stars")
             stars = f"{float(stars_val or 0):.2f}★"
-            modded_sr = first.get("modded_sr")
+            modded_sr_val = first.get("modded_sr")
+            modded_sr = f"{float(modded_sr_val or 0):.2f}★"
             order_value = first.get(f"{order}")
             
             # Build beatmap link
