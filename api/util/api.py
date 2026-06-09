@@ -567,6 +567,8 @@ class util_api:
         complete = False
         retry_count = 0
 
+        print(beatmap_id)
+
         #broken maps temporarily
         if beatmap_id in (246410,5564129,272317):
             return None
