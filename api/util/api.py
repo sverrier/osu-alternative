@@ -568,7 +568,7 @@ class util_api:
         retry_count = 0
 
         #broken maps temporarily
-        if beatmap_id in (246410,5564129,272317):
+        if beatmap_id in (246410,5564129,272317,1265925,1268406):
             return None
         
         while not complete:
@@ -578,8 +578,6 @@ class util_api:
                     "Authorization": f"Bearer {self.token}",
                     "x-api-version": "20240529"
                 }
-
-                print(url)
                 
                 response = requests.get(url, headers=headers)
                 status = response.status_code
@@ -599,6 +597,7 @@ class util_api:
 
             except Exception as e:
                 retry_count = self._handle_request_exception(e, retry_count)
+                print("beatmap: f{beatmap_id}, user:{user_id}" )
         
         return scores
 
