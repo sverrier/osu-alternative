@@ -567,8 +567,6 @@ class util_api:
         complete = False
         retry_count = 0
 
-        print(beatmap_id)
-
         #broken maps temporarily
         if beatmap_id in (246410,5564129,272317):
             return None
@@ -580,6 +578,8 @@ class util_api:
                     "Authorization": f"Bearer {self.token}",
                     "x-api-version": "20240529"
                 }
+
+                print(url)
                 
                 response = requests.get(url, headers=headers)
                 status = response.status_code
