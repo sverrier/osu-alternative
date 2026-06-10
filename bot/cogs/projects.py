@@ -76,6 +76,49 @@ class Projects(commands.Cog):
         await users_cog.leaderboard(ctx, *args_hardclears)
 
     @commands.command(
+        brief="Leaderboard aggregate for 2026"
+    )
+    async def project2026(self, ctx, *args):
+        """
+        Special project command for hitogata.
+        """
+        di = get_args(args)
+        di["-year"] = "2026"
+        
+        # Get the Users cog to access userlist
+        users_cog = self.bot.get_cog("Users")
+        if not users_cog:
+            await ctx.reply("Users cog not loaded.")
+            return
+        
+        # First userlist: Completion points
+        args_plays = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_plays.extend([k, str(v)])
+        args_plays.extend(["-o", "completion"])
+        
+        await users_cog.leaderboard(ctx, *args_plays)
+
+        # Second userlist: FCs
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "fc"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
+        
+        # Third userlist: Score
+        args_hardclears = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args_hardclears.extend([k, str(v)])
+        args_hardclears.extend(["-o", "score"])
+        
+        await users_cog.leaderboard(ctx, *args_hardclears)
+
+    @commands.command(
         brief="Leaderboard aggregate for the legendary hitogata set"
     )
     async def projecthitogata(self, ctx, *args):
