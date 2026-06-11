@@ -597,7 +597,7 @@ class util_api:
 
             except Exception as e:
                 retry_count = self._handle_request_exception(e, retry_count)
-                print("beatmap: f{beatmap_id}, user:{user_id}" )
+                print(f"beatmap: {beatmap_id}, user:{user_id}" )
         
         return scores
 
