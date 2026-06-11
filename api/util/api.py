@@ -568,7 +568,7 @@ class util_api:
         retry_count = 0
 
         #broken maps temporarily
-        if beatmap_id in (246410,5564129,272317,1265925,1268406):
+        if beatmap_id in (246410,5564129,272317,1265925,1268406,1510266,1625191):
             return None
         
         while not complete:
