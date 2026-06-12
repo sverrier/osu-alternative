@@ -397,8 +397,6 @@ class Formatter:
             mode_name = ["osu", "taiko", "fruits", "mania"][mode]
             stars_val = first.get("stars")
             stars = f"{float(stars_val or 0):.2f}★"
-            modded_sr_val = first.get("modded_sr")
-            modded_sr = f"{float(modded_sr_val or 0):.2f}★"
             order_value = first.get(f"{order}")
             
             # Build beatmap link
@@ -415,6 +413,9 @@ class Formatter:
                 accuracy = float(accuracy_val or 0.0) * 100
                 pp_val = row.get("pp")
                 pp = float(pp_val or 0.0)
+
+                modded_sr_val = first.get("modded_sr")
+                modded_sr = f"{float(modded_sr_val or 0):.2f}★"
                 
                 # Format mods as +HDHRFL
                 if mods and isinstance(mods, (list, tuple)):
@@ -424,7 +425,7 @@ class Formatter:
                 
                 # Indented score line
                 score_line = f"  ↳ {mods_str} {accuracy:.2f}% | {pp:.2f}pp | {grade} | {modded_sr}"
-                if order not in ("accuracy", "modded_sr", "pp"):
+                if order not in ("accuracy", "modded_sr", "pp", "stars"):
                     score_line = score_line + f" | {order_value}"
                 lines.append(score_line)
 
