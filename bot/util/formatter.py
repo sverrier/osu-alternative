@@ -414,7 +414,7 @@ class Formatter:
                 pp_val = row.get("pp")
                 pp = float(pp_val or 0.0)
 
-                modded_sr_val = first.get("modded_sr")
+                modded_sr_val = row.get("modded_sr")
                 modded_sr = f"{float(modded_sr_val or 0):.2f}★"
                 
                 # Format mods as +HDHRFL
