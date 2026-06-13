@@ -118,13 +118,13 @@ class Scores(commands.Cog):
         
         Examples:
         - !scorelist -pp-min 400 -mode 0 -l 15
-        - !scorelist -grade-in SS,S -accuracy-min 99
+        - !scorelist -grade-in X,S -accuracy-min 99
         - !scorelist -mods HD,DT -page 2
         
         Key parameters:
         - -pp-min/-pp-max: Filter by PP range
         - -accuracy-min/-accuracy-max: Filter by accuracy range
-        - -grade-in/-grade-not: Filter by grade (SS, S, A, B, etc.)
+        - -grade-in/-grade-not: Filter by grade (X, S, A, B, etc.)
         - -mods: Filter by mods (HD, DT, HR, etc.)
         - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
         - -user_id/-username: Filter by specific user

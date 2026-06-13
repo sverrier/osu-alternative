@@ -60,16 +60,8 @@ VALUELESS_PARAMS = {
 }
 
 PARAM_ALIASES = {
-    "-username": ("-u",),
-    "-drain_time": ("-drain",),
-    "-year": ("-y",),
-    "-country_code": ("-c",),
-    "-artist-like": ("-a",),
     "-stars-min": ("-min",),
     "-stars-max": ("-max",),
-    "-mod_speed_change": ("-rate","-speed",),
-    "-mod_speed_change-min": ("-rate-min","-speed-min",),
-    "-mod_speed_change-max": ("-rate-max","-speed-max",),
     "-ranked_date-min": ("-start",),
     "-ranked_date-max": ("-end",),
     "-direction": ("-dir",),
@@ -87,10 +79,15 @@ PARAM_ALIASES = {
     "-play": ("-played","-plays",),
 }
 
-ALIAS_TO_PARAM = {
-    alias: param
-    for param, aliases in PARAM_ALIASES.items()
-    for alias in aliases
+COLUMN_ALIASES = {
+    "mod_speed_change": ("rate", "speed"),
+    "grade": ("letter",), 
+    "version": ("diff","diffname"), 
+    "username": ("u","user"), 
+    "drain_time": ("drain",), 
+    "year": ("y",), 
+    "country_code": ("-c",), 
+    "artist": ("a",), 
 }
 
 MODE_LABELS = {
@@ -113,6 +110,36 @@ DIFF_LABELS = {
     2: "All",
 }
 
+SUFFIXES = (
+    "-min",
+    "-max",
+    "-not",
+    "-in",
+    "-notin",
+    "-like",
+    "-regex",
+)
+
+COLUMN_ALIAS_LOOKUP = {}
+
+for column, aliases in COLUMN_ALIASES.items():
+    canonical = f"-{column}"
+
+    for alias in aliases:
+        COLUMN_ALIAS_LOOKUP[f"-{alias}"] = canonical
+
+        for suffix in SUFFIXES:
+            COLUMN_ALIAS_LOOKUP[f"-{alias}{suffix}"] = (
+                f"{canonical}{suffix}"
+            )
+
+ALIAS_TO_PARAM = {
+    alias: param
+    for param, aliases in PARAM_ALIASES.items()
+    for alias in aliases
+}
+
+ALIAS_TO_PARAM.update(COLUMN_ALIAS_LOOKUP)
 
 def escape_string(s):
     special_chars = {"'": "''", "\\": "\\\\", '"': ""}
