@@ -226,6 +226,13 @@ BEGIN
         NULL
     ON CONFLICT (id) DO NOTHING;
 
+    INSERT INTO public.scoreattribute (
+      score_id
+    )
+    SELECT
+        NEW.id
+    on conflict do nothing;
+
     -- Highest flags computed only from scoreLive
     SELECT id
       INTO top_score_id

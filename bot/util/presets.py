@@ -280,7 +280,13 @@ SCORE_PRESETS = {
         "alias": "compact_score",
         "title": "Score (legacy)",
         "description": "Sums legacy score (legacy_total_score) matching the current filters.",
-    }
+    },
+    "missingscore": {
+        "columns": "sum(top_score-total_score)",
+        "alias": "score",
+        "title": "Score (standardized)",
+        "description": "Sums missing score matching the current filters.",
+    },
 }
 
 LEADERBOARD_PRESET_SYNONYMS = {
