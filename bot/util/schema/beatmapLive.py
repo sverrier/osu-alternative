@@ -121,6 +121,24 @@ BEATMAP_LIVE_METADATA = {
         "range": (0, None),
         "description": "Number of SS scores (according to osu!alt rules).",
     },
+    "max_rate": {
+        "type": "numeric",
+        "nullable": True,
+        "range": (0, 2),
+        "description": "Max rate FCed (according to osu!alt rules)",
+    },
+    "top_score": {
+        "type": "int",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Top score (standardized) achieved on this map",
+    },
+    "multiplier": {
+        "type": "numeric",
+        "nullable": True,
+        "range": (0, None),
+        "description": "Classic score multiplier",
+    },
     "favourite_count": {
         "type": "int",
         "nullable": True,

@@ -397,7 +397,7 @@ class Formatter:
             mode_name = ["osu", "taiko", "fruits", "mania"][mode]
             stars_val = first.get("stars")
             stars = f"{float(stars_val or 0):.2f}★"
-            order_value = first.get(f"{order}")
+            order_value = first.get(f"order_value")
             
             # Build beatmap link
             url = f"https://osu.ppy.sh/beatmapsets/{bset_id}#{mode_name}/{beatmap_id}"

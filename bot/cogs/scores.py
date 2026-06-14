@@ -140,7 +140,7 @@ class Scores(commands.Cog):
         di = get_args(args)
         table = "scoreLive"
         order = di.get("-order", "stars")
-        columns = f"stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms, modded_sr, {order}"
+        columns = f"stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms, modded_sr, {order} as order_value"
 
         await self._set_defaults(ctx, di)
 
@@ -174,7 +174,7 @@ class Scores(commands.Cog):
         
         Examples:
         - !unique_ss_list -stars-min 6 -mode 0
-        - !unique_ss_list -mods HD -grade SS
+        - !unique_ss_list -mods HD
         - !unique_ss_list -user_id 123456
         
         Key parameters:
@@ -183,7 +183,6 @@ class Scores(commands.Cog):
         - -mods: Filter by mods (HD, DT, HR, etc.)
         - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
         - -user_id/-username: Filter by specific user
-        - -grade: Filter by grade (SS, SSH, etc.)
         
         Notes: 
         - Shows scores where the user has the only SS on the beatmap
@@ -198,6 +197,99 @@ class Scores(commands.Cog):
             if k.startswith("-"):
                 args.extend([k, str(v)])
         await self.scorelist(ctx, *args)
+
+    @commands.command(
+        aliases=["ufcl", "uniquefclist"],
+        brief="List unique FC (no combo breaks) plays"
+    )
+    async def unique_fc_list(self, ctx, *args):
+        """
+        List scores that are unique FC (no combo breaks) plays.
+        
+        Usage: !unique_fc_list [filters]
+        
+        Examples:
+        - !unique_fc_list -stars-min 6 -mode 0
+        - !unique_fc_list -mods HD
+        - !unique_fc_list -user_id 123456
+        
+        Key parameters:
+        - -stars-min/-stars-max: Filter by star rating range
+        - -pp-min/-pp-max: Filter by PP range
+        - -mods: Filter by mods (HD, DT, HR, etc.)
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -user_id/-username: Filter by specific user
+        
+        Notes: 
+        - Shows scores where the user has the only FC on the beatmap
+        - Uses the unique_fc leaderboard preset
+        - Requires registration for default user filtering
+        """
+        di = get_args(args)
+
+        di["-o"] = "unique_fc"
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.scorelist(ctx, *args)
+
+    @commands.command(
+        aliases=["missing", "missingscore",],
+        brief="List scores with detailed information"
+    )
+    async def missing_score(self, ctx, *args):
+        """
+        List scores with missing score compared to #1.
+        
+        Usage: !missing_score [filters] [-page N] [-limit N]
+        
+        Examples:
+        - !missing_score -pp-min 400 -mode 0 -l 15
+        - !missing_score -grade-in X,S -accuracy-min 99
+        - !missing_score -mods HD,DT -page 2
+        
+        Key parameters:
+        - -pp-min/-pp-max: Filter by PP range
+        - -accuracy-min/-accuracy-max: Filter by accuracy range
+        - -grade-in/-grade-not: Filter by grade (X, S, A, B, etc.)
+        - -mods: Filter by mods (HD, DT, HR, etc.)
+        - -mode: Game mode (0=osu, 1=taiko, 2=fruits, 3=mania)
+        - -user_id/-username: Filter by specific user
+        - -page/-limit: Pagination controls
+        - -order: Sort by column (e.g., pp, accuracy, stars)
+        - -direction: Sort direction (ASC/DESC)
+        
+        Notes: 
+        - Displays score details including PP, accuracy, grade, and mods
+        - Defaults to highest score per beatmap only
+        - Supports leaderboard presets for common score aggregations
+        """
+        di = get_args(args)
+        table = "scoreLive"
+        order = "((top_score/1000000*multiplier)-classic_total_score)::bigint"
+        di["-order"] = order
+        columns = f"stars, artist, title, version, beatmap_id, beatmapset_id, mode, accuracy, pp, grade, mod_acronyms, modded_sr, {order} as order_value"
+
+        await self._set_defaults(ctx, di)
+
+        preset = get_leaderboard_preset(di.get("-o", "allscores"))
+
+        if preset is not None:
+            for k, v in preset.items():
+                if k.startswith("-") and k not in ('-group', '-order'):
+                    di[k] = v
+        else:
+            await ctx.reply("Preset not allowed. See valid presets with !help presets")           
+            return
+        
+        di["-order"] = order
+
+        query = QueryBuilder(di, columns, table)
+        result, elapsed = await self.bot.db.executeQuery(query.getQuery())
+        formatter = Formatter(title=f"Total scores: {len(result)}")
+        embed = formatter.as_score_list(result, page=int(di.get("-page", 1)), page_size=int(di.get("-limit", 10)), order=order, elapsed=elapsed)
+        await ctx.reply(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Scores(bot))

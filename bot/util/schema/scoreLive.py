@@ -37,6 +37,12 @@ SCORE_LIVE_METADATA = {
         "range": (0, None),
         "description": "Legacy scoring total"
     },
+    "alternative_total_score": {
+        "type": "int",
+        "nullable": False,
+        "range": (0, None),
+        "description": "Osu alternative custom scoring total"
+    },
     "total_score_without_mods": {
         "type": "int",
         "nullable": True,
