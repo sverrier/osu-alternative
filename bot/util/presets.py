@@ -176,6 +176,15 @@ LEADERBOARD_PRESETS = {
         "title": "Ranked Score (Legacy)",
         "description": "Sums legacy score per user, restricted to the user's top leaderboard play (highest_score=true).",
     },
+    "alternativescore": {
+        "columns": "username, sum(alternative_total_score)",
+        "-group": "username",
+        "-order": "sum(alternative_total_score)",
+        "-highest_score": "true",
+        "alias": "compact_score",
+        "title": "Ranked Score (osu!alternative)",
+        "description": "Sums custom osualt score per user, restricted to the user's top leaderboard play (highest_score=true).",
+    },
     "completion": {
         "columns": "username, SUM(completion_score(is_ss,difficulty_removing,difficulty_reducing,accuracy,is_fc,grade::text,total_score))",
         "-group": "username",
@@ -247,6 +256,18 @@ BEATMAP_PRESETS = {
         "alias": "count",
         "title": "Total beatmap count",
         "description": "Counts the number of beatmaps matching the current filters.",
+    },
+    "maxscore": {
+        "columns": "sum((top_score/1000000*multiplier)::bigint)",
+        "alias": "count",
+        "title": "Max possible score on beatmaps",
+        "description": "Sums beatmap length across a set of maps",
+    },
+    "nomodscore": {
+        "columns": "sum(multiplier::bigint)",
+        "alias": "count",
+        "title": "Max possible nomod score on beatmaps",
+        "description": "Sums beatmap length across a set of maps",
     },
 }
 
@@ -322,6 +343,8 @@ LEADERBOARD_PRESET_SYNONYMS = {
 
     "legacyscore": ("legacyscore",),
 
+    "alternativescore": ("alternativescore","realscore","osualtscore"),
+
     "completion": ("completion",),
 
     "length": ("length",),
@@ -351,6 +374,8 @@ USER_PRESET_SYNONYMS = {
 BEATMAP_PRESET_SYNONYMS = {
     "length": ("length", "playtime"),
     "count": ("count",),
+    "maxscore": ("maxscore",),
+    "nomodscore": ("nomodscore",),
 }
 
 LEADERBOARD_PRESET_LOOKUP = {
