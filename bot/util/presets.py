@@ -177,9 +177,9 @@ LEADERBOARD_PRESETS = {
         "description": "Sums legacy score per user, restricted to the user's top leaderboard play (highest_score=true).",
     },
     "alternativescore": {
-        "columns": "username, sum(alternative_total_score)",
+        "columns": "username, sum(coalesce(alternative_total_score, 0))",
         "-group": "username",
-        "-order": "sum(alternative_total_score)",
+        "-order": "sum(coalesce(alternative_total_score, 0))",
         "-highest_score": "true",
         "alias": "compact_score",
         "title": "Ranked Score (osu!alternative)",
