@@ -162,8 +162,7 @@ BEGIN
         total_score, total_score_without_mods, type,
         highest_score, highest_pp, rank,
         mod_acronyms, mod_speed_change,
-        difficulty_reducing, difficulty_removing, is_ss, is_fc,
-        attr_diff, attr_date, attr_recalc
+        difficulty_reducing, difficulty_removing, is_ss, is_fc
     )
     SELECT
         NEW.id,
@@ -229,10 +228,7 @@ BEGIN
         has_diff_reducing,
         has_diff_removing,
         is_ss_calc,
-        is_fc_calc,
-        NULL,
-        NULL,
-        NULL
+        is_fc_calc
     ON CONFLICT (id) DO NOTHING;
 
     INSERT INTO public.scoreattribute (
