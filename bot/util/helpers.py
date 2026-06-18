@@ -86,7 +86,7 @@ COLUMN_ALIASES = {
     "username": ("u","user"), 
     "drain_time": ("drain",), 
     "year": ("y",), 
-    "country_code": ("-c",), 
+    "country_code": ("c","country",), 
     "artist": ("a",), 
 }
 
