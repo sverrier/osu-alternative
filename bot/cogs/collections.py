@@ -82,7 +82,7 @@ class Collections(commands.Cog):
         beatmaps = {CollectionBeatmap(**row) for row in result}
 
         filename = f"{di.get('-name', 'collection')}.osdb"
-        collections = CollectionDatabase([CollectionSingle("collection", beatmaps)])
+        collections = CollectionDatabase([CollectionSingle(filename, beatmaps)])
         collections.encode_collections_osdb(open(filename, "wb"))
 
         with open(filename, "rb") as file:
