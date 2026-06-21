@@ -13,10 +13,24 @@ JOIN_CLAUSES = {
     "userLive,scoreLive": " inner join scoreLive on userLive.user_id = scoreLive.user_id_fk",
 }
 
+UTILITY_PARAMS = {"-name", "-field", "-precision", "-val-min", "-val-max"}
+
 # Special cases that don't follow standard patterns
 VALUED_PARAMS = {
-    "-unplayed": (
-        "NOT EXISTS (SELECT 1 FROM scoreLive s WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND s.user_id_fk = {value})",
+    "-unplayed_by": (
+        "NOT EXISTS (SELECT 1 FROM scoreLive s inner join userLive u on s.user_id_fk = u.user_id WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND UPPER(u.username) = UPPER('{value}'))",
+        ["beatmap_id"]
+    ),
+    "-played_by": (
+        "EXISTS (SELECT 1 FROM scoreLive s inner join userLive u on s.user_id_fk = u.user_id WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND UPPER(u.username) = UPPER('{value}'))",
+        ["beatmap_id"]
+    ),
+    "-ssed_by": (
+        "EXISTS (SELECT 1 FROM scoreLive s inner join userLive u on s.user_id_fk = u.user_id WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND UPPER(u.username) = UPPER('{value}') and is_ss = true)",
+        ["beatmap_id"]
+    ),
+    "-fced_by": (
+        "EXISTS (SELECT 1 FROM scoreLive s inner join userLive u on s.user_id_fk = u.user_id WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND UPPER(u.username) = UPPER('{value}') and is_fc = true)",
         ["beatmap_id"]
     ),
     "-search": (
@@ -77,6 +91,7 @@ PARAM_ALIASES = {
     "-not-easyclear": ("-not-easycleared","-not-easyclears",),
     "-not-play": ("-not-played","-not-plays",),
     "-play": ("-played","-plays",),
+    "-unplayed_by": ("-unplayed",),
 }
 
 COLUMN_ALIASES = {
@@ -147,44 +162,95 @@ def escape_string(s):
         s = s.replace(char, escaped)
     return s
 
+def is_param(token):
+    token = token.lower()
+
+    if not token.startswith("-"):
+        return False
+
+    if token in UTILITY_PARAMS:
+        return True
+
+    if token in VALUED_PARAMS:
+        return True
+
+    if token in VALUELESS_PARAMS:
+        return True
+
+    if token in PARAM_ALIASES:
+        return True
+
+    if token in ALIAS_TO_PARAM:
+        return True
+
+    raw = token.lstrip("-")
+
+    for suffix in SUFFIXES:
+        if raw.endswith(suffix):
+            column = raw[:-len(suffix)]
+            return validate_column(column)
+
+    return validate_column(raw)
+
 def get_args(arg=None):
     args = list(arg or [])
     di = {}
 
     i = 0
     while i < len(args):
-        if args[i].startswith("-"):
+        if is_param(args[i]):
             raw_key = args[i].lower()
-
-            # Resolve synonyms immediately
             key = ALIAS_TO_PARAM.get(raw_key, raw_key)
 
-            # Handle valueless params
             if key in VALUELESS_PARAMS:
                 di[key] = True
                 i += 1
                 continue
 
-            # Parameter expects a value
-            if i + 1 < len(args) and not args[i + 1].startswith("-"):
-                value = args[i + 1].lower()
-
-                if " " in value:
-                    raise ValueError(f"Spaces not allowed for argument {raw_key}")
-                else:
-                    di[key] = value
-
-                i += 2
-            else:
+            if i + 1 >= len(args):
                 raise ValueError(f"Parameter {raw_key} requires a value")
+
+            j = i + 1
+
+            # Quoted value
+            if args[j].startswith('"'):
+                parts = [args[j]]
+
+                while (
+                    not parts[-1].endswith('"')
+                    and j + 1 < len(args)
+                ):
+                    j += 1
+                    parts.append(args[j])
+
+                if not parts[-1].endswith('"'):
+                    raise ValueError(
+                        f"Unterminated quoted value for {raw_key}"
+                    )
+
+                value = " ".join(parts)[1:-1]
+
+            # Unquoted value
+            else:
+                parts = []
+
+                while j < len(args) and not is_param(args[j]):
+                    parts.append(args[j])
+                    j += 1
+
+                if not parts:
+                    raise ValueError(
+                        f"Parameter {raw_key} requires a value"
+                    )
+
+                value = " ".join(parts)
+                j -= 1
+
+            di[key] = value.lower()
+            i = j + 1
+
         else:
             i += 1
-
-    # Clean numeric strings ("100_000" → "100000")
-    for k, v in list(di.items()):
-        if isinstance(v, str):
-            if v.isdigit() or (v.replace("_", "").isdigit() and "." not in v):
-                di[k] = v.replace("_", "")
 
     return di
 
