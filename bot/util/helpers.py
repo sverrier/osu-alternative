@@ -13,7 +13,7 @@ JOIN_CLAUSES = {
     "userLive,scoreLive": " inner join scoreLive on userLive.user_id = scoreLive.user_id_fk",
 }
 
-UTILITY_PARAMS = {"-name", "-field", "-precision", "-val-min", "-val-max"}
+UTILITY_PARAMS = {"-name", "-field", "-precision", "-val-min", "-val-max", "-o", "-order", "-group", "-direction", "-dir"}
 
 # Special cases that don't follow standard patterns
 VALUED_PARAMS = {
