@@ -33,6 +33,10 @@ VALUED_PARAMS = {
         "EXISTS (SELECT 1 FROM scoreLive s inner join userLive u on s.user_id_fk = u.user_id WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND UPPER(u.username) = UPPER('{value}') and is_fc = true)",
         ["beatmap_id"]
     ),
+    "-not_overcleared_by": (
+        "NOT EXISTS (SELECT 1 FROM scoreLive s inner join userLive u on s.user_id_fk = u.user_id WHERE s.beatmap_id_fk = beatmapLive.beatmap_id AND s.ruleset_id = beatmapLive.mode AND UPPER(u.username) = UPPER('{value}') and is_fc = true and round(accuracy, 4) >= 0.9900 and difficulty_reducing = false AND difficulty_removing = false)",
+        ["beatmap_id"]
+    ),
     "-search": (
         "LOWER(CONCAT(artist, ',', title, ',', source, ',', version, ',', tags)) LIKE LOWER({value})",
         ["artist", "title", "source", "version", "tags"]
