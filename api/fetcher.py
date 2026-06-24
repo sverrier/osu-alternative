@@ -164,7 +164,7 @@ class Fetcher:
     # -----------------------
     async def _load_user_token(self, user_id):
         rows = await self.db.fetchParametrized(
-            "SELECT token FROM tokens WHERE user_id = $1 ORDER BY lchg_time DESC LIMIT 1",
+            "SELECT token FROM tokens WHERE user_id = $1 ORDER BY lchg_time ASC LIMIT 1",
             user_id
         )
 
