@@ -164,7 +164,7 @@ class Fetcher:
     # -----------------------
     async def _load_user_token(self, user_id):
         rows = await self.db.fetchParametrized(
-            "SELECT token FROM tokens WHERE user_id = $1 ORDER BY lchg_time ASC LIMIT 1",
+            "SELECT token FROM tokens WHERE user_id = $1 ORDER BY lchg_time DESC LIMIT 1",
             user_id
         )
 
@@ -398,7 +398,7 @@ class Fetcher:
     async def user_loop(self, api):
         while True:
             try:
-                rows = await self.db.fetchParametrized("SELECT user_id FROM tokens LIMIT 1")
+                rows = await self.db.fetchParametrized("SELECT user_id FROM tokens order by lchg_time asc LIMIT 1")
                 if rows:
                     await self.sync_user(api, rows[0]["user_id"])
             except Exception as e:
