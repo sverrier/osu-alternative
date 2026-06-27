@@ -237,13 +237,15 @@ BEATMAP_LIVE_METADATA = {
         "description": "True if the beatmapset is part of a spotlight season.",
     },
     "genre": {
-        "type": "str",
+        "type": "int",
         "nullable": True,
+        "range": (1, 14),
         "description": "Beatmapset genre text.",
     },
     "language": {
         "type": "str",
         "nullable": True,
+        "range": (2, 14),
         "description": "Beatmapset language text.",
     },
     "has_video": {

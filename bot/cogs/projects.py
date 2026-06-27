@@ -62,7 +62,7 @@ class Projects(commands.Cog):
         for k, v in di.items():
             if k.startswith("-"):
                 args_hardclears.extend([k, str(v)])
-        args_hardclears.extend(["-o", "fc"])
+        args_hardclears.extend(["-o", "overclears"])
         
         await users_cog.leaderboard(ctx, *args_hardclears)
         
@@ -71,7 +71,7 @@ class Projects(commands.Cog):
         for k, v in di.items():
             if k.startswith("-"):
                 args_hardclears.extend([k, str(v)])
-        args_hardclears.extend(["-o", "score"])
+        args_hardclears.extend(["-o", "classicscore"])
         
         await users_cog.leaderboard(ctx, *args_hardclears)
 
