@@ -185,6 +185,15 @@ LEADERBOARD_PRESETS = {
         "title": "Ranked Score (osu!alternative)",
         "description": "Sums custom osualt score per user, restricted to the user's top leaderboard play (highest_score=true).",
     },
+    "pp": {
+            "columns": "username, sum(coalesce(pp,0))",
+            "-group": "username",
+            "-order": "sum(coalesce(pp,0))",
+            "-highest_pp": "true",
+            "alias": "score",
+            "title": "Total pp",
+            "description": "Sums p per user, restricted to the user's top pp play (highest_pp=true).",
+        },
     "completion": {
         "columns": "username, SUM(completion_score(is_ss,difficulty_removing,difficulty_reducing,accuracy,is_fc,grade::text,total_score))",
         "-group": "username",
@@ -338,12 +347,11 @@ LEADERBOARD_PRESET_SYNONYMS = {
     "unique_fc": ("unique_fc", "ufc",),
 
     "score": ("score", "standardized",),
-
     "classicscore": ("classicscore",),
-
     "legacyscore": ("legacyscore",),
-
     "alternativescore": ("alternativescore","realscore","osualtscore"),
+
+    "pp": ("pp", "total_pp",),
 
     "completion": ("completion",),
 
