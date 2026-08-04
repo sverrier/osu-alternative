@@ -241,6 +241,25 @@ class Misc(commands.Cog):
         await ctx.reply(content="https://github.com/sverrier/osu-alternative")
 
     @commands.command(
+        aliases=["privacypolicy","privacy","policy"],
+        brief="Display privacy policy URL"
+    )
+    async def privacy_policy(self, ctx):
+        """
+        Display the Privacy Policy URL in the repository.
+        
+        Usage: !privacy_policy
+        
+        Output:
+        - Shows "https://github.com/sverrier/osu-alternative/blob/main/privacy_policy.txt" as Discord message
+        
+        Notes:
+        - Provides link to the project's source code
+        - Static response, no parameters required
+        """
+        await ctx.reply(content="https://github.com/sverrier/osu-alternative/blob/main/privacy_policy.txt")
+
+    @commands.command(
         brief="Set preferred osu! game modes for default filtering"
     )
     async def setmode(self, ctx, *, mode_arg):
