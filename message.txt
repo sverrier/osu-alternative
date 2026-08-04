@@ -1,0 +1,77 @@
+# osu!alternative Privacy Policy
+
+**Last Updated:** August 4, 2026
+
+## Introduction
+
+osu!alternative is a community Discord bot that provides osu!-related commands, account registration, statistics, leaderboards, and other features.
+
+Your privacy is important. This policy explains what information the bot accesses, why it accesses it, and how that information is used.
+
+## Information We Access
+
+### Discord Message Content
+
+The bot requests access to Discord message content solely to detect and process traditional text-based commands (for example, commands beginning with a designated prefix).
+
+Message content is:
+
+* Processed only to determine whether it contains a valid bot command.
+* Not stored or logged.
+* Not used for analytics, profiling, advertising, or any purpose unrelated to executing the requested command.
+
+If a message is not a bot command, it is ignored.
+
+### Registration Information
+
+When you register with the bot, the following information is stored:
+
+* Your Discord User ID
+* Your osu! User ID
+
+This information is used only to associate your Discord account with your osu! account so that bot features can function without requiring you to specify your osu! username or ID every time.
+
+No additional personal information is collected during registration.
+
+## How Information Is Used
+
+The information collected is used exclusively to:
+
+* Execute bot commands requested by users.
+* Link Discord accounts to osu! accounts.
+* Provide bot functionality such as statistics, rankings, profile lookups, and other osu!-related features.
+
+The bot does not use collected information for advertising, marketing, profiling, or automated decision-making.
+
+## Data Sharing
+
+osu!alternative does not sell, rent, or share your information with third parties.
+
+Information may only be disclosed if required by applicable law.
+
+## Data Retention
+
+Registration data is retained until:
+
+* You request that your registration be removed, or
+* The service permanently discontinues operation.
+
+Discord message content is not retained.
+
+## Data Security
+
+Reasonable technical and administrative measures are taken to protect stored registration information against unauthorized access, alteration, or disclosure.
+
+## Your Rights
+
+You may request that your registration information be removed from the bot's database at any time by contacting the bot developer.
+
+Once removed, the association between your Discord account and osu! account will be deleted.
+
+## Changes to This Privacy Policy
+
+This Privacy Policy may be updated from time to time. Continued use of the bot after changes are published constitutes acceptance of the revised policy.
+
+## Contact
+
+If you have questions about this Privacy Policy or wish to request deletion of your registration information, please contact the osu!alternative developer through the project's official support server or repository.
