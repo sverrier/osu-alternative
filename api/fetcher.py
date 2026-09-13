@@ -420,7 +420,7 @@ class Fetcher:
     # -----------------------
     async def run(self):
         await self.db.get_pool()
-        await self.db.execSetupFiles()
+        await self.db.runMigrations()
 
         api_client = self._build_api(self.client_config, self.client_delay, "client")
         api_user = self._build_api(self.user_config, self.user_delay, "user")

@@ -743,7 +743,7 @@ class Gatherer:
     async def run(self):
         # Connect to database on startup
         await self.db.get_pool()
-        await self.db.execSetupFiles()
+        await self.db.runMigrations()
         self.apiv2.refresh_token()
         
         options = {
