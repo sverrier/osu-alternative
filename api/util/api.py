@@ -10,6 +10,10 @@ import asyncio
 import concurrent.futures
 
 
+class RevokedUserTokenError(RuntimeError):
+    """Raised when osu! rejects a user refresh token as revoked."""
+
+
 class util_api:
     def __init__(self, config):
         self.client = config["CLIENT"]
@@ -149,6 +153,24 @@ class util_api:
                 time.sleep(self.delay)
 
                 if response.status_code != 200:
+                    try:
+                        error_data = response.json()
+                    except ValueError:
+                        error_data = {}
+
+                    error_description = " ".join(
+                        str(error_data.get(field, ""))
+                        for field in ("error_description", "hint")
+                    ).lower()
+                    if (
+                        error_data.get("error") == "invalid_grant"
+                        and "revoked" in error_description
+                    ):
+                        raise RevokedUserTokenError(
+                            f"User token refresh failed ({response.status_code}): "
+                            f"{response.text}"
+                        )
+
                     raise RuntimeError(
                         f"User token refresh failed ({response.status_code}): {response.text}"
                     )
@@ -168,6 +190,8 @@ class util_api:
                 retry_count = 0
                 return json_response
 
+            except RevokedUserTokenError:
+                raise
             except Exception as e:
                 print(f"refresh_user_token error: {e}")
                 backoff = min(self.delay * (2 ** retry_count), 60.0)
@@ -634,4 +658,3 @@ class util_api:
                 retry_count = self._handle_request_exception(e, retry_count)
         
         return json_response
-

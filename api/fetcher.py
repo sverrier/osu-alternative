@@ -8,7 +8,7 @@ from api.util.scoreOsu import ScoreOsu
 from api.util.scoreFruits import ScoreFruits
 from api.util.scoreMania import ScoreMania
 from api.util.scoreTaiko import ScoreTaiko
-from api.util.api import util_api
+from api.util.api import RevokedUserTokenError, util_api
 from util.db import db
 from util.crypto import get_fernet
 
@@ -401,6 +401,15 @@ class Fetcher:
                 rows = await self.db.fetchParametrized("SELECT user_id FROM tokens order by lchg_time asc LIMIT 1")
                 if rows:
                     await self.sync_user(api, rows[0]["user_id"])
+            except RevokedUserTokenError:
+                user_id = rows[0]["user_id"]
+                await self.db.executeParametrized(
+                    "DELETE FROM tokens WHERE user_id = $1",
+                    user_id,
+                )
+                self.logger.warning(
+                    f"Deleted revoked token for user {user_id}"
+                )
             except Exception as e:
                 self.logger.error(e)
 
