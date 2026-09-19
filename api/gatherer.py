@@ -235,7 +235,7 @@ class Gatherer:
             else:
                 consecutive_empty = 0
 
-        await self._execute_sql_file("insert_beatmapHistory.sql")
+        #await self._execute_sql_file("insert_beatmapHistory.sql")
 
 
     async def fetch_beatmaps_packs(self):
