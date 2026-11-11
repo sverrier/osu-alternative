@@ -47,7 +47,9 @@ class Completion(commands.Cog):
             "hp": [0, 10, 1],
             "stars": [0, 10.1, 1],
             "year": [2007, 2027, 1],
+            "submission": [2007, 2027, 1],
             "month": [1, 13, 1],
+            "week": [1, 54, 2],
             "day": [1, 32, 1],
             "length": [0, 601, 60],
             "drain": [0, 601, 60],
@@ -394,6 +396,21 @@ class Completion(commands.Cog):
             if k.startswith("-"):
                 args.extend([k, str(v)])
         await self.completion(ctx, *args)
+
+    @commands.command(
+        aliases=["subc"],
+        brief="Display yearly submission date completion"
+    )
+    async def submission_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "year"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)    
 
     @commands.command(
         aliases=["mc"],

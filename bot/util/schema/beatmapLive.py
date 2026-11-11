@@ -280,6 +280,13 @@ BEATMAP_LIVE_METADATA = {
         "description": "The month the beatmap was ranked.",
         "expression": "EXTRACT(MONTH FROM ranked_date)",
     },
+    "week": {
+            "type": "int",
+            "nullable": False,
+            "range": (1, 31),
+            "description": "The week of the year the beatmap was ranked.",
+            "expression": "EXTRACT(WEEK FROM ranked_date)",
+        },
     "day": {
         "type": "int",
         "nullable": False,
@@ -293,5 +300,12 @@ BEATMAP_LIVE_METADATA = {
         "range": (0, None),
         "description": "True if downloads are disabled for this beatmapset.",
         "expression": "(count_circles + count_sliders + count_spinners)",
+    },
+    "submitted_year": {
+            "type": "int",
+            "nullable": False,
+            "range": (2007, None),
+            "description": "The year the beatmap was ranked.",
+            "expression": "EXTRACT(YEAR FROM submitted_date)",
     },
 }
