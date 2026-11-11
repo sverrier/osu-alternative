@@ -47,7 +47,7 @@ class Completion(commands.Cog):
             "hp": [0, 10, 1],
             "stars": [0, 10.1, 1],
             "year": [2007, 2027, 1],
-            "submission": [2007, 2027, 1],
+            "submission_year": [2007, 2027, 1],
             "month": [1, 13, 1],
             "week": [1, 54, 2],
             "day": [1, 32, 1],
@@ -326,7 +326,7 @@ class Completion(commands.Cog):
         is_string, config = self._get_completion_field_config(field)
         
         if is_string is None:
-            numeric_fields = ["ar", "cs", "od", "hp", "stars", "year", "month", "day" "length", "drain", "drain_time", "bpm", "objects"]
+            numeric_fields = ["ar", "cs", "od", "hp", "stars", "year", "month", "day" "length", "drain", "drain_time", "bpm", "objects", "submission_year", "week"]
             string_fields = ["artist", "title", "version", "source", "status", "grade"]
             all_fields = numeric_fields + string_fields
             await ctx.reply(f"Unknown field: {field}. Available: {', '.join(all_fields)}")
@@ -398,13 +398,28 @@ class Completion(commands.Cog):
         await self.completion(ctx, *args)
 
     @commands.command(
+        aliases=["wc"],
+        brief="Display weekly completion"
+    )
+    async def weekly_completion(self, ctx, *args):
+        di = get_args(args)
+
+        di["-field"] = "week"
+
+        args = []
+        for k, v in di.items():
+            if k.startswith("-"):
+                args.extend([k, str(v)])
+        await self.completion(ctx, *args)
+
+    @commands.command(
         aliases=["subc"],
         brief="Display yearly submission date completion"
     )
     async def submission_completion(self, ctx, *args):
         di = get_args(args)
 
-        di["-field"] = "year"
+        di["-field"] = "submission_year"
 
         args = []
         for k, v in di.items():
