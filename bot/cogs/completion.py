@@ -47,7 +47,7 @@ class Completion(commands.Cog):
             "hp": [0, 10, 1],
             "stars": [0, 10.1, 1],
             "year": [2007, 2027, 1],
-            "submission_year": [2007, 2027, 1],
+            "submitted_year": [2007, 2027, 1],
             "month": [1, 13, 1],
             "week": [1, 54, 2],
             "day": [1, 32, 1],
@@ -419,7 +419,7 @@ class Completion(commands.Cog):
     async def submission_completion(self, ctx, *args):
         di = get_args(args)
 
-        di["-field"] = "submission_year"
+        di["-field"] = "submitted_year"
 
         args = []
         for k, v in di.items():
